@@ -54,11 +54,6 @@ BgImgFormats = [
 ]
 
 
-class CellViewerWidget(QGraphicsWidget):
-    def __init__(self, **kwargs):
-        super().__init__(None, **kwargs)
-
-
 class CellsViewerLegend(QGraphicsItem):
     def __init__(self, items, pos_x, pos_y, parent, **kwargs):
         super().__init__(None, **kwargs)
@@ -103,7 +98,6 @@ class CellViewerScene(QGraphicsScene):
 
 
 class Cell(QGraphicsPolygonItem):
-
     __shape = None
 
     def __init__(self, id, poly, brush, pen, **kwargs):
@@ -125,15 +119,16 @@ class Cell(QGraphicsPolygonItem):
             if value:
                 self.old_pen = self.pen()
                 new_pen = QPen()
-                new_pen.setColor(QColor(255,99,71, 255))
+                new_pen.setColor(QColor(255, 99, 71, 255))
                 new_pen.setWidth(5)
                 self.setPen(new_pen)
+                self._selected = True
             else:
                 if self.old_pen is not None:
                     self.setPen(self.old_pen)
+                    self._selected = False
 
         return value
-
 
     def paint(self, painter, option, widget):
         if option.state & QStyle.State_Selected:
@@ -148,7 +143,6 @@ class Cell(QGraphicsPolygonItem):
         painter.drawPolygon(self.polygon())
 
 
-
 class OWCellsViewer(OWWidget):
     name = "Cells Viewer"
     icon = "icons/mywidget.svg"
@@ -159,6 +153,7 @@ class OWCellsViewer(OWWidget):
 
     class Outputs:
         selected_data = Output("Selected Data", Table, default=True)
+        data = Output("Data", Table, default=True)
 
     settingsHandler = DomainContextHandler()
     attr_contour = ContextSetting(None)
@@ -169,6 +164,7 @@ class OWCellsViewer(OWWidget):
     background_image_enabled = False
     too_many_labels = Signal(bool)
     graph_name = "scene"
+    autocommit = False
 
     class Error(OWWidget.Error):
         no_valid_contours = Msg("No contours due to no valid data.")
@@ -194,8 +190,8 @@ class OWCellsViewer(OWWidget):
         self.bg_image = None
         self.setup_gui()
         self.labels = []
-        self._too_many_labels = False
 
+        self._too_many_labels = False
 
         # self.update_legend_visibility()
 
@@ -237,7 +233,8 @@ class OWCellsViewer(OWWidget):
             box_bgImg, self, "background_image_enabled", label="Show background",
             callback=self._bg_image_enabled)
         icon_open_dir = self.style().standardIcon(QStyle.SP_DirOpenIcon)
-        self.btnBrowseBgImage = gui.button(box_bgImg, self, label= "Fluorescent image", icon=icon_open_dir, callback=self.browse_bg_image)
+        self.btnBrowseBgImage = gui.button(box_bgImg, self, label="Fluorescent image", icon=icon_open_dir,
+                                           callback=self.browse_bg_image)
         self.btnBrowseBgImage.setEnabled(False)
         self.cb_bgImg = gui.lineEdit(box_bgImg, self, "bg_image_filename")
         self.cb_bgImg.setEnabled(False)
@@ -263,6 +260,9 @@ class OWCellsViewer(OWWidget):
         tb_zoom_reset.setIcon(QIcon(os.path.join(os.path.dirname(__file__), "icons", 'zoom_reset.png')))
         '''
 
+        gui.auto_commit(self.controlArea, self, "autocommit", "Send Selected", "Send Automatically",
+                        box=False)
+
         # Main area view
         self.scene = CellViewerScene()
         # self.scene.select
@@ -272,9 +272,6 @@ class OWCellsViewer(OWWidget):
         self.view.setRenderHint(QPainter.Antialiasing)
         self.view.setBackgroundRole(QPalette.Window)
         self.view.setFrameStyle(QGraphicsView.StyledPanel)
-
-        # self.view.scale(10,10) #.setTransform()
-        # backGroundImg = "/Volumes/Macintosh HD/Users/tanya/Desktop/Traning/0_512_0_512_8bit.tif"
 
         self.mainArea.layout().addWidget(self.view)
         self.too_many_labels.connect(lambda too_many: self.Warning.too_many_labels(shown=too_many))
@@ -339,12 +336,28 @@ class OWCellsViewer(OWWidget):
         if dlg.exec_() == QFileDialog.Accepted:
             self.bg_image_filename = dlg.selectedFiles()[0]
             if self.bg_image is not None:
+                print("tries to remove here")
                 self.scene.removeItem(self.bg_image)
             self.bg_image = QGraphicsPixmapItem()
             self.bg_image.setPixmap(QPixmap(self.bg_image_filename))
             self.bg_image.setZValue(-100)
             self.scene.addItem(self.bg_image)
 
+    def commit(self):
+        if self.data is not None:
+            ids = []
+            for c in self.contours:
+                if c._selected:
+                    ids.append(c.id)
+                    self.data[c.id]["Selected"] = True
+                else:
+                    self.data[c.id]["Selected"] = False
+            print(ids)
+            self.Outputs.selected_data.send(self.data[ids])
+            self.Outputs.data.send(self.data)
+        else:
+            self.Outputs.selected_data.send(None)
+            self.Outputs.data.send(None)
 
     def update_labels(self):
         self.Error.clear()
@@ -380,9 +393,17 @@ class OWCellsViewer(OWWidget):
         i = 0
         for label in self.get_column(self.attr_label, merge_infrequent=False):
             text = QGraphicsTextItem()
+
+            font = QFont()
+            font.setPixelSize(10)
             text.setDefaultTextColor(QColor(249, 166, 2))
             text.setHtml(str(label))
-            text.setPos(self.contours[i].boundingRect().center())
+            text.setFont(font)
+            print("rect", self.contours[i].boundingRect())
+            text.setPos(QPointF(self.contours[i].boundingRect().x(), self.contours[i].boundingRect().y()))
+
+
+            #text.setPos(self.contours[i].boundingRect().center())
             self.labels.append(text)
             self.scene.addItem(text)
             i = i + 1
@@ -463,10 +484,10 @@ class OWCellsViewer(OWWidget):
                     self.Error.no_valid_contours()
                     return
 
-                point = QtCore.QPointF(float(coord[0]), 2048 - float(coord[1]))
+                point = QtCore.QPointF(float(coord[0]), float(coord[1]))
                 poly.append(point)
 
-            #p = QGraphicsPolygonItem(poly)
+            # p = QGraphicsPolygonItem(poly)
             p = Cell(i, poly, brush_data[i], pen_data[i])
             self.contours.append(p)
             self.scene.addItem(p)
@@ -593,7 +614,7 @@ class OWCellsViewer(OWWidget):
         if self.attr_color is None:
             return None
         colors = self.attr_color.colors
-        print("number of colors", len(colors))
+        #print("number of colors", len(colors))
         if self.attr_color.is_discrete:
             return ColorPaletteGenerator(
                 number_of_colors=min(len(colors), MAX_CATEGORIES),
@@ -698,19 +719,6 @@ class OWCellsViewer(OWWidget):
     def get_labels(self):
         return self._filter_visible(self.get_label_data())
 
-    """ 
-    def save_graph(self):
-        print("Save")
-
-        graph_obj = getdeepattr(self, "scene", None)
-        if graph_obj is None:
-            print("graph_obj is none")
-            return
-
-        saveplot.save_plot(graph_obj, FileFormat.img_writers)
-    """
-
-
 def _make_pen(color, width):
     p = QPen(color, width)
     p.setCosmetic(True)
@@ -718,5 +726,6 @@ def _make_pen(color, width):
 
 
 if __name__ == "__main__":  # pragma: no cover
+
     data = Table("iris")
     WidgetPreview(OWCellsViewer).run(set_data=data)
