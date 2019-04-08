@@ -1,0 +1,11 @@
+**/__*__
+**/*.swp
+**/*.swo
+**/*.pyc
+*.dot
+*.out
+*.log
+**/*.log.rst
+**/.pytest*
+doc/build/
+*.DS_store
