@@ -78,10 +78,12 @@ class ModifyResReq(BaseEvent):
 
 class ReposUpdated(BaseEvent):
 
-    def _init(self, repos, wipe=True):
+    def _init(self, repos, wipe=True, roi=False):
         #TODO add a safety wrapper if a functionptr gets voidptr
         self.repos = repos
         self.wipe = wipe
+        self.roi = roi
+
 
 class NewViewProps(BaseEvent):
 
@@ -96,3 +98,10 @@ class GenOverlayReq(BaseEvent):
         self.req_type = req_type
         self.args = args
         self.name = name
+
+
+class ModifyView(BaseEvent):
+
+    def _init(self, mod_type, modification):
+        self.mod_type = mod_type
+        self.modification = modification

@@ -50,20 +50,24 @@ class BackgroundImage(OrientedImage):
         self.staticqimg = None
         self.cur_view = None
         return super().setImage(*args, **kwargs)
-        
+
     def render(self, *args, **kwargs):
         """Monkeypatching the renderer. Keep the previous QImage
         and prevent re-rendering.
         """
         if not self.is_rendered:
-            self.prev_render = super().render(*args, **kwargs)
+            try:
+                del self.prev_render
+                self.prev_render = None
+                super().render(*args, **kwargs)
+            except MemoryError as err:
+                return self.staticqimg
             #TODO maybe unessecary
             self.staticqimg = self.qimage
             if not self.staticqimg is None:
                 self.is_rendered = True
         else:
             self.qimage = self.staticqimg
-        return self.prev_render
 
 
 class OverlayImage(OrientedImage):
@@ -72,9 +76,27 @@ class OverlayImage(OrientedImage):
         _DEFAULTS_FOREGROUND['parent'] = kwargs.get('parent', None)
         super().__init__(**_DEFAULTS_FOREGROUND)
 
-    @qc.pyqtSlot(object, object, object, object, object, object)
-    def _draw(self, kernds, r0ds, bytes_per_row, brush_rgba, byte0,
-              update_rect):
+    # @qc.pyqtSlot(object, object, object, object, object, object)
+    # def _draw(self, kernds, r0ds, bytes_per_row, brush_rgba, byte0,
+    #           update_rect):
+    #     for r, kernrow in enumerate(kernds, r0ds):
+    #         arr = self.qimage.scanLine(r).asarray(bytes_per_row)
+    #         for i, m in enumerate(kernrow):
+    #             if not m:
+    #                 continue
+    #             else:
+    #                 # additional lookups for each byte/pixel makes it slow...
+    #                 for b, val in enumerate(brush_rgba, byte0 + (4 * i)):
+    #                     arr[b] = val
+    #
+    #     self.update(update_rect)
+    @qc.pyqtSlot(object, object)
+    def update_from_array(self, img_data, img_slice):
+        pass
+        import IPython as ip
+        ip.embed()
+        update = img_data[img_slice]
+
         for r, kernrow in enumerate(kernds, r0ds):
             arr = self.qimage.scanLine(r).asarray(bytes_per_row)
             for i, m in enumerate(kernrow):
@@ -84,8 +106,6 @@ class OverlayImage(OrientedImage):
                     # additional lookups for each byte/pixel makes it slow...
                     for b, val in enumerate(brush_rgba, byte0 + (4 * i)):
                         arr[b] = val
-         
-        self.update(update_rect)
 
 
 class ForegroundImage(OverlayImage):
@@ -112,7 +132,7 @@ class ForegroundImage(OverlayImage):
             colds, rowds = self._lastDownsample
         except AttributeError:
             colds = rowds = 1
- 
+
         w = self.kern.shape[0]
         c0, r0 = col - (w // 2), row - (w // 2)
         c1, r1 = c0 + w, r0 + w
