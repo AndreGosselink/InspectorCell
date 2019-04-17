@@ -1,0 +1,4 @@
+include doc/**/*.py
+include doc/**/*.rst
+
+include dataframework/res/abids.json
