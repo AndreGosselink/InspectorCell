@@ -5,8 +5,8 @@ Holds all gui QtWidget and gui elements
 """
 import logging
 
-import PyQt5.QtCore as qc
-import PyQt5.QtWidgets as qw
+import AnyQt.QtCore as qc
+import AnyQt.QtWidgets as qw
 
 from . import get_logger_name
 
