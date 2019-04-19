@@ -14,17 +14,15 @@ class Entity():
 
     _used_ids = set([])
     
-    def __init__(self, entity_id=None):
+    def __init__(self, entity_id):
+        """raises valueerror if entity_id is not none
+        and invalid id because
+        """
 
         ### Logic ###
-        # must be unique, enforced on class level
-        # maybe on factory level? nontheless similar logic
-        if entity_id is None:
-            entity_id = self._get_eid()
-
-        if not self._valid_eid(entity_id):
-            raise ValueError('EntityID {} already in use'.format(entity_id))
-
+        # must be unique, enforced on factory level
+        # on factory level to avoid resetting state of
+        # class later on
         self.eid = entity_id
 
         ### Imagepixel context ###
@@ -64,64 +62,14 @@ class Entity():
         self.tags = []
         self.scalars = {}
 
-    def _set_mask(self, polygon):
+    def set_mask(self, polygon):
         """Sets the mask, given the polygon
         """
         pass
 
-    def _set_polygon(self, mask, eslice):
+    def set_polygon(self, mask, eslice):
         """Sets the polygon, given the bool mask for the eslice
         where bool mask is a np.array and eslice a tupple of slices
         """
         pass
 
-    @classmethod
-    def get_eid(cls):
-        pass
-
-
-    def set_free_oid(self, new_object):
-        """Sets oid to a free one. if new_objects
-        id is not taken, it stays
-
-        Raises
-        ------
-        ValueError : if no map was loaded
-        """
-        if self._objid_map is None:
-            raise ValueError('No map was loaded or created!')
-
-        other = self._objects_dict.get(new_object.id, None)
-        if other is None:
-            return
-
-        # def find_missing(d):
-        left = 0
-        right = len(self.objects) - 1
-
-        if self.objects[right].id == len(self.objects):
-            self._log.debug('fast free id')
-            new_object.id = len(self.objects) + 1
-
-        if self.objects[left].id != 1:
-            self._log.debug('fast free id')
-            new_object.id = 1
-
-        while True:
-            mid = left + (right - left) // 2
-            val = self.objects[mid].id - 1
-            if val != mid:
-                right = mid
-            else:
-                left = mid
-            if right - left == 1:
-                break
-
-        lval = self.objects[left].id
-        rval = self.objects[right].id
-
-        if rval - lval <= 1:
-            self._log.debug('missed...')
-            return len(self.objects) + 1
-
-        new_object.id = lval + 1
