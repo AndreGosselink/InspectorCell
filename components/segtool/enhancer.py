@@ -42,27 +42,44 @@ class Enhancer(qc.QObject):
 
         return lut
 
-    def get_autobounds(self, img):
+    def get_autobounds(self, img, bincount=0xfff, sat_trgt=1e-6,
+                       under_trgt=0.002):
         if img is None:
-            return 0, 1
-        limit = img.size * self.auto_limit_factor
-        threshold = img.size * self.auto_thresh_factor
-        hist, bins = np.histogram(img.flatten(), self.auto_bins)
+            return 0, 0xff
 
-        hmin = hist.size
-        hmax = 0
-        for i, count in enumerate(hist):
-            if count > limit:
-                count = 0
-            if count > threshold:
-                hmin = i
-                break
+        counts, bins = np.histogram(img.ravel(), bins=bincount)
+        bins = bins[1:]
 
-        for i, count in enumerate(hist[::-1], 1):
-            if count > limit:
-                count = 0
-            if count > threshold:
-                hmax = hist.size - i
-                break
+        # sat_trgt = sat_trgt * img.size
+        sat_trgt = 1
+        under_trgt = under_trgt * img.size
+        sat_px = 0
+        under_px = counts[0]
+        sat_edge = None
+        under_edge = None
 
-        return bins[int(hmin)], bins[int(hmax)]
+        for i in range(1, len(bins)):
+
+            if sat_px <= sat_trgt:
+                sat_px += counts[-i]
+                sat_edge = bins[-i]
+
+            if under_px <= under_trgt:
+                under_px += counts[i]
+                under_edge = bins[i]
+
+        if sat_edge is None:
+            sat_edge = 0xfff
+
+        if under_edge is None:
+            under_edge = 0
+
+        if under_edge > sat_edge:
+            under_edge = 0
+
+        if under_edge > sat_edge:
+            sat_edge = 0xfff
+        
+        print(under_edge, sat_edge)
+        print(under_px, sat_px)
+        return under_edge, sat_edge

@@ -4,7 +4,11 @@
 """
 import sys
 import logging
+import time
 from pathlib import Path
+import numpy as np
+
+import multiprocessing
 
 import PyQt5.QtWidgets as qw
 import PyQt5.QtCore as qc
@@ -15,7 +19,7 @@ from .data import DataManager
 
 from .util import CallBack, parse_orange
 
-from .events import ReposUpdated, ErrorEvent
+from .events import ReposUpdated, ErrorEvent, ModifyView
 
 from ._config import __marker_db_dir as db_dir
 
@@ -39,18 +43,26 @@ class RepoManager(qc.QObject):
 
         self.receiver = []
 
-    def update_repo(self, post=True, wipe=True, **kwargs):
-
+    def update_repo(self, post=True, wipe=True, roi=False, **kwargs):
         for key, new_repo in kwargs.items():
             if not key in self.repos:
                 raise ValueError('Invalid repo key')
             self.repos[key] = new_repo
         if post:
-            self.post_receiver(wipe=wipe)
+            self.post_receiver(wipe=wipe, roi=roi)
 
-    def post_receiver(self, wipe):
+    def redraw_partial(self, mapslice):
+        """tells all reciver to update a certain slice
+        only
+        """
         the_app = qc.QCoreApplication
-        repos_updated = ReposUpdated(self.repos, wipe=wipe)
+        viewmod = ModifyView('oid.part', mapslice)
+        for recv in self.receiver:
+            the_app.postEvent(recv, viewmod)
+
+    def post_receiver(self, wipe, roi):
+        the_app = qc.QCoreApplication
+        repos_updated = ReposUpdated(self.repos, wipe=wipe, roi=roi)
         for recv in self.receiver:
             the_app.postEvent(recv, repos_updated)
 
@@ -60,7 +72,9 @@ class AppControl(qw.QApplication):
     manages the databinding, owns the proxyadapter
     """
 
-    def __init__(self, *args, console=False, loglevel=logging.DEBUG, **kwargs):
+    def __init__(self, *args, console=False, zip_path=None,
+                 use_roi=False, loglevel=logging.DEBUG, load_dir=None,
+                 load_view=None, **kwargs):
         super().__init__(*args, **kwargs)
 
         # set logger
@@ -90,6 +104,10 @@ class AppControl(qw.QApplication):
         self.log.info('Arming Trigger...')
         self.repomanager = RepoManager()
         self.repomanager.receiver.append(self.dataviewer)
+
+        # keep track of roi
+        self.use_roi = use_roi
+
         # init first empty repos
         self.update_view()
 
@@ -98,6 +116,27 @@ class AppControl(qw.QApplication):
             self._spawn_console()
 
         self.log.info('App Initialized')
+
+        if not zip_path is None:
+            zip_path = Path(zip_path)
+            try:
+                self._ff_load_objzip(zip_path)
+            except ValueError:
+                self.log.error('Could not load %s', str(zip_path))
+
+        if not load_dir is None:
+            init_dir = Path(load_dir)
+            try:
+                self._ff_load_image_dir(init_dir)
+            except ValueError:
+                self.log.error('Could not load %s', str(init_dir))
+
+        if not load_view is None:
+            init_view = Path(load_view)
+            try:
+                self.dataviewer.load_view_state(init_view)
+            except ValueError:
+                self.log.error('Could not load %s', str(init_view))
 
         # if loglevel == logging.DEBUG:
         #     banner = '\n{:=>50s}\n=={: ^46s}==\n{:=>50s}\n'
@@ -115,7 +154,8 @@ class AppControl(qw.QApplication):
         for bcand in base_cand:
             cand = bcand / 'abids.json'
             if cand.exists():
-                self.log.info('Using %s as antibody database', str(cand.absolute()))
+                self.log.info('Using %s as antibody database',
+                              str(cand.absolute()))
                 return cand
         self.log.error('Could not find any AbID database')
         return None
@@ -175,6 +215,7 @@ class AppControl(qw.QApplication):
             tags=self._get_tag_repo(),
             misc=self._get_misc_repo(),
             wipe=wipe,
+            roi=self.use_roi,
         )
 
     @qc.pyqtSlot(str)
@@ -216,12 +257,63 @@ class AppControl(qw.QApplication):
 
     @qc.pyqtSlot(str)
     def _ff_objects_from_map(self, map_path):
+        t0 = time.time()
         self.log.info('Creating objects from %s', str(map_path))
         self.datamanager.objects_from_map(Path(map_path))
 
         object_list = self.datamanager.objects
         object_count = len(object_list)
-        self.log.info('Created %d objects', object_count)
+        self.log.info('Created %d objects in %.2f s', object_count,
+                      time.time() - t0)
+
+        self.update_view(wipe=False)
+
+    @qc.pyqtSlot(str)
+    def _ff_objects_from_map_threaded(self, map_path):
+        t0 = time.time()
+
+        class ObjGenThr(qc.QThread):
+
+            def __init__(self, generator):
+                super().__init__()
+                self._gen = generator
+                self.objects = []
+
+            def __del__(self):
+                self.wait()
+
+            def run(self):
+                for obj in self._gen:
+                    self.objects.append(obj)
+
+        self.log.info('Creating objects from %s', str(map_path))
+        # self.datamanager.objects_from_map(Path(map_path))
+
+        cpus = multiprocessing.cpu_count()
+        self.log.debug('Found %d cores', cpus)
+
+        generators = self.datamanager.get_object_generators_from_map(
+            map_path, cpus)
+
+        threads = [ObjGenThr(gen) for gen in generators]
+        self.log.info('Got %d generators in %d threads',
+                      len(generators), len(threads))
+
+        # wait and join threads
+        for thr in threads:
+            thr.start()
+
+        obj_list = []
+        for thr in threads:
+            thr.wait()
+            obj_list += thr.objects
+
+        self.datamanager.add_multiple_objects(obj_list)
+
+        object_list = self.datamanager.objects
+        object_count = len(object_list)
+        self.log.info('Created %d objects in %.2f s', object_count,
+                      time.time() - t0)
 
         self.update_view(wipe=False)
 
@@ -282,6 +374,58 @@ class AppControl(qw.QApplication):
             err = ErrorEvent(msg)
             qc.QCoreApplication.postEvent(self.dataviewer, err)
 
+    @qc.pyqtSlot(dict)
+    def _ff_reduce_obj(self, mod_dict):
+        oids = mod_dict['oids']
+
+        try:
+            self.datamanager.reduce_objects(oids)
+            self.update_view(wipe=False)
+        except ValueError as err:
+            self.log.error(str(err))
+
+        self.repomanager.redraw_partial(mod_dict['mapslice'])
+
+    @qc.pyqtSlot(dict)
+    def _ff_merge_obj(self, mod_dict):
+        oids = mod_dict['oids']
+
+        try:
+            merged_obj = self.datamanager.merge_objects(oids)
+            self.update_view(wipe=False)
+        except ValueError as err:
+            self.log.error(str(err))
+            merged_obj = None
+
+        if not merged_obj is None:
+            self._redraw_at_obj(merged_obj)
+
+    def _redraw_at_obj(self, obj):
+        row, _, col, _ = obj.bbox
+        width, height = obj.bmask.shape
+        mapslice = np.s_[row:row+width, col:col+height]
+        self.repomanager.redraw_partial(mapslice)
+
+    @qc.pyqtSlot(int)
+    def _ff_delete_obj(self, oid):
+        try:
+            obj = self.datamanager.delete_object(oid)
+            self.update_view(wipe=False)
+            self._redraw_at_obj(obj)
+        except (ValueError, KeyError) as err:
+            self.log.error(str(err))
+
+    @qc.pyqtSlot(tuple)
+    def _ff_create_obj(self, coords):
+        x, y = (int(np.ceil(v)) for v in coords)
+        try:
+            obj = self.datamanager.create_center_object(x-3, y-3)
+            self.update_view(wipe=False)
+        except ValueError as err:
+            self.log.error(str(err))
+
+        self._redraw_at_obj(obj)
+
     @qc.pyqtSlot()
     def _ff_not_implementd(self):
         self.log.error('NOT IMPLEMENTED YET')
@@ -301,7 +445,7 @@ class AppControl(qw.QApplication):
 
         # object generation from an objectmap
         self.dataviewer.sig_req_load_objmap.connect(
-            self._ff_objects_from_map)
+            self._ff_objects_from_map_threaded)
 
         # set object tags from csv
         self.dataviewer.sig_req_load_objtags.connect(
@@ -331,7 +475,15 @@ class AppControl(qw.QApplication):
         self.dataviewer.sig_req_modify_objtag.connect(
             self._ff_update_objtag)
 
-
+        # obj merging, creating, deleting
+        self.dataviewer.sig_req_merge_obj.connect(
+            self._ff_merge_obj)
+        self.dataviewer.sig_req_reduce_obj.connect(
+            self._ff_reduce_obj)
+        self.dataviewer.sig_req_delete_obj.connect(
+            self._ff_delete_obj)
+        self.dataviewer.sig_req_create_obj.connect(
+            self._ff_create_obj)
 
         # oligatory cleanup
         self.aboutToQuit.connect(self.cleanup)
