@@ -7,6 +7,20 @@ import numpy as np
 from entity import Entity
 
 
+class EntityGenerator():
+    """Divide the process of generation and management of entities
+    does not enforce any rules, just is set of entities based on some input
+    might be usefull in context of multithreading
+    """
+    def __init__(self):
+        self.entities = None
+
+    def from_greyscale_image(self, image, offest=(0, 0)):
+        """populates the entities list from a greyscale map
+        """
+        self.entities = []
+
+
 class EntityManager():
 
     def __init__(self):
