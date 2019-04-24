@@ -15,6 +15,9 @@ from ..enhancer import Enhancer
 from .crosshair import CrossHair
 
 
+class MergeROI(pg.RectROI):
+    pass
+
 class GridViewBoxLabel(pg.TextItem):
 
     def __init__(self, *args, **kwargs):
@@ -51,7 +54,7 @@ class GridViewBoxMenu(qg.QMenu):
         tag_menu = self.addMenu('Set &Tag...')
         self.addSeparator()
         self.enhance = self.addAction('&Enhance BG...')
-        
+
         # alpha channel control
         alpha_menu = self.addMenu('&Opacity')
         self.alpha_slider = qw.QSlider()
@@ -80,7 +83,7 @@ class GridViewBoxMenu(qg.QMenu):
 
         name_selection.sort()
         name_selection = ['None'] + name_selection
-        
+
         if layer_name in ('fg', 'bg'):
             self._set_image_selector(name_selection, layer_name)
         elif layer_name == 'tags':
@@ -143,6 +146,7 @@ class GridViewBox(pg.ViewBox):
 
         # containing ViewGrid
         self.grid = grid
+        self.roi = None
 
         # callbacks for the layers
         #TODO really store the repos on one point in the app
@@ -189,7 +193,11 @@ class GridViewBox(pg.ViewBox):
 
     def set_alpha(self, value):
         image = self.layer_data['fg']['img']
-        image.setOpacity(value)
+        if not image is None:
+            image.setOpacity(value)
+        else:
+            err = ErrorEvent(msg='Could not set alpha: no foreground loaded!')
+            qc.QCoreApplication.postEvent(self.grid, err)
 
     def fit_to_images(self):
         image_items = [layer['img'] for layer in self.layer_data.values()]
@@ -260,19 +268,28 @@ class GridViewBox(pg.ViewBox):
     def get_bg_coord(self, pos):
         bg = self.layer_data['bg']['img']
         bg_coord = self.mapToItem(bg, pos)
-        return bg_coord.x(), bg_coord.y()
+        return bg_coord
 
-    def load_image(self, img_name, layer):
+    def _fetch_image(self, img_name, layer):
         layer_repo = self.layer_data[layer]['rep']
         callback = layer_repo.get(img_name, None)
         try:
-            new_img = callback()
-            self.set_image(new_img, layer)
-            self.set_label(**{layer: img_name})# hacky...
-            self.last_loaded[layer] = img_name
+            ret = callback()
         except (TypeError, ValueError) as err:
-            msg = 'Could not load image {} into {}: {}'
+            msg = 'Could not fetch image {} for {}: {}'
             self.post_error(msg.format(img_name, layer, str(err)))
+            ret = None
+        return ret
+
+    def _update_image(self, img_name, layer):
+        self.set_label(**{layer: img_name})# hacky...
+        self.last_loaded[layer] = img_name
+
+    def load_image(self, img_name, layer):
+        img = self._fetch_image(img_name, layer)
+        if not img is None:
+            self.set_image(img, layer)
+            self._update_image(img_name, layer)
 
     def set_label(self, bg=None, fg=None, bgcolor='#000000',
                   fgcolor='#10AA00'):
@@ -300,7 +317,20 @@ class GridViewBox(pg.ViewBox):
         super().setRange(*args, **kwargs)
         (new_x, _), (new_y, _) = self.state['viewRange']
         self.imagelabel.setPos(new_x, new_y)
-    
+
+    def redraw(self, mapslice):
+        #TODO use signaling here
+        layer = 'fg'
+        if self.last_loaded[layer] == 'None':
+            return
+        img_name = self.last_loaded[layer]
+
+        cur_opacity = self.layer_data[layer]['img'].opacity()
+        img = self._fetch_image(img_name, layer)
+        if not img is None:
+            self.set_image(img, layer)
+        self.layer_data[layer]['img'].setOpacity(cur_opacity)
+
     @qc.pyqtSlot()
     def req_enhancment(self):
         self.enhancing = True
@@ -338,7 +368,7 @@ class GridViewBox(pg.ViewBox):
                 ## update shape of scale box
                 self.updateScaleBox(ev.buttonDownPos(), ev.pos())
         else:
-            tr = dif*mask
+            tr = dif * mask
             tr = self.mapToView(tr) - self.mapToView(pg.Point(0,0))
             x = tr.x() if mask[0] == 1 else None
             y = tr.y() if mask[1] == 1 else None
@@ -359,3 +389,21 @@ class GridViewBox(pg.ViewBox):
         if event == ReposUpdated:
             self.update_repos(event)
             event.accept()
+        else:
+            event.ignore()
+
+    def show_roi(self, show=False):
+        if self.roi is None:
+            self.roi = MergeROI(
+                [0, 0], size=[20, 20], angle=0.0, invertible=False,
+                maxBounds=None, snapSize=1.0, scaleSnap=False,
+                translateSnap=False, rotateSnap=False, parent=None,
+                pen=(0, 9), movable=True, removable=False)
+            self.roi.setZValue(9)
+            self.roi.grid = self.grid
+            self.addItem(self.roi)
+        self.roi.setVisible(show)
+
+    @property
+    def tag_selection(self):
+        return self.menu._tag_selection.copy()

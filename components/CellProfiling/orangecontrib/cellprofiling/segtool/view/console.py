@@ -1,8 +1,8 @@
 import logging
 from pathlib import Path
 
-import AnyQt.QtGui as qg
-import AnyQt.QtCore as qc
+import PyQt5.QtGui as qg
+import PyQt5.QtCore as qc
 
 from qtconsole.ipython_widget import JupyterWidget
 from qtconsole.inprocess import QtInProcessKernelManager

@@ -9,7 +9,7 @@ from zipfile import ZipFile, ZIP_DEFLATED, is_zipfile
 import cv2
 
 import dataframework
-from dataframework import ImageStack, MapGen, ObjGen, TiffImage
+from dataframework import ImageStack, MapGen, ObjGen, TiffImage, ImgObj
 
 from .logutil import get_logger_name
 from .util import get_tempdir, parse_orange
@@ -62,9 +62,6 @@ class DataLoader():
         # clear cache, as it might have changed
         self._cache = {}
 
-        if self._obg is None:
-            self._add_objectgen()
-
     def load_image_selection(self, image_paths):
         if self._ims is None:
             self._ims = ImageStack(logger_name=self._istack_log_name,
@@ -78,26 +75,46 @@ class DataLoader():
         # clear cache, as it might have changed
         self._cache = {}
 
-        if self._obg is None:
-            self._add_objectgen()
-
     def _add_objectgen(self):
         """adds an empty object generator based on imagestack
         shape
         """
-        oid_data = np.zeros(self._ims.shape, dtype='uint16')
-        self._set_obg(oid_data)
+        self.log.debug('Setting object generator')
+        self._obg = ObjGen()
+
+    def get_object_generators_from_map(self, objid_map_path, number=3):
+        """creates objects from a objid map
+        """
+        self.log.debug('Setting object generator')
+        self._obg = ObjGen()
+
+        # load image containing object infromation
+        oidmap = TiffImage()
+        oidmap.load_pixeldata_from(objid_map_path)
+        objid_map = oidmap.pixel_data
+
+        self._mpg.objid_map = objid_map
+        self._mpg.obj_gen = self._obg
+
+        generators = self._obg.get_object_generators(oidmap.pixel_data,
+                                                     number=number)
+        # link objectgen and mapgen
+        self.log.debug('ObjectGenerator set')
+
+        return generators
 
     def _set_obg(self, oid_data):
         """creates an object generator on oid_data
         """
-        self._obg = ObjGen(oid_data)
+        self.log.debug('Setting object generator')
+        self._obg = ObjGen()
 
         # generate objects
         self._obg.generate_objects(oid_data)
 
         # link objectgen and mapgen
         self._mpg.obj_gen = self._obg
+        self.log.debug('Objects loaded')
 
     def objects_from_map(self, objid_map_path):
         """creates objects from a objid map
@@ -236,10 +253,10 @@ class DataManager(DataProxy):
 
         msg = 'Loading %s image from %s with %s @ %s bit'
         self.log.debug(msg, img_type, str(path), str(image.shape), bits)
-        
+
         transparent_rgba = self._with_transparency(rgba_img)
         loaded_entry = {'ret': transparent_rgba,
-                       'name': str(Path(path).name),}
+                        'name': str(Path(path).name),}
         self._loaded[key] = loaded_entry
 
     def load_map_selection(self, map_pathes):
@@ -320,6 +337,131 @@ class DataManager(DataProxy):
         if not self.objects_loaded:
             raise ValueError('Load/Create objects first!')
         return self._obg.get_object(object_id)
+
+    def create_center_object(self, row, col):
+        #TODO shape property
+        cdim, rdim = self._obg._objid_map.shape
+        if not 0 <= row < rdim or not 0 <= col < cdim:
+            msg = 'Can not create object at ({}, {})'
+            raise ValueError(msg.format(col, row))
+        # fixed size object for nucleus stuff
+        mask = np.array([
+            [0, 0, 0, 1, 0, 0, 0],
+            [0, 1, 1, 1, 1, 1, 0],
+            [0, 1, 1, 1, 1, 1, 0],
+            [1, 1, 1, 1, 1, 1, 1],
+            [0, 1, 1, 1, 1, 1, 0],
+            [0, 1, 1, 1, 1, 1, 0],
+            [0, 0, 0, 1, 0, 0, 0],
+        ], dtype=bool)
+
+        new_obj = ImgObj(1)
+        bbox = (max(row, 0), min(row+6, rdim),
+                max(col, 0), min(col+6, cdim))
+        new_obj.set_masks_slice(bbox, mask)
+
+        self._obg.add_object(new_obj)
+
+        # propagate change to mapgen
+        self._mpg.objid_map = self._obg._objid_map
+        return new_obj
+
+    def add_multiple_objects(self, obj_list):
+
+        for obj in obj_list:
+            self._obg.add_object(obj, update_map=False)
+
+        # link objectgen and mapgen
+        self._mpg.obj_gen = self._obg
+        # clear cache, as it might have changed
+        self._cache = {}
+
+    def create_object(self, bmask, rmin, rmax, cmin, cmax):
+        #TODO shape property
+        cdim, rdim = self._obg._objid_map.shape
+        if not 0 <= rmin < rmax < rdim or not 0 <= cmin < cmax < cdim:
+            msg = 'Could not create object @{}'
+            bbox = (rmin, rmax, cmin, cmax)
+            msg = msg.format(str(bbox))
+            raise ValueError(msg)
+
+        new_obj = ImgObj(1)
+        bbox = rmin, rmax, cmin, cmax
+        new_obj.set_masks_slice(bbox, bmask)
+
+        self._obg.add_object(new_obj)
+
+        # propagate change to mapgen
+        self._mpg.objid_map = self._obg._objid_map
+        return new_obj
+
+    def delete_object(self, object_id):
+        obj = self._obg.delete_object(object_id)
+        # propagate change to mapgen
+        self._mpg.objid_map = self._obg._objid_map
+        return obj
+
+    def reduce_objects(self, object_ids):
+        if not object_ids:
+            return
+        if not self.objects_loaded:
+            raise ValueError('Load/Create objects first!')
+
+        bbcenters = []
+        for oid in object_ids:
+            obj = self.get_object(oid)
+            rmin, rmax, cmin, cmax = obj.bbox
+            rcenter = rmin + (rmax - rmin) / 2
+            ccenter = cmin + (cmax - cmin) / 2
+            bbcenters.append([rcenter, ccenter])
+            self.delete_object(oid)
+        bbcenters = np.array(bbcenters, dtype=float)
+        bcen = np.mean(bbcenters, axis=0)
+        rcen, ccen = [int(np.ceil(val)) for val in bcen]
+
+        #TODO getter might be better -> _obg.shape
+        cdim, rdim = self._obg._objid_map.shape
+        row = min(max(rcen-3, 0), rdim-4)
+        col = min(max(ccen-3, 0), cdim-4)
+
+        new_obj = self.create_center_object(row, col)
+
+        self.log.debug('Reduce Objects %s to %d @%s', str(object_ids),
+                       new_obj.id, str(new_obj.bbox))
+
+    def merge_objects(self, object_ids):
+        if not object_ids:
+            return
+        if not self.objects_loaded:
+            raise ValueError('Load/Create objects first!')
+        
+        bboxes = [[], [], [], []]
+        masks = []
+        for oid in object_ids:
+            obj = self.get_object(oid)
+            for val, agg in zip(obj.bbox, bboxes):
+                agg.append(val)
+            masks.append(obj.bmask)
+            self.delete_object(oid)
+
+        new_shape = (min(bboxes[0]), max(bboxes[1])+1,
+                     min(bboxes[2]), max(bboxes[3])+1)
+
+        rref, rheight, cref, cwidth = new_shape
+        
+        dr = rheight - rref
+        dc = cwidth - cref
+        
+        new_mask = np.zeros((dr, dc), bool)
+        for mask, rmin, rmax, cmin, cmax in zip(masks, *bboxes):
+            new_mask[rmin-rref:rmax-rref+1, cmin-cref:cmax-cref+1] += mask
+        
+        new_bbox = rref, rheight-1, cref, cwidth-1
+        new_obj = self.create_object(new_mask, *new_bbox)
+
+        self.log.debug('Mergin Objects %s to %d @%s', str(object_ids),
+                       new_obj.id, str(new_obj.bbox))
+        return new_obj
 
     def update_objects(self, object_list):
         """expects a list of objects, updates

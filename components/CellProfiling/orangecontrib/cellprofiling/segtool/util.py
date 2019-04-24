@@ -5,6 +5,7 @@ import tempfile
 import pandas as pd
 
 import PyQt5.QtCore as qc
+from dataframework import ImgObj
 
 
 class CallBack(qc.QObject):

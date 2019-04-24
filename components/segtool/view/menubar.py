@@ -119,11 +119,21 @@ class MainMenuBar(qw.QMenuBar):
         # properties for the view windows
         self.act_view_props = qw.QAction(' &Properties', self)
         self.act_view_props.setShortcut('Ctrl+P')
-        self.act_view_props.setStatusTip('Bye, bye!')
+        self.act_view_props.setStatusTip('Set properties of view')
+
+        self.act_view_save = qw.QAction(' &Save', self)
+        self.act_view_save.setShortcut('Ctrl+S')
+        self.act_view_save.setStatusTip('Save view')
+        self.act_view_load = qw.QAction(' &Load', self)
+        self.act_view_load.setShortcut('Ctrl+L')
+        self.act_view_load.setStatusTip('Load view')
 
         # view stuff
         self.menu_view = self.addMenu('&View')
         self.menu_view.addAction(self.act_view_props)
+        self.menu_view.addSeparator()
+        self.menu_view.addAction(self.act_view_save)
+        self.menu_view.addAction(self.act_view_load)
 
         # connect stuff
         self.act_load_imagedir.triggered.connect(self.spawn_dirdialog)
@@ -133,6 +143,8 @@ class MainMenuBar(qw.QMenuBar):
         self.act_load_tags.triggered.connect(self.spawn_tagdialog)
         self.act_save_obj.triggered.connect(self.save_objdialog)
         self.act_view_props.triggered.connect(self.show_prop_win)
+        self.act_view_save.triggered.connect(self.spawn_yamlsave)
+        self.act_view_load.triggered.connect(self.spawn_yamlload)
         self.act_select_tags.triggered.connect(self.show_tagselect_win)
         self.act_edit_tags.triggered.connect(self.show_tagedit_win)
         self.act_load_map.triggered.connect(self.spawn_mapfiledialog)
@@ -223,6 +235,39 @@ class MainMenuBar(qw.QMenuBar):
             qc.QCoreApplication.postEvent(self.parent(), request)
 
     @qc.pyqtSlot()
+    def spawn_yamlsave(self):
+        """shows the yaml save dialog for storing views
+        """
+        yaml_path, _ = qw.QFileDialog.getSaveFileName(
+            parent=None,
+            caption='Saved current view...',
+            directory=self.last_dir,
+            filter='Yaml file (*.yml)',
+        )
+        if Path(yaml_path).parent.exists() and yaml_path != '':
+            self.last_dir = str(Path(yaml_path).parent)
+
+            if not yaml_path.endswith('.yml'):
+                yaml_path = '{}.yml'.format(yaml_path)
+            request = SaveResReq(res_type='view.yaml', res_path=yaml_path)
+            qc.QCoreApplication.postEvent(self.parent(), request)
+
+    @qc.pyqtSlot()
+    def spawn_yamlload(self):
+        """shows the yaml laod dialog for loading views
+        """
+        yaml_path, _ = qw.QFileDialog.getOpenFileName(
+            parent=None,
+            caption='Load a view...',
+            directory=self.last_dir,
+            filter='Yaml file (*.yml)',
+        )
+        if Path(yaml_path).exists() and yaml_path != '':
+            self.last_dir = str(Path(yaml_path).parent)
+            request = LoadResReq(res_type='view.yaml', res_path=yaml_path)
+            qc.QCoreApplication.postEvent(self.parent(), request)
+
+    @qc.pyqtSlot()
     def spawn_tagdialog(self):
         """read and parse data from orange csv
         """
@@ -288,5 +333,6 @@ class MainMenuBar(qw.QMenuBar):
             event.ignore()
         elif event == ReposUpdated:
             self.update_tags(event)
+            event.ignore()
         else:
             event.ignore()

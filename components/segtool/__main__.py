@@ -42,6 +42,22 @@ def get_parser():
     argparser.add_argument('-c', '--csv', action='store', type=str,
                            metavar='path to csv', help=db_help_msg)
 
+    zip_help_msg = 'path to obj.zip loaded during startup'
+    argparser.add_argument('-z', '--zip', action='store', type=str,
+                           metavar='path to obj.zip', help=zip_help_msg)
+
+    roi_help_msg = 'if set, a region of intrest for merging is shown'
+    argparser.add_argument('-r', '--roi', action='count', help=roi_help_msg,
+                            default=0)
+
+    view_help_msg = 'Path to view.yaml. Is set after dir and obj.zip are loaded'
+    argparser.add_argument('-w', '--view', action='store', type=str,
+                           metavar='path to view.yaml', help=view_help_msg)
+
+    dir_help_msg = 'Path to image dir. Will be loaded and parsed at startup' 
+    argparser.add_argument('-d', '--dir', action='store', type=str,
+                           metavar='path to image dir', help=dir_help_msg)
+
     argparser.add_argument('--version', action='version',
                            version=the_version)
 
@@ -69,8 +85,9 @@ def main():
     app_log.info('Version: %s', __version__)
     app_log.debug('DEBUG')
 
-    AppControl([]).exec()
-
+    use_roi = args.roi > 0
+    AppControl([], zip_path=args.zip, use_roi=use_roi, load_dir=args.dir,
+               load_view=args.view).exec()
 
 if __name__ == '__main__':
     main()
