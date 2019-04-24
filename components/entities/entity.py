@@ -13,7 +13,7 @@ class Entity():
     """
 
     _used_ids = set([])
-    
+
     def __init__(self, entity_id):
         """raises valueerror if entity_id is not none
         and invalid id because
@@ -72,4 +72,3 @@ class Entity():
         where bool mask is a np.array and eslice a tupple of slices
         """
         pass
-
