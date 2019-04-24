@@ -18,7 +18,7 @@ from .viewbox import GridViewBox
 from .imgprocesswin import ContrastEnhanceWin
 from .images import get_flipped
 
-from ..events import ReposUpdated, ErrorEvent, ModifyResReq
+from ..events import ReposUpdated, ErrorEvent, ModifyResReq, ModifyView
 
 
 class ViewGrid(pg.GraphicsLayoutWidget):
@@ -39,11 +39,12 @@ class ViewGrid(pg.GraphicsLayoutWidget):
         self.views = {}
         self.layout = (-1, -1)
 
+        # last view hovered over
+        self._active_view = None
+        self._last_px = None
+
         # last repo update
         self.last_repo_update = None
-
-        # tag selection to be used by views
-        self.tag_selection = []
 
         # keeps state for all viewboxes, if image_repos was just loaded
         self.just_loaded = False
@@ -58,7 +59,7 @@ class ViewGrid(pg.GraphicsLayoutWidget):
         """
         #TODO add col/rowspan?
         # generate ViewBox
-        
+
         if self.layout != (cols, rows):
             self.log.debug('removing view boxes...')
             self.clear()
@@ -72,7 +73,6 @@ class ViewGrid(pg.GraphicsLayoutWidget):
 
         for cur_view in self.views.values():
             cur_view.crosshair.setPen(pen)
-
 
     def _spawn_views(self, cols, rows):
         """ generates row * cols viewboxes with label, background and
@@ -89,18 +89,21 @@ class ViewGrid(pg.GraphicsLayoutWidget):
                                            parent=self.ci,
                                            enhance_callback=self.enhance_view)
                     cur_view.sigRangeChanged.connect(self.sync_ranges)
+                    if cur_index == (0, 0):
+                        cur_view.show_roi()
                 else:
                     self.log.debug('Reusing viewbox %s', str(cur_index))
 
                 self.views[cur_index] = cur_view
                 self.addItem(cur_view, row=row, col=col)
 
+
                 #TODO Ugly, make it better with the one unifiede repo...
                 if not self.last_repo_update is None:
                     self.update_repos(self.last_repo_update)
 
     @qc.pyqtSlot(object, object)
-    def sync_ranges(self, src_view, sig_range):
+    def sync_ranges(self, src_view):
         """ Syncronizes the individual views
         """
         # sync changed, so its not 'just loaded' anymore
@@ -120,9 +123,32 @@ class ViewGrid(pg.GraphicsLayoutWidget):
         for cur_view in self.views.values():
             cur_view.blockSignals(False)
 
+    def _remap_roi(self, roi):
+        # ref_view = roi.parent()
+        pos, size = roi.pos(), roi.size()
+        # img_coords = ref_view.get_bg_coord(pos)
+        # img_size = ref_view.get_bg_coord(size)
+        xp0, yp0 = pos.x(), pos.y()
+        xp1 = xp0 + size.x()
+        yp1 = yp0 + size.y()
+        xp0, yp0, xp1, yp1 = (int(np.ceil(v)) for v in [xp0, yp0, xp1, yp1])
+        mapslice = np.s_[xp0:xp1, yp0:yp1]
+        try:
+            oids = self._oid_map[mapslice]
+        except TypeError:
+            oids = []
+        oids = [oid for oid in np.unique(oids) if oid != 0]
+        mod = {
+            'oids': oids,
+            'mapslice': mapslice,
+        }
+        return mod
+
     def customEvent(self, event):
         if event == ReposUpdated:
-            self.update_repos(event.repos, wipe=event.wipe)
+            self.update_repos(event.repos,
+                              wipe=event.wipe,
+                              roi=event.roi)
             event.accept()
         elif event == ModifyResReq:
             if event.res_type == 'obj.tag':
@@ -130,6 +156,9 @@ class ViewGrid(pg.GraphicsLayoutWidget):
                     event.accept()
                 else:
                     event.ignore()
+        elif event == ModifyView:
+            self.update_view(event.modification)
+            event.accept()
         else:
             event.ignore()
 
@@ -151,13 +180,16 @@ class ViewGrid(pg.GraphicsLayoutWidget):
         except ValueError:
             return None
 
-    def set_cursor_info(self, view, x, y):
-        x, y = int(np.ceil(x)), int(np.ceil(y))
+    def get_oid(self, xpos, ypos):
+        x, y = int(np.ceil(xpos)), int(np.ceil(ypos))
         try:
             oid = self._oid_map[x, y]
         except (TypeError, IndexError):
             oid = None
+        return oid
 
+    def set_cursor_info(self, view, x, y):
+        oid = self.get_oid(x, y)
         try:
             obj = self.get_object(oid)
             tags = obj.tags
@@ -172,12 +204,17 @@ class ViewGrid(pg.GraphicsLayoutWidget):
             view_rect = cur_view.boundingRect()
             view_coords = cur_view.mapFromParent(event.pos())
             if view_rect.contains(view_coords):
-                xpos, ypos = cur_view.get_bg_coord(view_coords)
+                bg_coord = cur_view.get_bg_coord(view_coords)
+                xpos, ypos = bg_coord.x(), bg_coord.y()
                 self.set_cursor_info(cur_view, xpos, ypos)
                 cur_view.set_crosshair(qc.QPointF(-100, -100))
                 ch_coords = qc.QPointF(xpos, ypos)
+                self._active_view = cur_view
+                self._last_px = xpos, ypos
                 break
-        
+            self._last_px = None
+            self._active_view = None
+
         if not ch_coords is None:
             for cur_view in self.views.values():
                 cur_view.set_crosshair(ch_coords)
@@ -185,7 +222,7 @@ class ViewGrid(pg.GraphicsLayoutWidget):
         event.ignore()
         super().mouseMoveEvent(event)
 
-    def update_repos(self, repo_update, wipe=False):
+    def update_repos(self, repo_update, wipe=False, roi=False):
         # just distributing the event to all views
         for cur_view in self.views.values():
             #TODO unify me plz one repo/injector for all
@@ -196,7 +233,13 @@ class ViewGrid(pg.GraphicsLayoutWidget):
             if wipe:
                 cur_view.wipe_images()
                 self.just_loaded = True
+        self.views[(0, 0)].show_roi(roi)
         self.get_objid_map()
+
+    def update_view(self, mapslice):
+        # just distributing the event to all views
+        for cur_view in self.views.values():
+            cur_view.redraw(mapslice)
 
     def update_tag_selection(self, new_tags):
         # just distributing the event to all views
@@ -210,3 +253,53 @@ class ViewGrid(pg.GraphicsLayoutWidget):
         self.contrast_win.enhancer = view.enhancer
         self.contrast_win.set_controls()
         self.contrast_win.show()
+
+    def keyPressEvent(self, event):
+        #TODO remove this hack
+        if self._active_view is None:
+            return
+
+        has_roi = not self._active_view.roi is None
+
+        if event.key() == qc.Qt.Key_H:
+            self._active_view.fit_to_images()
+            event.accept()
+        elif event.key() == qc.Qt.Key_R and has_roi:
+            event.accept()
+            mod = self._remap_roi(self._active_view.roi)
+            merge_event = ModifyResReq(
+                res_type='obj.reduce',
+                modification=mod)
+            qc.QCoreApplication.postEvent(self.parent(), merge_event)
+        elif event.key() == qc.Qt.Key_M and has_roi:
+            event.accept()
+            mod = self._remap_roi(self._active_view.roi)
+            merge_event = ModifyResReq(
+                res_type='obj.merge',
+                modification=mod)
+            qc.QCoreApplication.postEvent(self.parent(), merge_event)
+        elif event.key() == qc.Qt.Key_D:
+            if self._last_px is None:
+                return
+            xpos, ypos = self._last_px
+            oid = self.get_oid(xpos, ypos)
+            del_event = ModifyResReq(
+                res_type='obj.delete',
+                modification=oid)
+            qc.QCoreApplication.postEvent(self.parent(), del_event)
+        elif event.key() == qc.Qt.Key_C:
+            if self._last_px is None:
+                return
+            ypos, xpos = self._last_px
+            mk_event = ModifyResReq(
+                res_type='obj.create',
+                modification=(xpos, ypos))
+            qc.QCoreApplication.postEvent(self.parent(), mk_event)
+        elif event.key() == qc.Qt.Key_F and has_roi:
+            if self._last_px is None:
+                return
+            xpos, ypos = self._last_px
+            self._active_view.roi.setPos(xpos, ypos)
+        else:
+            event.ignore()
+
