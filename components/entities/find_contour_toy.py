@@ -1,9 +1,6 @@
-import timeit
 import cv2
 import skimage.measure as sk
-import matplotlib.pyplot as plt
 import numpy as np
-import IPython as ip
 
 
 def get_cv(mask):
@@ -20,43 +17,48 @@ def get_sk(mask):
     contours = sk.find_contours(mask.T, 1, positive_orientation='low')
     return contours
 
+def get_testmask():
+    mask1 = np.array([
+        [0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+        [0, 0, 1, 0, 0, 1, 1, 0, 0, 0],
+        [0, 0, 1, 1, 0, 1, 1, 1, 0, 0],
+        [0, 0, 1, 1, 0, 1, 1, 1, 0, 0],
+        [0, 0, 1, 1, 1, 1, 0, 1, 0, 0],
+        [0, 0, 1, 1, 1, 1, 0, 1, 0, 0],
+        [0, 0, 1, 1, 1, 0, 0, 1, 0, 0],
+        [0, 0, 0, 0, 0, 0, 1, 1, 0, 0],
+        [0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+        ], dtype=bool)
 
-mask1 = np.array([
-    [0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
-    [0, 0, 1, 0, 0, 1, 1, 0, 0, 0],
-    [0, 0, 1, 1, 0, 1, 1, 1, 0, 0],
-    [0, 0, 1, 1, 0, 1, 1, 1, 0, 0],
-    [0, 0, 1, 1, 1, 1, 0, 1, 0, 0],
-    [0, 0, 1, 1, 1, 1, 0, 1, 0, 0],
-    [0, 0, 1, 1, 1, 0, 0, 1, 0, 0],
-    [0, 0, 0, 0, 0, 0, 1, 1, 0, 0],
-    [0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
-    ], dtype=bool)
+    mask2 = np.array([
+        [0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+        [0, 0, 1, 1, 1, 0, 0, 0, 0, 0],
+        [0, 1, 0, 1, 1, 1, 0, 0, 0, 0],
+        [0, 0, 0, 1, 1, 0, 0, 1, 0, 0],
+        [0, 0, 1, 1, 0, 0, 0, 1, 0, 0],
+        [0, 0, 1, 1, 0, 0, 1, 1, 1, 0],
+        [0, 0, 0, 0, 1, 0, 1, 1, 1, 0],
+        [0, 0, 0, 0, 0, 0, 1, 1, 0, 0],
+        [0, 0, 0, 0, 0, 0, 0, 1, 0, 0],
+        ], dtype=bool)
 
-mask2 = np.array([
-    [0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
-    [0, 0, 1, 1, 1, 0, 0, 0, 0, 0],
-    [0, 1, 0, 1, 1, 1, 0, 0, 0, 0],
-    [0, 0, 0, 1, 1, 0, 0, 1, 0, 0],
-    [0, 0, 1, 1, 0, 0, 0, 1, 0, 0],
-    [0, 0, 1, 1, 0, 0, 1, 1, 1, 0],
-    [0, 0, 0, 0, 1, 0, 1, 1, 1, 0],
-    [0, 0, 0, 0, 0, 0, 1, 1, 0, 0],
-    [0, 0, 0, 0, 0, 0, 0, 1, 0, 0],
-    ], dtype=bool)
+    return mask1, mask2
 
-f, axarr = plt.subplots(1, 2)
+if __name__ == '__main__':
+    import matplotlib.pyplot as plt
 
-for ax, mask in zip(axarr, [mask1, mask2]):
-    cv_contour = get_cv(mask)
-    sk_contour = get_sk(mask)
-
-    ax.imshow(mask)
-    for cvc in cv_contour:
-        cvl, = ax.plot(cvc[:, 0], cvc[:, 1], c='b', label='CV2', ls=':')
-
-    for skc in sk_contour:
-        skl, = ax.plot(skc[:, 0], skc[:, 1], c='r', label='SkI', ls='--')
-
-ax.legend([cvl, skl], ['CV2', 'SkI'])
-plt.show()
+    f, axarr = plt.subplots(1, 2)
+    
+    for ax, mask in zip(axarr, get_testmask()):
+        cv_contour = get_cv(mask)
+        sk_contour = get_sk(mask)
+    
+        ax.imshow(mask)
+        for cvc in cv_contour:
+            cvl, = ax.plot(cvc[:, 0], cvc[:, 1], c='b', label='CV2', ls=':')
+    
+        for skc in sk_contour:
+            skl, = ax.plot(skc[:, 0], skc[:, 1], c='r', label='SkI', ls='--')
+    
+    ax.legend([cvl, skl], ['CV2', 'SkI'])
+    plt.show()
