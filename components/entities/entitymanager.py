@@ -1,40 +1,103 @@
 """Generates and manages all the entity through their entire lifetime.
 Uses EntityLoader and EntitySaver to ensure persistense during session
 """
+from sortedcontainers import SortedList
+import numpy as np
+
 from entity import Entity
 
 
 class EntityManager():
 
     def __init__(self):
-        # tracks all entities generated
-        self._entities = {}
+        # tracks all entities generated and some stats
+        # about them
+        self._entity_dat = {
+            'entities': {},
+            'id_list': SortedList([]),
+        }
 
-    def make_entity(self, entity_id=None):
+    def _add_entity(self, new_ent):
+        """actuall adding of entity, updating stats
+        will add w/o any checking for valid id or dat consistency
+        Raises
+        ------
+        RuntimeError:
+            if anything went wrong
+        """
+        entity_dict = self._entity_dat['entities']
+        id_list = self._entity_dat['id_list']
+        new_id = new_ent.eid
+
+        # modify entity dict
+        entity_dict[new_id] = new_ent
+
+        # modify id_list
+        try:
+            if new_id > id_list[-1]:
+                id_list.add(new_id)
+            elif new_id < id_list[0]:
+                id_list.add(new_id)
+            else:
+                # index in list is id - 1 as the list is always sorted
+                id_list.add(new_id)
+        except IndexError:
+            id_list.add(new_id)
+
+        if not len(id_list) == len(entity_dict):
+            raise RuntimeError('Inserting new id failed!')
+
+    def add_entity(self, entity_id=None):
+        """Create new entity. if entity_id is none, a new unused id is used
+        if entity_id is an integer it will be tested for validity. If not valid
+        or already used, an integer error is raised
+
+        Raises
+        ------
+        ValueError:
+            If a given entity_id is invalid
+
+        RuntimeError:
+            If the entity_id generation went wrong (e.g. due to racing
+            conditions)
+        """
+        entities_dict = self._entity_dat['entities']
+
         if entity_id is None:
             entity_id = self.get_eid()
+            if not entities_dict.get(entity_id, None) is None:
+                raise RuntimeError('Entity ID found already in use!')
+
         elif not self.valid_eid(entity_id):
             msg = 'Can not create entity with invalid ID {}'
             raise ValueError(msg.format(entity_id))
 
+        # create new entity
         new_entity = Entity(entity_id)
-        self._entities[new_entity.eid] = new_entity
-        
+        # add it to _entity_dat
+        self._add_entity(new_entity)
+
         return new_entity
 
-    def valid_eid(self, eid):
-        valid = isinstance(eid, int) and eid > 0
-        other = self._entities.get(eid, None)
+    def valid_eid(self, entity_id):
+        """Checks if entity_id is valid
+        """
+        valid = isinstance(entity_id, int) and entity_id > 0
+        other = self._entity_dat['entities'].get(entity_id, None)
         return other is None and valid
 
-    def get_eid(self):
-        """Gets an eid that is free
-        """
-        left = 0
-        right = len(self._entities) - 1
+    def _find_unused_eid(self):
+        """finds smalles unused entity id.
 
-        used_ids = list(self._entities.keys())
-        used_ids.sort()
+        Returns
+        -------
+        ID:
+            Unused ID
+        """
+        used_ids = self._entity_dat['id_list']
+
+        left = 0
+        right = len(used_ids) - 1
 
         if used_ids[right] == len(used_ids):
             return len(used_ids) + 1
@@ -60,3 +123,12 @@ class EntityManager():
         else:
             return len(used_ids) + 1
 
+    def get_eid(self):
+        """Gets an eid that is free based on all entities managed
+        finds the smalles possible free id
+        """
+        new_id = self._find_unused_eid()
+        return new_id
+
+    def generate_from_map(self):
+        pass

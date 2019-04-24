@@ -62,8 +62,11 @@ class Entity():
         self.tags = []
         self.scalars = {}
 
-    def set_mask(self, polygon):
+    def set_mask(self, points):
         """Sets the mask, given the polygon
+        points:
+        list of numpy.arrays with the shape (n, 2),
+        where each index i is on point in the polygon
         """
         pass
 

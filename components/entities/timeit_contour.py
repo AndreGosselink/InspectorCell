@@ -13,11 +13,8 @@ def sk_runner():
     return get_sk(mask1), get_sk(mask2)
 """
 
-
-cv_perf = timeit.timeit(stmt='cv_runner()', setup=setup, number=1000)
-sk_perf = timeit.timeit(stmt='sk_runner()', setup=setup, number=1000)
+cv_perf = timeit.timeit(stmt='cv_runner()', setup=setup, number=10000)
+sk_perf = timeit.timeit(stmt='sk_runner()', setup=setup, number=10000)
 
 print('CV2', cv_perf)
 print('SkI', sk_perf)
-
-ip.embed()
