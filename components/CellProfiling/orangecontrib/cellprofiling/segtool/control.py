@@ -60,6 +60,12 @@ class RepoManager(qc.QObject):
         for recv in self.receiver:
             the_app.postEvent(recv, viewmod)
 
+    def sync_views(self):
+        the_app = qc.QCoreApplication
+        sync_view = ModifyView('sync', None)
+        for recv in self.receiver:
+            the_app.postEvent(recv, sync_view)
+
     def post_receiver(self, wipe, roi):
         the_app = qc.QCoreApplication
         repos_updated = ReposUpdated(self.repos, wipe=wipe, roi=roi)
@@ -341,10 +347,6 @@ class AppControl(qw.QApplication):
             self.log.error('Could not load %s with error:\n%s',
                            str(zip_path), str(err))
 
-        loaded_objects = self.datamanager.objects
-        self.log.debug('Loaded %d objects from %s', len(loaded_objects),
-                       str(zip_path))
-
         self.update_view(wipe=False)
 
     @qc.pyqtSlot(list)
@@ -415,6 +417,21 @@ class AppControl(qw.QApplication):
         except (ValueError, KeyError) as err:
             self.log.error(str(err))
 
+    @qc.pyqtSlot(dict)
+    def _ff_change_obj_scalar(self, mod):
+        objid = mod['objid']
+        if objid == 0:
+            return
+        scalar_name = mod['img_name']
+        value = mod['operand']
+        try:
+            self.datamanager.change_obj_scalar(objid, scalar_name, value)
+        except ValueError as err:
+            self.log.error(str(err))
+            return
+
+        self.repomanager.sync_views()
+
     @qc.pyqtSlot(tuple)
     def _ff_create_obj(self, coords):
         x, y = (int(np.ceil(v)) for v in coords)
@@ -423,6 +440,7 @@ class AppControl(qw.QApplication):
             self.update_view(wipe=False)
         except ValueError as err:
             self.log.error(str(err))
+            return
 
         self._redraw_at_obj(obj)
 
@@ -475,7 +493,7 @@ class AppControl(qw.QApplication):
         self.dataviewer.sig_req_modify_objtag.connect(
             self._ff_update_objtag)
 
-        # obj merging, creating, deleting
+        # obj merging, creating, deleting, scalars
         self.dataviewer.sig_req_merge_obj.connect(
             self._ff_merge_obj)
         self.dataviewer.sig_req_reduce_obj.connect(
@@ -484,6 +502,8 @@ class AppControl(qw.QApplication):
             self._ff_delete_obj)
         self.dataviewer.sig_req_create_obj.connect(
             self._ff_create_obj)
+        self.dataviewer.sig_req_change_scalar.connect(
+            self._ff_change_obj_scalar)
 
         # oligatory cleanup
         self.aboutToQuit.connect(self.cleanup)

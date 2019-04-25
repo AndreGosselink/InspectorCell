@@ -97,7 +97,6 @@ class ViewGrid(pg.GraphicsLayoutWidget):
                 self.views[cur_index] = cur_view
                 self.addItem(cur_view, row=row, col=col)
 
-
                 #TODO Ugly, make it better with the one unifiede repo...
                 if not self.last_repo_update is None:
                     self.update_repos(self.last_repo_update)
@@ -157,8 +156,15 @@ class ViewGrid(pg.GraphicsLayoutWidget):
                 else:
                     event.ignore()
         elif event == ModifyView:
-            self.update_view(event.modification)
-            event.accept()
+            if event.mod_type == 'oid.part':
+                self.update_view(event.modification)
+                event.accept()
+            elif event.mod_type == 'sync':
+                self.set_cursor_info(self._active_view, *self._last_px, show_obj=True)
+                event.accept()
+            else:
+                msg = 'Unknown type for ModifyView event: {}'
+                self.log.error(msg.format(event.mod_type))
         else:
             event.ignore()
 
@@ -188,36 +194,48 @@ class ViewGrid(pg.GraphicsLayoutWidget):
             oid = None
         return oid
 
-    def set_cursor_info(self, view, x, y):
+    def set_cursor_info(self, view, x, y, show_obj=False):
         oid = self.get_oid(x, y)
+        tags = []
+
         try:
             obj = self.get_object(oid)
-            tags = obj.tags
         except KeyError:
-            tags = []
+            obj = None
+
+        if obj is None or not show_obj:
+            view.set_cursor_info(None, [])
+            return
+
+        tags = list(obj.tags)[::-1]
+        tags.sort()
+        scalar_tags = _scalars_to_tags(obj)
+        scalar_tags.sort()
+        tags = tags + scalar_tags
 
         view.set_cursor_info(oid, tags)
 
     def mouseMoveEvent(self, event):
         ch_coords = None
+
+        self._last_px = None
+        self._active_view = None
         for cur_view in self.views.values():
             view_rect = cur_view.boundingRect()
             view_coords = cur_view.mapFromParent(event.pos())
             if view_rect.contains(view_coords):
                 bg_coord = cur_view.get_bg_coord(view_coords)
                 xpos, ypos = bg_coord.x(), bg_coord.y()
-                self.set_cursor_info(cur_view, xpos, ypos)
-                cur_view.set_crosshair(qc.QPointF(-100, -100))
-                ch_coords = qc.QPointF(xpos, ypos)
                 self._active_view = cur_view
                 self._last_px = xpos, ypos
                 break
-            self._last_px = None
-            self._active_view = None
 
-        if not ch_coords is None:
+        if not self._last_px is None:
+            ch_point = qc.QPointF(*self._last_px)
             for cur_view in self.views.values():
-                cur_view.set_crosshair(ch_coords)
+                cur_view.set_crosshair(ch_point)
+                show = cur_view is self._active_view
+                self.set_cursor_info(cur_view, *self._last_px, show_obj=show)
 
         event.ignore()
         super().mouseMoveEvent(event)
@@ -261,7 +279,24 @@ class ViewGrid(pg.GraphicsLayoutWidget):
 
         has_roi = not self._active_view.roi is None
 
-        if event.key() == qc.Qt.Key_H:
+        if event.key() == qc.Qt.Key_Plus or event.key() == qc.Qt.Key_Minus:
+            event.accept()
+            xpos, ypos = self._last_px
+            oid = self.get_oid(xpos, ypos)
+            if event.key() == qc.Qt.Key_Plus:
+                operand = 1
+            else:
+                operand = -1
+            img_name = self._active_view.last_loaded['bg']
+            mod = {'objid': oid,
+                   'img_name': img_name,
+                   'operand': operand
+                  }
+            mod_scalar = ModifyResReq(
+                res_type='obj.scalar',
+                modification=mod)
+            qc.QCoreApplication.postEvent(self.parent(), mod_scalar)
+        elif event.key() == qc.Qt.Key_H:
             self._active_view.fit_to_images()
             event.accept()
         elif event.key() == qc.Qt.Key_R and has_roi:
@@ -302,4 +337,24 @@ class ViewGrid(pg.GraphicsLayoutWidget):
             self._active_view.roi.setPos(xpos, ypos)
         else:
             event.ignore()
+
+def _scalars_to_tags(obj):
+    """Convert all scalars in an object to tags
+    """
+    scalar_tags = []
+    for scalar_name, value in obj.scalars.items():
+        if value > 0:
+            sign = '+'
+        elif value < 0:
+            sign = '-'
+        else:
+            continue
+        value = abs(value)
+        if value > 3:
+            mag = '{}{}{}'.format(sign, value - 2, sign)
+        else:
+            mag = sign * value
+        scalar_tags.append(scalar_name + mag)
+    return scalar_tags
+
 
