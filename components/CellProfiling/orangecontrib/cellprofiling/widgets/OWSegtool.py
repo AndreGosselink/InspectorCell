@@ -131,6 +131,18 @@ class OWSegtool(OWWidget):
         self.dataviewer.sig_req_modify_objtag.connect(
             self._ff_update_objtag)
 
+        # obj merging, creating, deleting, scalars
+        self.dataviewer.sig_req_merge_obj.connect(
+            self._ff_merge_obj)
+        self.dataviewer.sig_req_reduce_obj.connect(
+            self._ff_reduce_obj)
+        self.dataviewer.sig_req_delete_obj.connect(
+            self._ff_delete_obj)
+        self.dataviewer.sig_req_create_obj.connect(
+            self._ff_create_obj)
+        self.dataviewer.sig_req_change_scalar.connect(
+            self._ff_change_obj_scalar)
+
         # oligatory cleanup
         self.aboutToQuit.connect(self.cleanup)
 
@@ -176,6 +188,21 @@ class OWSegtool(OWWidget):
     def _finalize(self):
         view = self.dataviewer.viewgrid.views[0, 0]
         view.load_image('DAPIi', 'bg')
+
+    @qc.pyqtSlot(dict)
+    def _ff_change_obj_scalar(self, mod):
+        objid = mod['objid']
+        if objid == 0:
+            return
+        scalar_name = mod['img_name']
+        value = mod['operand']
+        try:
+            self.datamanager.change_obj_scalar(objid, scalar_name, value)
+        except ValueError as err:
+            self.log.error(str(err))
+            return
+
+        self.repomanager.sync_views()
 
     @qc.pyqtSlot(list)
     def _ff_load_overlay_selection(self, path_list):
