@@ -104,16 +104,15 @@ layout = pg.GraphicsLayout(border=(100,100,100))
 view = pg.GraphicsView()
 view.setCentralItem(layout)
 view.show()
+layout.show()
 
 vbox0 = layout.addViewBox(lockAspect=True)
 vbox1 = layout.addViewBox(lockAspect=True)
 
 vbox0.scene().addItem(Poly())
 
+vbox0.show()
+vbox1.show()
 
-## Start Qt event loop unless running in interactive mode.
-if __name__ == '__main__':
-    import sys
-
-    if (sys.flags.interactive != 1) or not hasattr(QtCore, 'PYQT_VERSION'):
-        qg.QApplication.instance().exec_()
+print('go!')
+app.exec_()
