@@ -1,6 +1,9 @@
 """Container for data, masks, graphics items, annotations logic etc. pp.
 related to a single, identifyable thingy in an image stack
 """
+import numpy as np
+import cv2
+
 
 class Entity():
     """Base entity derived from image
@@ -31,23 +34,26 @@ class Entity():
         # a numpy slice than can be used to get the pixels
         # from the image that belong to the object in each
         # respective channel
-        self._slice = (None, None)
+        self.mask_slice = None
         # boolean numpy mask
         # must have same shape as the _slice. Given the of
         # the image returned after slicing, the pixel in the
         # mask being True signify pixels within the slice
         # beeing image pixels
-        self._mask = None
+        self.mask = None
 
         ### View context ###
+        # contours as natively produced by opencv, means list of points
+        # defining polygons
+        self.contours = None
         # properties of the entity in context of
         # the view of the entity
         # a QRect locating the entity in the scene it is
         # placed in
-        self._boundingbox = None
+        self.boundingbox = None
         # QPolygon, giving the polygon of the entity
         # representing it in the view
-        self._polygons = None
+        self.polygons = None
 
         ### Common Attributes ###
         # all attributes relevant for drawing
@@ -62,7 +68,7 @@ class Entity():
         self.tags = []
         self.scalars = {}
 
-    def set_mask(self, points):
+    def from_polygon(self, points, offset=(0, 0)):
         """Sets the mask, given the polygon
         points:
         list of numpy.arrays with the shape (n, 2),
@@ -70,8 +76,43 @@ class Entity():
         """
         pass
 
-    def set_polygon(self, mask, eslice):
+    def from_mask(self, mask_slice, mask, offset=(0, 0)):
         """Sets the polygon, given the bool mask for the eslice
         where bool mask is a np.array and eslice a tupple of slices
+
+        Raises
+        ------
+        ValueError if shape of mask_slice not corresponds to shape of mask
         """
-        pass
+
+        sl_shape = tuple(sl.stop - sl.start for sl in mask_slice)
+        if not sl_shape == mask.shape:
+            msg = 'Shape of mask (is {}) must be equal to indexed with' + \
+                  'mask_slice (is {})'
+            raise ValueError(msg.format(str(sl_shape), str(mask.shape)))
+
+        self.mask = mask.copy()
+        if offset != (0, 0):
+            row_off, col_off = offset
+            row_sl, col_sl = mask_slice
+            mask_slice = (
+                slice(row_sl.start + row_off, row_sl.stop + row_off),
+                slice(col_sl.start + col_off, col_sl.stop + col_off)
+            )
+        # immuteable, very tuple like in each respect
+        # esp identity
+        self.mask_slice = mask_slice
+
+        self._set_contours()
+
+    def _set_contours(self):
+        """Sets polygon from self.mask and self.slice
+        """
+        # compress verticals and horizontals
+        method = cv2.CHAIN_APPROX_SIMPLE
+        # retrive tree hirachy
+        mode = cv2.RETR_LIST
+        # offset is taken from slice
+        _, contours, _ = cv2.findContours(
+            self.mask.astype(np.uint8), mode, method)
+        self.contours = [cont.squeeze() for cont in contours]

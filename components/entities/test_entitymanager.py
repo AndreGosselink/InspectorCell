@@ -1,4 +1,6 @@
 import pytest
+import cv2
+from pathlib import Path
 
 from entitymanager import EntityManager
 
@@ -45,3 +47,12 @@ def test_unique_id():
     # next free id must be 21
     ent = eman.add_entity()
     assert ent.eid == 21
+
+def test_creation_from_map():
+    """ test if creation of entities from map works
+    """
+    test_path = Path('../../tests/res/testmask.png')
+    pixmap = cv2.imread(str(test_path), cv2.IMREAD_ANYDEPTH)
+
+    eman = EntityManager()
+    eman.generate_from_pixelmap(pixmap)

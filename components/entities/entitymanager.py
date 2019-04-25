@@ -5,6 +5,7 @@ from sortedcontainers import SortedList
 import numpy as np
 
 from entity import Entity
+from misc import get_sliced_mask
 
 
 class EntityGenerator():
@@ -15,10 +16,31 @@ class EntityGenerator():
     def __init__(self):
         self.entities = None
 
-    def from_greyscale_image(self, image, offest=(0, 0)):
+    def from_greyscale_image(self, image, offset=(0, 0)):
         """populates the entities list from a greyscale map
+
+        Parameters
+        ----------
+        image : ndarray
+            greyscalmap encoding entities ID by pixel.
+        offset : tuple
+            offset added to each slice for entities.
+
+        Notes
+        -----
+        Popultes EntityGenerator.entities w/o any asking, has an offset to allow
+        multiple generators on map slices. Rules enforced on entity generation
+        id > 0
         """
-        self.entities = []
+        entities = []
+        valid_values = set(image[image > 0])
+        for cur_value in valid_values:
+            mask_slice, mask = get_sliced_mask(image, cur_value)
+            new_entity = Entity(cur_value)
+            new_entity.from_mask(mask_slice, mask, offset)
+            entities.append(new_entity)
+
+        self.entities = entities
 
 
 class EntityManager():
@@ -134,8 +156,8 @@ class EntityManager():
 
         if rval - lval > 1:
             return lval + 1
-        else:
-            return len(used_ids) + 1
+        # else:
+        return len(used_ids) + 1
 
     def get_eid(self):
         """Gets an eid that is free based on all entities managed
@@ -144,5 +166,16 @@ class EntityManager():
         new_id = self._find_unused_eid()
         return new_id
 
-    def generate_from_map(self):
-        pass
+    def generate_from_pixelmap(self, pixelmap):
+        """Encapsulate the usage of the entity generator
+        to aid in concurrency later on
+        Parameters
+        ----------
+        pixelmap : int ndarray 
+            map that assigns each pixel i, j to background pixelmap[i, j] == 0
+            or to an entity with an id pixelmap[i, j] == id
+        """
+        gen = EntityGenerator()
+        gen.from_greyscale_image(pixelmap)
+        for entity in gen.entities:
+            self.add_entity(entity)
