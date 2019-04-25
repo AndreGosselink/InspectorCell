@@ -37,6 +37,7 @@ class DataViewer(qw.QMainWindow):
     sig_req_merge_obj = qc.pyqtSignal(dict)
     sig_req_delete_obj = qc.pyqtSignal(int)
     sig_req_create_obj = qc.pyqtSignal(tuple)
+    sig_req_change_scalar = qc.pyqtSignal(dict)
 
     def __init__(self, parent=None, logger_domain=None):
         super().__init__(parent=None)
@@ -142,6 +143,8 @@ class DataViewer(qw.QMainWindow):
             self.sig_req_delete_obj.emit(event.modification)
         elif event.res_type == 'obj.create':
             self.sig_req_create_obj.emit(event.modification)
+        elif event.res_type == 'obj.scalar':
+            self.sig_req_change_scalar.emit(event.modification)
         else:
             self.log.error('Unknown request type: %s', event.req_type)
         event.accept()
@@ -242,7 +245,7 @@ class DataViewer(qw.QMainWindow):
                 img_name = view_state[layer]
                 view.load_image(img_name, layer)
             fg_alpha = view_state['fg_alpha']
-            
+
             if not fg_alpha is None:
                 view.set_alpha(fg_alpha)
 

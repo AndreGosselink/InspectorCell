@@ -75,19 +75,20 @@ class GridViewBoxMenu(qg.QMenu):
         self._tag_selection = set([])
 
     def update_selection(self, names, layer_name):
-        name_selection = list(names)
+        name_selection = set(names)
         try:
-            name_selection.pop(name_selection.index('None'))
-        except ValueError:
+            name_selection.remove('None')
+        except KeyError:
             pass # non None entry found
-
+        
+        name_selection = list(name_selection)
         name_selection.sort()
         name_selection = ['None'] + name_selection
 
         if layer_name in ('fg', 'bg'):
             self._set_image_selector(name_selection, layer_name)
         elif layer_name == 'tags':
-            self._tag_selection = set(name_selection)
+            self._tag_selection = name_selection
             # self._set_tag_selector(name_selection, layer_name)
 
     def _set_image_selector(self, names, layer_name):

@@ -1,6 +1,10 @@
 # -*- coding: utf-8 -*-
 from pathlib import Path
 import logging
+import time
+import multiprocessing
+import threading
+import queue
 import numpy as np
 
 import json
@@ -124,6 +128,49 @@ class DataLoader():
         oidmap.load_pixeldata_from(objid_map_path)
 
         self.objects_from_array(oidmap.pixel_data)
+
+    def objects_from_map_threaded(self, objid_map_path):
+        """creates objects from a objid map
+        """
+        t0 = time.time()
+        cpus = multiprocessing.cpu_count()
+        self.log.debug('Found %d cores', cpus)
+
+        # load image containing object infromation
+        generators = self.get_object_generators_from_map(objid_map_path,
+                                                         cpus)
+        
+        def _querunner(que, gen):
+            for obj in gen:
+                que.put(obj)
+
+        def _aggregator(que, object_list):
+            while True:
+                new_obj = que.get()
+                if new_obj is None:
+                    break
+                object_list.append(new_obj)
+
+        que = queue.Queue()
+        threads = []
+        objects = []
+        agg_thr = threading.Thread(target=_aggregator, args=(que, objects))
+        agg_thr.start()
+        for gen in generators:
+            thr = threading.Thread(target=_querunner, args=(que, gen))
+            thr.start()
+            threads.append(thr)
+
+        for thr in threads:
+            thr.join()
+
+        que.put(None)
+        agg_thr.join()
+        obj_count = len(objects)
+        self.log.debug('Created %d objects in %.2f s', obj_count, time.time() - t0)
+        t0 = time.time()
+        self.add_multiple_objects(objects)
+        self.log.debug('Added %d objects in %.2f s', obj_count, time.time() - t0)
 
     def objects_from_array(self, objid_map):
         self._mpg.objid_map = objid_map
@@ -400,6 +447,19 @@ class DataManager(DataProxy):
         # propagate change to mapgen
         self._mpg.objid_map = self._obg._objid_map
         return obj
+    
+    def change_obj_scalar(self, obj_id, scalar_name, change_value):
+        """changes object scalar. if not existent new value is exactly change
+        value. means uninitialized scalars default to 0
+        """
+        try:
+            obj = self.get_object(obj_id)
+        except KeyError:
+            raise ValueError('invalid object id: {}'.format(obj_id))
+
+        value = obj.scalars.get(scalar_name, 0)
+        value += change_value
+        obj.scalars[scalar_name] = value
 
     def reduce_objects(self, object_ids):
         if not object_ids:
@@ -489,8 +549,9 @@ class DataManager(DataProxy):
         # bring obj data into json format
         obj_data = {}
         for obj in self.objects:
-            new_obj = obj_data[str(obj.id)] = {}
-            new_obj['tags'] = list(obj.tags)
+            new_obj_data = obj_data[str(obj.id)] = {}
+            new_obj_data['tags'] = list(obj.tags)
+            new_obj_data['scalars'] = obj.scalars
 
         ### dump everyting into the tempory file
         # dump the object data
@@ -498,14 +559,30 @@ class DataManager(DataProxy):
             json.dump(obj_data, obj_file, ensure_ascii=False)
 
     def load_object_data(self, data_path):
+        print('loading_objects')
         # dump the object data
-        with data_path.open('r') as obj_file:
-            obj_data = json.load(obj_file, ensure_ascii=False)
+        with data_path.open('rb') as obj_file:
+            obj_data = obj_file.read()
+            obj_data = obj_data.decode('utf-8')
+            obj_data = json.loads(obj_data)
 
         new_objects = {}
+        scalars_missing = False
         for obj_id, obj_data in obj_data.items():
+            obj_id = int(obj_id)
             new_obj_data = {'tags': obj_data['tags']}
-            new_objects[int(obj_id)] = new_obj_data
+            if not scalars_missing:
+                scalars = obj_data.get('scalars', None)
+                if not scalars is None:
+                    new_obj_data['scalars'] = {}
+                    new_obj_data['scalars'].update(scalars)
+                else:
+                    scalars_missing = True
+
+            new_objects[obj_id] = new_obj_data
+        
+        if scalars_missing:
+            self.log.warn('No scalar values found in %s, skipping!', str(data_path))
 
         self.set_object_data(new_objects)
 
@@ -514,6 +591,7 @@ class DataManager(DataProxy):
             a_obj = self.get_object(obj_id)
             # implicit copy, ensure tha we can append later on
             a_obj.tags = set(obj_data['tags'])
+            a_obj.scalars = obj_data['scalars']
 
     def save_object_zip(self, zip_path):
         if not self.objects_loaded:
@@ -535,31 +613,25 @@ class DataManager(DataProxy):
     def load_object_zip(self, zip_path):
         with get_tempdir() as temp_dir:
             map_path = Path(temp_dir) / self.zipmap_name
+            data_path = Path(temp_dir) / self.zipdat_name
 
             try:
                 with ZipFile(str(zip_path), 'r', ZIP_DEFLATED) as zipf:
                     # obj map
                     zipf.extract(self.zipmap_name, temp_dir)
-                    new_obj_dat = zipf.read(self.zipdat_name)
-                    new_obj_dat = new_obj_dat.decode('utf-8')
-                    json_obj_dat = json.loads(new_obj_dat)
+                    zipf.extract(self.zipdat_name, temp_dir)
             #       not correct zip or json object
             except (KeyError, json.JSONDecodeError):
                 raise IOError('Not a valid .obj.zip file!')
 
             try:
-                self.objects_from_map(map_path)
+                self.objects_from_map_threaded(map_path)
             # couldn't read the tif oidmap
             except ValueError:
                 raise IOError('Not a valid .obj.zip file!')
 
             # obj data
-            obj_dat = {}
-            for a_obj_id, a_obj_dat in json_obj_dat.items():
-                new_obj_dat = obj_dat[int(a_obj_id)] = {}
-                new_obj_dat['tags'] = a_obj_dat['tags']
-
-            self.set_object_data(obj_dat)
+            self.load_object_data(data_path)
 
     def _get_key(self, res_type, unique_arglist):
         if res_type not in self._valid_res:
