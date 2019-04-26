@@ -8,11 +8,12 @@ from entity import Entity
 from misc import get_sliced_mask
 
 
-class EntityGenerator():
+class EntityGenerator:
     """Divide the process of generation and management of entities
     does not enforce any rules, just is set of entities based on some input
     might be usefull in context of multithreading
     """
+
     def __init__(self):
         self.entities = None
 
@@ -43,7 +44,13 @@ class EntityGenerator():
         self.entities = entities
 
 
-class EntityManager():
+class EntityManager:
+    __instance = None
+
+    def __new__(cls, *args, **kwargs):
+        if not cls.__instance:
+            cls.__instance = object.__new__(cls, *args, **kwargs)
+        return cls.__instance
 
     def __init__(self):
         # tracks all entities generated and some stats

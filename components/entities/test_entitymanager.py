@@ -2,8 +2,9 @@ import pytest
 import cv2
 from pathlib import Path
 
-from entitymanager import EntityManager
 from entity import Entity
+from entitymanager import EntityManager
+
 
 def test_make_entities():
     """test if double ids raise error
@@ -115,3 +116,9 @@ def test_creation_from_map():
     eman.generate_from_pixelmap(pixmap)
 
     assert len(eman) == 12
+
+
+def test_singleton_functionality():
+    eman1 = EntityManager()
+    eman2 = EntityManager()
+    assert eman1 != eman2
