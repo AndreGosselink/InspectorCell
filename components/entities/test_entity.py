@@ -63,26 +63,21 @@ def test_from_map_offset():
 def test_set_contours():
     mask = np.ones((5, 5), bool)
     mask[1:3, 2:] = 0
-    print(mask)
-    mask_slice = np.s_[0:10, 0:10]
-
-    mask = np.zeros((10, 10), bool)
-    mask[0:4, 1:9] = 1
-    mask[7:10, 0:10] = 1
+    mask_slice = np.s_[0:5, 0:5]
 
     ent = Entity(1)
     ent.from_mask(mask_slice, mask)
 
     ought_contours = [np.array([
-        [[0, 0]],
-        [[0, 4]],
-        [[4, 4]],
-        [[4, 3]],
-        [[2, 3]],
-        [[1, 2]],
-        [[1, 1]],
-        [[2, 0]],
-        [[4, 0]],
+        [0, 0],
+        [0, 4],
+        [4, 4],
+        [4, 3],
+        [2, 3],
+        [1, 2],
+        [1, 1],
+        [2, 0],
+        [4, 0],
     ], dtype=np.int32)]
 
     assert len(ent.contours) == len(ought_contours)
