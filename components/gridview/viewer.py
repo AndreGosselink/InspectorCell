@@ -46,7 +46,7 @@ class Viewer():
         self.views = {}
         self.state = ViewState()
 
-    def setup_grid(self, cols, rows):
+    def setup_grid(self, rows, cols):
         """ sets up the main viewgrid, depending on row and col number
         """
         if self.state.gridlayout != (rows, cols):
@@ -58,8 +58,8 @@ class Viewer():
         """ generates row * cols viewboxes with label, background and
         foreground/overlay images
         """
-        for col in range(cols):
-            for row in range(rows):
+        for row in range(rows):
+            for col in range(cols):
                 cur_index = row, col
                 cur_view = self.views.get(cur_index, None)
                 if cur_view is None:
@@ -67,7 +67,7 @@ class Viewer():
                     cur_view.sigRangeChanged.connect(self.sync_ranges)
 
                 self.views[cur_index] = cur_view
-                self.layout.addItem(cur_view, col, row)
+                self.layout.addItem(cur_view, row, col)
 
     # @qc.pyqtSlot(object, object)
     def sync_ranges(self, src_view):

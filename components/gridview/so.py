@@ -1,13 +1,4 @@
-from viewer import Viewer
-
-
-import random
-
-from AnyQt.QtGui import QPen, QColor
-from AnyQt import QtGui as qg, QtCore as qc, QtWidgets as qw
-
 import pyqtgraph as pg
-import numpy as np
 
 
 class Poly(pg.GraphicsObject):
@@ -82,6 +73,23 @@ class Poly(pg.GraphicsObject):
 
     def boundingRect(self):
         return self.poly.boundingRect()
+
+
+app = qw.QApplication([])
+viewer = Viewer()
+viewer.window.show()
+viewer.setup_grid(1, 2)
+
+polygon = Poly()
+# viewer.layout.scene().addItem(polygon)
+# for cview in viewer.views.values():
+#     cview.addItem(polygon)
+vb0, vb1 = viewer.views[(0, 0)], viewer.views[(0, 1)]
+
+
+
+
+
 
 
 app = qw.QApplication([])
