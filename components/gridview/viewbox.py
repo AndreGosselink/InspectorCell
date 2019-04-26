@@ -7,12 +7,7 @@ import AnyQt.QtWidgets as qw
 
 import pyqtgraph as pg
 
-from images import BackgroundImage, ForegroundImage
 from templates import get_viewbox_label_html
-
-from events import ErrorEvent, ReposUpdated, ModifyResReq
-from enhancer import Enhancer
-from crosshair import CrossHair
 
 
 class GridViewBoxLabel(pg.TextItem):
@@ -45,8 +40,6 @@ class GridViewBox(pg.ViewBox):
 
         self.disableAutoRange()
 
-        self.default_label = default_label
-
         self.paning_btn = qc.Qt.RightButton
         self.draw_btn = qc.Qt.LeftButton
         self.context_btn = qc.Qt.RightButton
@@ -59,12 +52,6 @@ class GridViewBox(pg.ViewBox):
         self.imagelabel = GridViewBoxLabel()
         self.addItem(self.imagelabel)
         self.imagelabel.setZValue(10)
-
-        # crosshair
-        self.crosshair = CrossHair()
-        # self.crosshair = Line()
-        self.addItem(self.crosshair)
-        self.crosshair.setZValue(9)
 
     def set_label(self, bg=None, fg=None, bgcolor='#000000',
                   fgcolor='#10AA00'):

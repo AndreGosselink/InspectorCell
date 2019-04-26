@@ -29,11 +29,12 @@ class ViewState():
 
 
 class Viewer():
-    """Holds and generates the views
+    """Holds and generates the views, all manipulation over this
+    instance
     """
 
     def __init__(self, parent=None):
-        
+
         # build ui part
         self.window = qw.QMainWindow(parent)
         self.layout = pg.GraphicsLayoutWidget(parent)
@@ -59,16 +60,16 @@ class Viewer():
         """
         for col in range(cols):
             for row in range(rows):
-                cur_index = col, row
+                cur_index = row, col
                 cur_view = self.views.get(cur_index, None)
                 if cur_view is None:
                     cur_view = GridViewBox()
                     cur_view.sigRangeChanged.connect(self.sync_ranges)
 
                 self.views[cur_index] = cur_view
-                self.layout.addItem(cur_view, row=row, col=col)
+                self.layout.addItem(cur_view, col, row)
 
-    @qc.pyqtSlot(object)
+    # @qc.pyqtSlot(object, object)
     def sync_ranges(self, src_view):
         """ Syncronizes the individual views
         """
