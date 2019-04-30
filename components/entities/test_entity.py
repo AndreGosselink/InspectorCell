@@ -64,6 +64,7 @@ def test_set_contours():
     mask = np.ones((5, 5), bool)
     mask[1:3, 2:] = 0
     mask_slice = np.s_[0:5, 0:5]
+    boundingbox = QRect(0, 0, 5, 5)
 
     ent = Entity(1)
     ent.from_mask(mask_slice, mask)
@@ -82,3 +83,4 @@ def test_set_contours():
 
     assert len(ent.contours) == len(ought_contours)
     assert np.all(ent.contours[0] == ought_contours[0])
+    assert ent.boundingbox == boundingbox

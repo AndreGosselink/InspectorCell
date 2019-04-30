@@ -168,3 +168,6 @@ class Entity:
             contours, _ = cv2.findContours(self.mask.astype(np.uint8), mode, method)
 
         self.contours = [cont.squeeze() for cont in contours]
+
+        x, y, w, h = bounding_rect_from_polygon(self.contours)
+        self.boundingbox = QRect(x, y, w, h)
