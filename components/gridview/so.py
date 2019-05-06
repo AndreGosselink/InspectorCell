@@ -86,12 +86,6 @@ polygon = Poly()
 #     cview.addItem(polygon)
 vb0, vb1 = viewer.views[(0, 0)], viewer.views[(0, 1)]
 
-
-
-
-
-
-
 app = qw.QApplication([])
 viewer = Viewer()
 viewer.window.show()

@@ -1,6 +1,7 @@
 import random
 import pyqtgraph as pg
 from PyQt5.QtGui import QPen, QColor
+from monkeyview import GlobalView, ViewBox
 
 from pyqtgraph.Qt import QtGui as qg, QtCore as qc
 
@@ -10,40 +11,28 @@ import numpy as np
 
 class Poly(pg.GraphicsObject):
 
-    def __init__(self):
-        """
-        just a crosshair
-        """
+    def __init__(self, color):
         super().__init__()
-
-        self._diag = (0, 0, 1, 1)
 
         pos = qc.QPointF(0, 0)
         self.setPos(pos)
 
         pen = QPen()
-        pen.setColor(QColor(255, 99, 71, 255))
+        pen.setColor(QColor(*color))
         pen.setWidth(1)
         self.setPen(pen)
 
-        pts_num = 50 # to make contour more clear
-        x0, y0 = 100, 100 # with 0,0 contour can be drawn out of view (minus coordinates values)
-        pts = []
-        for i in range(pts_num):
-            py = random.random()
-            dx = random.random()
-            if random.random() > 0.8:
-                x0 += dx
-            else:
-                x0 -= dx
-            if random.random() > 0.9:
-                y0 += dx
-            else:
-                y0 -= dx
-            pts.append((x0, y0))
+        pts0 = []
+        pts1 = []
+        r = 10
+        for x in np.linspace(-9.9, 9.9, 20):
+            disc = r**2 - x**2
+            y = np.sqrt(disc)
+            pts0.append((x + random.random(), y + random.random()))
+            pts1.append((x + random.random(), - y - random.random()))
 
         self.poly = qg.QPolygonF()
-        for p in pts:
+        for p in pts0 + pts1[::-1]:
             self.poly.append(qc.QPointF(*p))
 
     def _invalidateCache(self):
@@ -79,7 +68,7 @@ class Poly(pg.GraphicsObject):
     def paint(self, p, *args):
         p.setRenderHint(p.Antialiasing)
 
-        left, top, right, bottom = self._diag
+        left, top, right, bottom = (0, 0, 2, 2)
         hor0 = left, 0.0
         hor1 = right, 0.0
         ver0 = 0.0, top
@@ -87,32 +76,48 @@ class Poly(pg.GraphicsObject):
 
         self.pen.setJoinStyle(qc.Qt.MiterJoin)
         p.setPen(self.pen)
-        # p.drawLine(qc.QPointF(*ver0), qc.QPoint(*ver1))
-        # p.drawLine(qc.QPointF(*hor0), qc.QPoint(*hor1))
         p.drawPolygon(self.poly)
 
-    def viewTransformChanged(self):
-        """
-        Called whenever the transformation matrix of the view has changed.
-        (eg, the view range has changed or the view was resized)
-        """
-        self._invalidateCache()
+    def boundingRect(self):
+        return self.poly.boundingRect()
 
 app = qg.QApplication([])
-layout = pg.GraphicsLayout(border=(100,100,100))
+layout = pg.GraphicsLayout(border=(100, 100, 100))
 
 view = pg.GraphicsView()
 view.setCentralItem(layout)
 view.show()
-layout.show()
 
-vbox0 = layout.addViewBox(lockAspect=True)
-vbox1 = layout.addViewBox(lockAspect=True)
+poly0 = Poly(color=(255, 99, 71, 255))
+poly1 = Poly(color=(99, 255, 71, 255))
+poly2 = Poly(color=(255, 255, 71, 255))
 
-vbox0.scene().addItem(Poly())
+vbox0 = GlobalView(lockAspect=True)
+vbox1 = ViewBox(lockAspect=True)
 
-vbox0.show()
-vbox1.show()
+layout.addItem(vbox0)
+layout.addItem(vbox1)
+
+poly0.setPos((5, 5))
+poly1.setPos((10, 10))
+poly2.setPos((15, 15))
+
+vbox1.scene().addItem(poly1)
+vbox1.scene().addItem(poly2)
+
+vbox0.addItem(poly0)
+
+# if poly1.zValue() < vbox0.zValue():
+#     poly1.setZValue(vbox0.zValue()+1)
+# scene = vbox0.scene()
+# if scene is not None and scene is not poly1.scene():
+#     scene.addItem(poly1)
+poly1.setParentItem(vbox0.childGroup)
+# if not ignoreBounds:
+#     vbox0.addedItems.append(poly1)
+# vbox0.updateAutoRange()
+
+assert vbox0.scene() is vbox1.scene()
 
 print('go!')
 app.exec_()
