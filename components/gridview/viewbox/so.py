@@ -1,3 +1,7 @@
+"""Minimal working example for stack overflow question
+"""
+
+
 import pyqtgraph as pg
 
 

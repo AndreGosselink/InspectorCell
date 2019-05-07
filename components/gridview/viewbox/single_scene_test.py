@@ -1,7 +1,13 @@
+"""Simple example to test viewbox based approaches
+"""
+
+
 import random
 import pyqtgraph as pg
 from PyQt5.QtGui import QPen, QColor
-from monkeyview import GlobalView, ViewBox
+from monkeyview import GlobalView, ViewBox, GlobalGroup
+from pyqtgraph.graphicsItems.ViewBox.ViewBox import ChildGroup
+import IPython as ip
 
 from pyqtgraph.Qt import QtGui as qg, QtCore as qc
 
@@ -89,33 +95,25 @@ view.setCentralItem(layout)
 view.show()
 
 poly0 = Poly(color=(255, 99, 71, 255))
+poly0.setPos((5, 5))
 poly1 = Poly(color=(99, 255, 71, 255))
+poly1.setPos((10, 10))
 poly2 = Poly(color=(255, 255, 71, 255))
+poly2.setPos((15, 15))
 
-vbox0 = GlobalView(lockAspect=True)
-vbox1 = ViewBox(lockAspect=True)
+global_items = [poly2]
+view.scene().addItem(poly2)
+
+vbox0 = GlobalView(lockAspect=True, globalItems=global_items)
+vbox1 = GlobalView(lockAspect=True, globalItems=global_items)
 
 layout.addItem(vbox0)
 layout.addItem(vbox1)
 
-poly0.setPos((5, 5))
-poly1.setPos((10, 10))
-poly2.setPos((15, 15))
-
-vbox1.scene().addItem(poly1)
-vbox1.scene().addItem(poly2)
-
 vbox0.addItem(poly0)
+vbox1.addItem(poly1)
 
-# if poly1.zValue() < vbox0.zValue():
-#     poly1.setZValue(vbox0.zValue()+1)
-# scene = vbox0.scene()
-# if scene is not None and scene is not poly1.scene():
-#     scene.addItem(poly1)
-poly1.setParentItem(vbox0.childGroup)
-# if not ignoreBounds:
-#     vbox0.addedItems.append(poly1)
-# vbox0.updateAutoRange()
+# vbox0.childGroup.setParentItem(vbox1)
 
 assert vbox0.scene() is vbox1.scene()
 
