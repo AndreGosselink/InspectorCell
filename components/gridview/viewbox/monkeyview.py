@@ -14,18 +14,15 @@ from pyqtgraph.Point import Point
 from pyqtgraph import functions as fn, getConfigOption, isQObjectAlive
 from pyqtgraph.graphicsItems import ItemGroup
 from pyqtgraph.graphicsItems.GraphicsWidget import GraphicsWidget
-from pyqtgraph import debug
+from pyqtgraph import debug, ItemGroup
 
 
-class GlobalGroup(ChildGroup):
-
-    def __init__(self, *args, globalItems=[], **kwargs):
-        super().__init__(*args, **kwargs)
-        self.globalItems = globalItems
-
-    def children(self):
-        super().children() + self.globalItems
-
+class GlobalGroup(ItemGroup):
+    def paint(self, *args):
+        pass
+    def addItem(self, item):
+        item._paintable = False
+        super().addItem(item)
 
 class GlobalView(ViewBox):
     """
@@ -37,8 +34,8 @@ class GlobalView(ViewBox):
     def __init__(self, *args, globalItems=None, **kwargs):
         super().__init__(*args, **kwargs)
 
-        self.childGroup = GlobalGroup(self, globalItems=globalItems)
-        self.childGroup.itemsChangedListeners.append(self)
+        self.globalGroup = globalItems
+        self._lastTransform = None
 
     def updateMatrix(self, changed=None):
         if not self._matrixNeedsUpdate:
@@ -67,8 +64,21 @@ class GlobalView(ViewBox):
         m.translate(-st[0], -st[1])
         
         self.childGroup.setTransform(m)
-        for item in self.childGroup.globalItems:
-            item.setTransform(m)
+        # only here transformation can be achieved
+        if not self.globalGroup is None:
+            self.globalGroup.setTransform(m)
         
         self.sigTransformChanged.emit(self)  ## segfaults here: 1
         self._matrixNeedsUpdate = False
+
+#     def paint(self, *args, **kwargs):
+#         ret = super().paint(*args, **kwargs)
+#         if self._lastTransform is None:
+#             return ret
+#         if not self.globalGroup is None:
+#             print('transform')
+#             self.globalGroup.setTransform(self._lastTransform)
+#             self.globalGroup.transform()
+#             for item in self.globalGroup.childItems():
+#                 item.paint(*args, force=True)
+#         return ret

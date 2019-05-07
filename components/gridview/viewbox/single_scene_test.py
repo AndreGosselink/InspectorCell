@@ -28,6 +28,8 @@ class Poly(pg.GraphicsObject):
         pen.setWidth(1)
         self.setPen(pen)
 
+        self._paintable = True
+
         pts0 = []
         pts1 = []
         r = 10
@@ -70,8 +72,10 @@ class Poly(pg.GraphicsObject):
 
     def getPos(self):
         return self.pos
-
-    def paint(self, p, *args):
+    
+    def paint(self, p, *args, force=False):
+        # if not (self._paintable or force):
+        #     return
         p.setRenderHint(p.Antialiasing)
 
         left, top, right, bottom = (0, 0, 2, 2)
@@ -101,21 +105,17 @@ poly1.setPos((10, 10))
 poly2 = Poly(color=(255, 255, 71, 255))
 poly2.setPos((15, 15))
 
-global_items = [poly2]
-view.scene().addItem(poly2)
+globalGroup = GlobalGroup(layout)
+globalGroup.addItem(poly2)
 
-vbox0 = GlobalView(lockAspect=True, globalItems=global_items)
-vbox1 = GlobalView(lockAspect=True, globalItems=global_items)
+vbox0 = GlobalView(lockAspect=True, globalItems=globalGroup)
+vbox1 = GlobalView(lockAspect=True, globalItems=globalGroup)
 
 layout.addItem(vbox0)
 layout.addItem(vbox1)
 
 vbox0.addItem(poly0)
 vbox1.addItem(poly1)
-
-# vbox0.childGroup.setParentItem(vbox1)
-
-assert vbox0.scene() is vbox1.scene()
 
 print('go!')
 app.exec_()
