@@ -6,10 +6,17 @@ import AnyQt.QtGui as qg
 import AnyQt.QtWidgets as qw
 
 import pyqtgraph as pg
+from res import BackgroundImage
 
 
 class SceneViewer(pg.GraphicsView):
-    pass
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        self.background = BackgroundImage()
+
+    def drawBackground(self, painter, rect):
+        self.background.paint(painter)
 
     def wheelEvent(self, ev):
         qg.QGraphicsView.wheelEvent(self, ev)
