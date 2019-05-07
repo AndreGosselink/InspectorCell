@@ -14,8 +14,10 @@ class SceneViewer(pg.GraphicsView):
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
         self.background = BackgroundImage()
+        self.setAspectLocked(True)
 
     def drawBackground(self, painter, rect):
+        super().drawBackground(painter, rect)
         self.background.paint(painter)
 
     def wheelEvent(self, ev):

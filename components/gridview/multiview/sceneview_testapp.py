@@ -20,9 +20,6 @@ imgdata1[170:340, 170:340] *= 2
 
 app = qg.QApplication([])
 
-poly0 = Poly((255, 100, 50))
-poly0.setPos((100, 100))
-
 v0 = SceneViewer(useOpenGL=True)
 scn = v0.scene()
 v0.enableMouse(True)
@@ -31,7 +28,11 @@ v1 = SceneViewer(useOpenGL=True)
 v1.setScene(scn)
 v1.enableMouse(True)
 
-scn.addItem(poly0)
+for i in range(0, 500, 10):
+    for j in range(0, 500, 10):
+        poly = Poly((i%255, i%100, 50))
+        poly.setPos((i, j))
+        scn.addItem(poly)
 
 v0.background.setImage(imgdata0)
 v1.background.setImage(imgdata1)
