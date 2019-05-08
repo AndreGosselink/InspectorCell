@@ -10,35 +10,38 @@ from sceneview import SceneViewer
 from res import Poly
 
 
-imgdata0 = np.random.uniform(0, 0xfff, 512*512)
-imgdata0 = imgdata0.reshape(512, 512).astype(np.uint16)
+imgdata0 = np.random.uniform(0, 0xfff, 4096*4096)
+imgdata0 = imgdata0.reshape(4096, 4096).astype(np.uint16)
 
-imgdata1 = np.random.uniform(0, 0xfff, 512*512)
-imgdata1 = imgdata1.reshape(512, 512).astype(np.uint16)
+imgdata1 = np.random.uniform(0, 0xfff, 4096*4096)
+imgdata1 = imgdata1.reshape(4096, 4096).astype(np.uint16)
 
 imgdata1[170:340, 170:340] *= 2
 
 app = qg.QApplication([])
 
-v0 = SceneViewer(useOpenGL=True)
-scn = v0.scene()
-v0.enableMouse(True)
+view = SceneViewer(useOpenGL=True)
+view.enableMouse(True)
+scene = view.scene()
+views = [view]
+for i in range(15):
+    view = SceneViewer(useOpenGL=True)
+    view.enableMouse(True)
+    view.setScene(scene)
+    views.append(view)
+    if i % 2:
+        view.background.setImage(imgdata0)
+    else:
+        view.background.setImage(imgdata1)
 
-v1 = SceneViewer(useOpenGL=True)
-v1.setScene(scn)
-v1.enableMouse(True)
 
 for i in range(0, 500, 10):
     for j in range(0, 500, 10):
         poly = Poly((i%255, i%100, 50))
         poly.setPos((i, j))
-        scn.addItem(poly)
+        scene.addItem(poly)
 
-v0.background.setImage(imgdata0)
-v1.background.setImage(imgdata1)
-
-v0.show()
-v1.show()
+[v.show() for v in views]
 
 print('go!')
 app.exec_()
