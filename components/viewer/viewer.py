@@ -1,16 +1,20 @@
 # -*- coding: utf-8 -*-
-
 """Implements the main viewer element, to be used as a widget
 generates views and manges them. implements interface to add and remove entities
 and including background images.
 """
+
+# built-ins
 import warnings
-import inspect
 
-import AnyQt.QtCore as qc
-import AnyQt.QtWidgets as qw
-
+# GUI stuff
 import pyqtgraph as pg
+import AnyQt.QtCore as qc
+from AnyQt import QtGui as qg, QtCore as qc, QtWidgets as qw
+
+# project
+from tracker import CallTracker
+from res import BackgroundImage
 
 
 class Channel(pg.GraphicsView):
@@ -22,7 +26,11 @@ class Channel(pg.GraphicsView):
         super().__init__(*args, **kwargs)
         self.background = BackgroundImage()
 
+        self.enableMouse(True)
+        self.setAspectLocked(True)
+
     def drawBackground(self, painter, rect):
+        super().drawBackground(painter, rect)
         self.background.paint(painter)
 
     def wheelEvent(self, ev):
@@ -38,36 +46,7 @@ class Channel(pg.GraphicsView):
         #self.scale *= sc
         #self.updateMatrix()
         self.scale(sc, sc)
-
-
-class ViewStateTracker():
-    """Class holding all information of the current viewer State and methods
-    to save/load the state
-    """
-
-    def __init__(self, rows=2, cols=2, crosshair=False):
-        self.crosshair = crosshair
-        self.calls = {}
-
-    def get_tracker(self, key, func):
-        """get an wrapper to func if key is a key in track
-        the wrapper will map the function call and store the
-        parameters in ViewState.track
-        """
-        if key in self.track:
-            # get signature names of function to track
-            sig = inspect.signature(func)
-            pnames = sig.parameters.keys()
-            # define the wrapper function
-            def _tracker(*args, **kwargs):
-                self.calls[key] = dict(zip(pnames, args))
-                self.calls[key].update(kwargs)
-                return func(*args, **kwargs)
-            # return the wrapped function
-            return _tracker
-        else:
-            # otherwise just return the bare function
-            return func
+        ev.accept()
 
 
 class Viewer():
@@ -78,31 +57,28 @@ class Viewer():
     def __init__(self, parent=None):
 
         # build ui part
-        self.window = qw.QMainWindow(parent)
-        self.layout = pg.GraphicsLayoutWidget(parent)
-        self.window.setCentralWidget(self.layout)
+        #TODO find proper parent
+        self.widget = qw.QWidget()
+
+        self.layout = qw.QGridLayout()
+        self.layout.setSpacing(0)
+        self.layout.setContentsMargins(0, 0, 0, 0)
+
+        self.widget.setLayout(self.layout)
 
         # Channel, Scene
         self.views = {}
-        self.scene = None
-
-        # the state object
-        self.state = ViewStateTracker()
-
-    def __getattr__(self, name):
-        """wraps all registered calls to the state object. Allows
-        on-the-fly tracking for registers calls that have relevant side
-        effects
-        """
-        attr = self.__dict__[name]
-        return self.state.get_tracker(name, attr)
+        self.scene = pg.GraphicsScene(parent=self.widget)
+        
+        # register calls to function to save viewstate
+        # later on
+        self.state = CallTracker()
 
     def set_gridlayout(self, rows, cols):
         """ sets up the main viewgrid, depending on row and col number
         """
-        if self.state.gridlayout != (rows, cols):
-            self.layout.clear()
-            self._spawn_views(rows=rows, cols=cols)
+        # self.layout.clear()
+        self._spawn_views(rows=rows, cols=cols)
 
     def _spawn_views(self, rows, cols):
         """ generates row * cols viewboxes with label, background and
@@ -113,11 +89,13 @@ class Viewer():
                 cur_index = row, col
                 cur_view = self.views.get(cur_index, None)
                 if cur_view is None:
-                    cur_view = ()
-                    cur_view.sigRangeChanged.connect(self.sync_ranges)
+                    #TODO find proper parent
+                    cur_view = Channel()
+                    # cur_view.sigRangeChanged.connect(self.sync_ranges)
+                    cur_view.setScene(self.scene)
 
                 self.views[cur_index] = cur_view
-                self.layout.addItem(cur_view, row, col)
+                self.layout.addWidget(cur_view, row, col)
 
     # @qc.pyqtSlot(object, object)
     def sync_ranges(self, src_view):
@@ -144,4 +122,26 @@ class Viewer():
         """
         warnings.warn('please use Viewer.set_gridlayout instead',
                       DeprecationWarning)
-        self.set_gridlayout(rows=rows, cols=cols)
+        return self.set_gridlayout(rows=rows, cols=cols)
+    
+    def set_background(self, index, imagedata):
+        """Sets the background of channel at index to imagedata
+        will silently fail if there is no channel at index
+        """
+        chan = self.views.get(index, None)
+
+        if chan is None:
+            return
+
+        chan.background.setImage(imagedata)
+
+    @property
+    def window(self):
+        """ DEPRECEATED
+        """
+        warnings.warn('please use Viewer.widget instead',
+                      DeprecationWarning)
+        return self.widget
+
+    def wheelEvent(self, ev):
+        ev.ignore()
