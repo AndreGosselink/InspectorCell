@@ -8,23 +8,28 @@ import pyqtgraph as pg
 import numpy as np
 
 
+
+
 class Poly(pg.GraphicsObject):
 
     def __init__(self, color):
         super().__init__()
 
         pos = qc.QPointF(0, 0)
+        self.picture = None
+
         self.setPos(pos)
 
         pen = qg.QPen()
         pen.setColor(qg.QColor(*color))
         pen.setWidth(1)
+        pen.setJoinStyle(qc.Qt.MiterJoin)
         self.setPen(pen)
 
         pts0 = []
         pts1 = []
         r = 10
-        for x in np.linspace(-9.9, 9.9, 20):
+        for x in np.linspace(-9.9, 9.9, 10):
             disc = r**2 - x**2
             y = np.sqrt(disc)
             pts0.append((x + random.random(), y + random.random()))
@@ -33,6 +38,8 @@ class Poly(pg.GraphicsObject):
         self.poly = qg.QPolygonF()
         for p in pts0 + pts1[::-1]:
             self.poly.append(qc.QPointF(*p))
+
+        self.generate_picture()
 
     def _invalidateCache(self):
         self._boundingRect = None
@@ -64,18 +71,18 @@ class Poly(pg.GraphicsObject):
     def getPos(self):
         return self.pos
 
-    def paint(self, p, *args):
-        p.setRenderHint(p.Antialiasing)
-
-        left, top, right, bottom = (0, 0, 2, 2)
-        hor0 = left, 0.0
-        hor1 = right, 0.0
-        ver0 = 0.0, top
-        ver1 = 0.0, bottom
-
-        self.pen.setJoinStyle(qc.Qt.MiterJoin)
+    def generate_picture(self):
+        ## pre-computing a QPicture object allows paint() to run much more quickly, 
+        ## rather than re-drawing the shapes every time.
+        self.picture = qg.QPicture()
+        p = qg.QPainter(self.picture)
         p.setPen(self.pen)
+        # p.setRenderHint(p.Antialiasing)
         p.drawPolygon(self.poly)
+        p.end()
+
+    def paint(self, p, *args):
+        p.drawPicture(0, 0, self.picture)
 
     def boundingRect(self):
         return self.poly.boundingRect()

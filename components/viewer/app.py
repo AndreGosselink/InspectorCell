@@ -33,10 +33,10 @@ for i in range(4):
         viewer.set_background((i, j), imdat)
 
 c = 0
-for i in range(0, 2000, 40):
+for i in range(0, 2000, 20):
     for j in range(0, 2000, 40):
         c += 1
-        poly = Poly((i%255, i%100, 50))
+        poly = Poly((i%255, i%100, 80))
         poly.setPos((i, j))
         viewer.add_item(poly)
 
