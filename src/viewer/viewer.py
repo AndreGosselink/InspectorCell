@@ -71,7 +71,8 @@ class Viewer(qw.QWidget):
 
         # Channel, Scene
         self.channels = {}
-        self.scene = pg.GraphicsScene(parent=self)
+        self.entity_scn = pg.GraphicsScene(parent=self)
+        self.empty_scn = pg.GraphicsScene(parent=self)
         
         # register calls to function to save viewstate
         # later on
@@ -83,7 +84,7 @@ class Viewer(qw.QWidget):
         self._spawn_views(rows=rows, cols=cols)
 
     def add_item(self, item):
-        self.scene.addItem(item)
+        self.entity_scn.addItem(item)
 
     def _spawn_views(self, rows, cols):
         """ generates row * cols viewboxes with label, background and
@@ -97,7 +98,7 @@ class Viewer(qw.QWidget):
                     #TODO find proper parent
                     cur_chan = Channel(self, useOpenGL=False)
                     cur_chan.sigDeviceRangeChanged.connect(self.sync_ranges)
-                    cur_chan.setScene(self.scene)
+                    cur_chan.setScene(self.empty_scn)
 
                 self.channels[cur_index] = cur_chan
                 self.grid_layout.addWidget(cur_chan, row, col)
@@ -126,6 +127,21 @@ class Viewer(qw.QWidget):
             return
 
         chan.background.setImage(imagedata)
+
+    def show_entities(self, index, show=True):
+        """Sets channel at index to show entities
+        will silently fail if there is no channel at index
+        """
+        chan = self.channels.get(index, None)
+
+        if chan is None:
+            return
+
+        if show:
+            chan.setScene(self.entity_scn)
+        else:
+            chan.setScene(self.empty_scn)
+
 
     # DEPRECIATED functions or properties
     @property
