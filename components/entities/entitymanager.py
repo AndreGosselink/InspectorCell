@@ -47,18 +47,17 @@ class EntityGenerator:
 class EntityManager:
     __instance = None
 
+    # tracks all entities generated and some stats
+    # about them
+    _entity_dat = {
+        'entities': {},
+        'id_list': SortedList([]),
+    }
+
     def __new__(cls, *args, **kwargs):
         if not cls.__instance:
             cls.__instance = object.__new__(cls, *args, **kwargs)
         return cls.__instance
-
-    def __init__(self):
-        # tracks all entities generated and some stats
-        # about them
-        self._entity_dat = {
-            'entities': {},
-            'id_list': SortedList([]),
-        }
 
     def __len__(self):
         """Number of entities in manager
@@ -167,6 +166,9 @@ class EntityManager:
             Unused ID
         """
         used_ids = self._entity_dat['id_list']
+
+        if len(used_ids) == 0:
+            return 1
 
         left = 0
         right = len(used_ids) - 1

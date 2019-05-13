@@ -121,4 +121,10 @@ def test_creation_from_map():
 def test_singleton_functionality():
     eman1 = EntityManager()
     eman2 = EntityManager()
+
     assert eman1 != eman2
+
+    ent1 = eman1.make_entity()
+    ent2 = eman2.make_entity()
+
+    assert ent1.eid == ent2.eid

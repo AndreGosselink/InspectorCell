@@ -3,36 +3,47 @@ related to a single, identifyable thingy in an image stack
 """
 import numpy as np
 import cv2
-from PyQt5.QtCore import QRect
+from PyQt5.QtCore import QRect, QPointF
+from PyQt5.QtGui import QPolygonF, QPainterPath
 
 
-def bounding_rect_from_polygon(polygons):
-    """
-    return a bounding rect of list of polygons points, analog to cv2.boundingRect function, but for multiple polygons
-    """
+def pathToContours(path):
+    if path is None:
+        return None
 
-    x, y, w, h = cv2.boundingRect(polygons[0])
-    x_min = x
-    y_min = y
-    x_max = x + w
-    y_max = y + h
+    contours = []
 
-    for i in range(1, len(polygons)):
-        x, y, w, h = cv2.boundingRect(polygons[i])
+    for polygon in path.toSubpathPolygons():
+        n_points = len(polygon)
+        contour = np.empty([n_points, 2], dtype=np.int32)
+        for i in range(n_points):
+            contour[i, 0] = polygon[i].x()
+            contour[i, 1] = polygon[i].y()
+        contours.append(contour)
 
-        if x < x_min:
-            x_min = x
+    return contours
 
-        if y < y_min:
-            y_min = y
+def convertToInt(items):
+    res_items = []
 
-        if x + w > x_max:
-            x_max = x + w
+    for item in items:
+        res_items.append(int(item))
 
-        if y + h > y_max:
-            y_max = y + h
+    return tuple(res_items)
 
-    return x_min, y_min, x_max - x_min, y_max - y_min
+def contoursToPath(contours):
+    if contours is None:
+        return None
+
+    polygons = []
+
+    for contour in contours:
+        polygon = QPolygonF()
+        for x, y in contour:
+            polygon << QPointF(x, y)
+        polygons.append(polygon)
+
+    return polygons
 
 
 class Entity:
@@ -46,6 +57,35 @@ class Entity:
     """
 
     _used_ids = set([])
+
+    @property
+    def contours(self):
+        return pathToContours(self.__path)
+
+    @contours.setter
+    def contours(self, contours):
+        self.__path = contoursToPath(contours)
+
+    @property
+    def path(self):
+        return self.__path
+
+    @path.setter
+    def path(self, path):
+        self.__path = path
+
+    @property
+    def boundingbox(self):
+        """
+        properties of the entity in context of
+        the view of the entity
+        a QRect locating the entity in the scene it is
+        placed in
+        """
+        if self.__path is None:
+            return None
+        else:
+            return self.__path.boundingRect()
 
     def __init__(self, entity_id):
         """raises valueerror if entity_id is not none
@@ -78,15 +118,9 @@ class Entity:
         # defining polygons
         self.contours = None
 
-        # properties of the entity in context of
-        # the view of the entity
-        # a QRect locating the entity in the scene it is
-        # placed in
-        self.boundingbox = None
-
-        # QPolygon, giving the polygon of the entity
+        # QPainterPath, giving the polygon of the entity
         # representing it in the view
-        self.polygons = None
+        self.path = None
 
         ### Common Attributes ###
         # all attributes relevant for drawing
@@ -101,9 +135,8 @@ class Entity:
         self.tags = []
         self.scalars = {}
 
-    def from_polygon(self, polygons, offset=(0, 0)):
-        """Sets the mask, given the polygon
-        points:
+    def from_polygons(self, polygons, offset=(0, 0)):
+        """Sets the mask, given the contour points:
         list of numpy.arrays with the shape (n, 2),
         where each index i is on point in the polygon
         """
@@ -112,10 +145,34 @@ class Entity:
             msg = 'Number of polygons is 0'
             raise ValueError(msg)
 
-        x, y, w, h = bounding_rect_from_polygon(polygons)
-        self.boundingbox = QRect(x, y, w, h)
+        self.path = QPainterPath()
+        for polygon in polygons:
+            self.path.addPolygon(polygon)
+
+        x, y, w, h = convertToInt(self.boundingbox.getRect())
         self.mask = np.zeros((w, h), np.uint8)
-        cv2.drawContours(self.mask, polygons, -1, 1, -1)
+        cv2.drawContours(self.mask, self.contours, -1, 1, -1)
+        row_off, col_off = offset
+        self.mask_slice = (
+            slice(y + row_off, y + h + row_off),
+            slice(x + col_off, x + w + col_off)
+        )
+
+    def from_contours(self, contours, offset=(0, 0)):
+        """Sets the mask, given the contour points:
+        list of numpy.arrays with the shape (n, 2),
+        where each index i is on point in the polygon
+        """
+
+        if len(contours) == 0:
+            msg = 'Number of polygons is 0'
+            raise ValueError(msg)
+
+        self.contours = contours
+
+        x, y, w, h = convertToInt(self.boundingbox.getRect())
+        self.mask = np.zeros((w, h), np.uint8)
+        cv2.drawContours(self.mask, contours, -1, 1, -1)
         row_off, col_off = offset
         self.mask_slice = (
             slice(y + row_off, y + h + row_off),
@@ -168,6 +225,3 @@ class Entity:
             contours, _ = cv2.findContours(self.mask.astype(np.uint8), mode, method)
 
         self.contours = [cont.squeeze() for cont in contours]
-
-        x, y, w, h = bounding_rect_from_polygon(self.contours)
-        self.boundingbox = QRect(x, y, w, h)
