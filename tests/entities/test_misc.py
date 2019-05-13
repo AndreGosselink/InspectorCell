@@ -2,7 +2,7 @@
 """
 import numpy as np
 
-from misc import get_sliced_mask
+from src.entities.misc import get_sliced_mask
 
 def test_get_masks_grey():
     mapping = np.zeros((300, 500), np.uint16)

@@ -4,8 +4,8 @@ Uses EntityLoader and EntitySaver to ensure persistense during session
 from sortedcontainers import SortedList
 import numpy as np
 
-from entity import Entity
-from misc import get_sliced_mask
+from .entity import Entity
+from .misc import get_sliced_mask
 
 
 class EntityGenerator:

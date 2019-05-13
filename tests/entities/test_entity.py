@@ -2,7 +2,7 @@ import pytest
 import numpy as np
 from PyQt5.QtCore import QRect
 
-from entity import Entity
+from src.entities import Entity
 
 
 def test_from_polygon():

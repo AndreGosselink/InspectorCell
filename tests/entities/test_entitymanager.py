@@ -2,8 +2,7 @@ import pytest
 import cv2
 from pathlib import Path
 
-from entity import Entity
-from entitymanager import EntityManager
+from src.entities import Entity, EntityManager
 
 
 def test_make_entities():
