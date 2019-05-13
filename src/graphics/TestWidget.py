@@ -129,7 +129,7 @@ class TestlWidget(QtGui.QWidget):
         elif event.key() == QtCore.Qt.Key_Minus:
             self.radiusDecreased.emit()
         else:
-            self.draw_mode_setted.emit(0)
+            self.drawingModeSetted.emit(0)
 
         event.ignore()
 

@@ -34,7 +34,7 @@ class CentralGraphicUnit:
         self.viewBox.mouse_hovermoved.connect(self.mouse_position)
 
         for obj in graphicObjects:
-            obj.object_selected.connect(self.selection_changed)
+            obj.object_selected.connect(self.selectionChanged)
             obj.mouse_hovermoved.connect(self.mouse_position)
             obj.mouse_moved.connect(self.update_mouse_path)
             obj.mouse_released.connect(self.draw)
@@ -75,9 +75,9 @@ class CentralGraphicUnit:
             self.graphicObjects[indx].update()
             numberOfSelectedObjects = numberOfSelectedObjects - 1
 
-            
-    def selection_changed(self, id, selected):
 
+    def selectionChanged(self, id, selected):
+        print("selectionChanged, number of already selected objects", len(self.selected_object_ids))
         if selected:
             if self.drawingMode:
                 # de-select all objects
@@ -190,12 +190,15 @@ class CentralGraphicUnit:
 
             self.selected_object_ids = []
             newObject = EntityGraphicObject(new_path.toFillPolygons(), selected_brush, selected_pen)
-            #newObject.setSelected(True)
-            self.graphicObjects.append(newObject)
+            newObject.object_selected.connect(self.selectionChanged)
+            newObject.mouse_hovermoved.connect(self.mouse_position)
+            newObject.mouse_moved.connect(self.update_mouse_path)
+            newObject.mouse_released.connect(self.draw)
 
             for indx in selected_objects_indxs:
                 print("remove ",indx)
                 self.graphicObjects[indx].parent = newObject
                 self.viewBox.removeItem(self.graphicObjects[indx])
 
+            self.graphicObjects.append(newObject)
             self.viewBox.addItem(newObject)
