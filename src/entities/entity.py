@@ -3,7 +3,7 @@ related to a single, identifyable thingy in an image stack
 """
 import numpy as np
 import cv2
-from PyQt5.QtCore import QRect, QPointF
+from PyQt5.QtCore import QPointF
 from PyQt5.QtGui import QPolygonF, QPainterPath
 
 
@@ -23,6 +23,7 @@ def pathToContours(path):
 
     return contours
 
+
 def convertToInt(items):
     res_items = []
 
@@ -31,19 +32,20 @@ def convertToInt(items):
 
     return tuple(res_items)
 
+
 def contoursToPath(contours):
     if contours is None:
         return None
 
-    polygons = []
+    path = QPainterPath()
 
     for contour in contours:
         polygon = QPolygonF()
         for x, y in contour:
             polygon << QPointF(x, y)
-        polygons.append(polygon)
+        path.addPolygon(polygon)
 
-    return polygons
+    return path
 
 
 class Entity:
@@ -150,12 +152,13 @@ class Entity:
             self.path.addPolygon(polygon)
 
         x, y, w, h = convertToInt(self.boundingbox.getRect())
-        self.mask = np.zeros((w, h), np.uint8)
+
+        self.mask = np.zeros((w + 1, h + 1), np.uint8)
         cv2.drawContours(self.mask, self.contours, -1, 1, -1)
         row_off, col_off = offset
         self.mask_slice = (
-            slice(y + row_off, y + h + row_off),
-            slice(x + col_off, x + w + col_off)
+            slice(y + row_off, y + h + 1 + row_off),
+            slice(x + col_off, x + w + 1 + col_off)
         )
 
     def from_contours(self, contours, offset=(0, 0)):
@@ -171,12 +174,12 @@ class Entity:
         self.contours = contours
 
         x, y, w, h = convertToInt(self.boundingbox.getRect())
-        self.mask = np.zeros((w, h), np.uint8)
+        self.mask = np.zeros((w+1, h+1), np.uint8)
         cv2.drawContours(self.mask, contours, -1, 1, -1)
         row_off, col_off = offset
         self.mask_slice = (
-            slice(y + row_off, y + h + row_off),
-            slice(x + col_off, x + w + col_off)
+            slice(y + row_off, y + h + 1 + row_off),
+            slice(x + col_off, x + w + 1 + col_off)
         )
 
     def from_mask(self, mask_slice, mask, offset=(0, 0)):
