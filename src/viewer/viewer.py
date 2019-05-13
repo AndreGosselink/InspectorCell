@@ -13,8 +13,8 @@ import AnyQt.QtCore as qc
 from AnyQt import QtGui as qg, QtCore as qc, QtWidgets as qw
 
 # project
-from tracker import CallTracker
-from res import BackgroundImage
+from ..util import CallTracker
+from .image import BackgroundImage
 
 
 class Channel(pg.GraphicsView):

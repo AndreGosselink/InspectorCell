@@ -8,11 +8,16 @@ import pyqtgraph as pg
 import numpy as np
 
 
-
-
 class Poly(pg.GraphicsObject):
+    """simple testing object
+    """
 
-    def __init__(self, color):
+    def __init__(self, color=(255, 180, 50, 255), pts=5, rad=10):
+        """
+        color: color of pen
+        pts: number of points in polygon
+        rad: radius of polygons
+        """
         super().__init__()
 
         pos = qc.QPointF(0, 0)
@@ -28,9 +33,9 @@ class Poly(pg.GraphicsObject):
 
         pts0 = []
         pts1 = []
-        r = 10
-        for x in np.linspace(-9.9, 9.9, 10):
-            disc = r**2 - x**2
+        pts = int(np.round(pts / 2))
+        for x in np.linspace(-9.9, 9.9, pts):
+            disc = rad**2 - x**2
             y = np.sqrt(disc)
             pts0.append((x + random.random(), y + random.random()))
             pts1.append((x + random.random(), - y - random.random()))
@@ -77,7 +82,6 @@ class Poly(pg.GraphicsObject):
         self.picture = qg.QPicture()
         p = qg.QPainter(self.picture)
         p.setPen(self.pen)
-        # p.setRenderHint(p.Antialiasing)
         p.drawPolygon(self.poly)
         p.end()
 
@@ -86,56 +90,3 @@ class Poly(pg.GraphicsObject):
 
     def boundingRect(self):
         return self.poly.boundingRect()
-
-
-class OrientedImage(pg.ImageItem):
-
-    def setImage(self, image=None, *args, **kwargs):
-        if not image is None:
-            image = get_flipped(image)
-        return super().setImage(image, *args, **kwargs)
-
-
-class BackgroundImage(OrientedImage):
-
-    def __init__(self, *args, **kwargs):
-        super().__init__(
-            parent=None, levels=np.array([0, 0xffff], np.uint16),
-            autoLevels=False, autoDownsample=False)
-
-        self.is_rendered = False
-        self.prev_render = None
-        self.staticqimg = None
-        self.cur_view = None
-
-    def setImage(self, *args, **kwargs):
-        """Monkeypatches setImages to set the
-        is_rendered flag
-        """
-        self.is_rendered = False
-        self.prev_render = None
-        self.staticqimg = None
-        self.cur_view = None
-        return super().setImage(*args, **kwargs)
-
-    def render(self, *args, **kwargs):
-        """Monkeypatching the renderer. Keep the previous QImage
-        and prevent re-rendering.
-        """
-        if not self.is_rendered:
-            try:
-                del self.prev_render
-                self.prev_render = None
-                super().render(*args, **kwargs)
-            except MemoryError as err:
-                return self.staticqimg
-            #TODO maybe unessecary
-            self.staticqimg = self.qimage
-            if not self.staticqimg is None:
-                self.is_rendered = True
-        else:
-            self.qimage = self.staticqimg
-
-
-def get_flipped(image):
-    return np.flipud(np.rot90(image))
