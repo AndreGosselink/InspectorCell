@@ -4,7 +4,7 @@ from .viewer import Viewer
 from .entities import EntityManager
 
 
-class Control():
+class Controller():
     """Cotrols the app, including data and gui. Every feature should be
     in principle triggerable by this class
 
