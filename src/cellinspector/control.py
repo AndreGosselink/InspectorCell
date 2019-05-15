@@ -32,12 +32,3 @@ class Controller():
         some statefull object, or manipulate directly
         """
         pass
-
-
-class OWCellProfile():
-
-    def __init__(self):
-        self.controller = Controller()
-
-    def Input(self, *args, **kwargs):
-        pass
