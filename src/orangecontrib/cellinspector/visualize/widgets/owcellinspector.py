@@ -1,94 +1,78 @@
 import os
 import sys
-from pathlib import Path
 
-from AnyQt import QtGui, QtCore, QtWidgets
-import AnyQt.QtCore as qc
-import AnyQt.QtWidgets as qw
+# from AnyQt import QtGui, QtCore, QtWidgets
+# import AnyQt.QtCore as qc
+# import AnyQt.QtWidgets as qw
 
-import logging
-from Orange.widgets.utils.sql import check_sql_input
+# from Orange.widgets.utils.sql import check_sql_input
 
 from Orange.widgets.widget import OWWidget, Input, Output
-from Orange.widgets.settings import (
-    Setting, ContextSetting, DomainContextHandler,
-    SettingProvider)
+from Orange.widgets import gui
+from Orange.data import Table as OTable
+# from Orange.widgets.settings import (
+#     Setting, ContextSetting, DomainContextHandler,
+#     SettingProvider)
 
-from AnyQt.QtWidgets import (QGraphicsScene, QGraphicsView)
+import numpy as np
 
-from Orange.data import Table
+try:
+    from cellinspector import Controller
+except ImportError as err:
+    if __name__ == '__main__':
+        # if run directly, this is propably for debugging reasons and therfor
+        # we can assume the directory structure as found in the src dir
+        # hence an relative import is needed, to avoid reinstalling all the time
+        from pathlib import Path
+        import sys
 
-if __name__ is '__main__':
-    # if run directly, this is propably for debugging reasons and therfor
-    # we can assume the directory structure as found in the src dir
-    # hence an relative import is needed, to avoid reinstalling all the time
-    from importlib.util import module_from_spec, spec_from_file_location
-    from pathlib import Path
+        modpath = Path('../../../../').absolute().resolve()
+        sys.path.insert(0, str(modpath))  
+    else:
+        raise err
 
-    modname = 'cellinspector'
-    modpath = str(Path('../../../cellinspector').absolute())
-    modspec = spec_from_file_location(modname,
-                                      modpath)
-    if modspec is None:
-        raise ValueError('Could not load ' + modname)
-
-    cellinspector = module_from_spec(modspec)
-    modspec.loader.exec_module(mod)
-    Controller = getattr(cellinspector, 'Controller')
-else:
     from cellinspector import Controller
 
 
 class OWCellInpspector(OWWidget):
-    name = "CellInspector"
-    icon = "icons/mywidget.svg"
-    keywords = []
+    name = "Data Sampler"
+    description = "Randomly selects a subset of instances from the dataset"
+    icon = "icons/DataSamplerA.svg"
+    priority = 10
 
     class Inputs:
-        data = Input("Data", Table, default=True)
+        data = Input("Data", OTable)
 
     class Outputs:
-        selected_data = Output("Selected Data", Table, default=True)
-        data = Output("Data", Table, default=True)
+        sample = Output("Sampled Data", OTable)
 
-    def __init__(self, *args, **kwargs):
-        super().__init__(*args, **kwargs)
+    want_main_area = False
 
-        # instanziate the controller
-        self._ciCtrl = Controller()
-        # set the viewer as main widget
-        self.mainArea.layout().addWidget(self._ciCtrl.viewer)
+    def __init__(self):
+        super().__init__()
 
-        self._ciCtrl.viewer.setGridlayout(2, 2)
+        # GUI
+        box = gui.widgetBox(self.controlArea, "Info")
+        self.infoa = gui.widgetLabel(box, 'No data on input yet, waiting to get something.')
+        self.infob = gui.widgetLabel(box, '')
 
     @Inputs.data
-    @check_sql_input
-    def set_data(self, data):
-        self.closeContext()
-        self.data = data
-        self.valid_data = None
-
-    def _on_attr_contour_changed(self):
-
-        if self.data is None:
-            return
-
-    def _on_attr_label_changed(self):
-        if self.data is None:
-            return
-        self.update_labels()
-
-    def _on_attr_color_changed(self):
-        if self.data is None:
-            return
-        self._on_attr_contour_changed()
-
-    def onDeleteWidget(self):
-        super().onDeleteWidget()
+    def setData(self, dataset):
+        if dataset is not None:
+            self.infoa.setText('%d instances in input dataset' % len(dataset))
+            indices = np.random.permutation(len(dataset))
+            indices = indices[:int(np.ceil(len(dataset) * 0.1))]
+            sample = dataset[indices]
+            self.infob.setText('%d sampled instances' % len(sample))
+            self.Outputs.sample.send(sample)
+        else:
+            self.infoa.setText('No data on input yet, waiting to get something.')
+            self.infob.setText('')
+            self.Outputs.sample.send("Sampled Data")
 
 
 if __name__ == "__main__":
     from Orange.widgets.utils.widgetpreview import WidgetPreview
 
-    data = Table("iris")
-    WidgetPreview(OWCellInpspector).run()
+    data = OTable("iris")
+    WidgetPreview(OWCellInpspector).run(setData=data)

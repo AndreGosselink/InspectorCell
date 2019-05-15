@@ -13,3 +13,4 @@ doc/build/
 dist/*
 build/*
 **/*.egg-info*
+/*.sh
