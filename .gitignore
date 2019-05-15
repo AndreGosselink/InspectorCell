@@ -10,3 +10,6 @@
 doc/build/
 *.DS_store
 **/*.cache
+dist/*
+build/*
+**/*.egg-info*

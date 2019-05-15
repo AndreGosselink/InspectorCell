@@ -3,6 +3,7 @@
 from pathlib import Path
 from setuptools import setup, find_packages
 import importlib.util
+import versioneer
 
 
 def _import_file(name, path):
@@ -13,12 +14,6 @@ def _import_file(name, path):
 
 def get_pack():
     return find_packages('src')
-
-def get_version():
-    # _version_path = ''
-    # mod = _import_file('_version', _version_path)
-    # return mod.__version__
-    return '1.0'
 
 def get_datafiles():
     # _config_path = None
@@ -36,8 +31,6 @@ def get_pkgfiles():
     """Files stored in the package
     """
     ret = {
-    'orangecontrib.example': ['tutorials/*.ows'],
-    'orangecontrib.example.widgets': ['icons/*'],
     'orangecontrib.cellinspector.widgets': ['icons/*'],
     }
     return ret
@@ -70,8 +63,7 @@ def get_entry():
             # Syntax: category name = path.to.package.containing.widgets
             # Widget category specification can be seen in
             #    orangecontrib/example/widgets/__init__.py
-            'CellInspector = orangecontrib.cellinspector.widgets',
-            'Examples = orangecontrib.example.widgets',
+            'CellInspector = orangecontrib.visualize.widgets',
         ),
 
         # # Register widget help
@@ -96,7 +88,8 @@ def get_keywords():
 if __name__ == '__main__':
     setup(
         name='cellinspector',
-        version='0.0',
+        version=versioneer.get_version(),
+        cmdclass=versioneer.get_cmdclass(),
         # packages=find_packages('src'),
         packages=get_pack(),
         package_dir={
