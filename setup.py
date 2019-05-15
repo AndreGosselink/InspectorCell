@@ -31,7 +31,7 @@ def get_pkgfiles():
     """Files stored in the package
     """
     ret = {
-    'orangecontrib.cellinspector.widgets': ['icons/*'],
+    'orangecontrib.cellinspector.visualize.widgets': ['icons/*'],
     }
     return ret
 
@@ -39,7 +39,8 @@ def get_requires():
     """minimally needed to run
     """
     ret = [
-        'Orange3'
+        'sortedcontainers',
+        'Orange3',
     ]
     return ret
 
@@ -62,7 +63,7 @@ def get_entry():
             # Syntax: category name = path.to.package.containing.widgets
             # Widget category specification can be seen in
             #    orangecontrib/example/widgets/__init__.py
-            'CellInspector = orangecontrib.cellinspector.widgets.visualize',
+            'CellInspector = orangecontrib.cellinspector.visualize.widgets',
         ),
 
         # # Register widget help
