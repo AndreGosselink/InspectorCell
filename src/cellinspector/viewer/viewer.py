@@ -78,7 +78,7 @@ class Viewer(qw.QWidget):
         # later on
         self.state = CallTracker()
 
-    def set_gridlayout(self, rows, cols):
+    def setGridlayout(self, rows, cols):
         """ sets up the main viewgrid, depending on row and col number
         """
         self._spawn_views(rows=rows, cols=cols)
@@ -155,6 +155,13 @@ class Viewer(qw.QWidget):
     def setup_grid(self, rows, cols):
         """ DEPRECEATED
         """
-        warnings.warn('please use Viewer.set_gridlayout instead',
+        warnings.warn('please use Viewer.setGridlayout instead',
                       DeprecationWarning)
-        return self.set_gridlayout(rows=rows, cols=cols)
+        return self.setGridlayout(rows=rows, cols=cols)
+
+    def set_gridlayout(self, rows, cols):
+        """ DEPRECEATED
+        """
+        warnings.warn('please use Viewer.setGridlayout instead',
+                      DeprecationWarning)
+        return self.setGridlayout(rows=rows, cols=cols)
