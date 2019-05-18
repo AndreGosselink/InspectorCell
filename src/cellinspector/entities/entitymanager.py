@@ -7,7 +7,10 @@ import numpy as np
 from .entity import Entity
 from .misc import get_sliced_mask
 
+from ..util import depreciated
 
+
+#TODO generator factory -> data into unified job format return generators
 class EntityGenerator:
     """Divide the process of generation and management of entities
     does not enforce any rules, just is set of entities based on some input
@@ -17,7 +20,7 @@ class EntityGenerator:
     def __init__(self):
         self.entities = None
 
-    def from_greyscale_image(self, image, offset=(0, 0)):
+    def fromGreyscaleImage(self, image, offset=(0, 0)):
         """populates the entities list from a greyscale map
 
         Parameters
@@ -29,7 +32,7 @@ class EntityGenerator:
 
         Notes
         -----
-        Popultes EntityGenerator.entities w/o any asking, has an offset to allow
+        Populates EntityGenerator.entities w/o any asking, has an offset to allow
         multiple generators on map slices. Rules enforced on entity generation
         id > 0
         """
@@ -42,6 +45,43 @@ class EntityGenerator:
             entities.append(new_entity)
 
         self.entities = entities
+
+    def fromContours(self, objIds, contourPoints):
+        """populates the entities list based on contour Points associated
+        with objIds
+
+        Parameters
+        ----------
+        objIds : int iterable
+            iterable with the object ids mapped to the contours
+
+        contours : tuple iterable
+            iterable containing floating point tuples of abritary size
+            these points define a polgon for an entity to be generated
+
+        Raises
+        ------
+        ValueError 
+            If any objId is 0, an ValueError is raised
+
+        Notes
+        -----
+        Populates EntityGenerator.entities w/o any asking, has an offset to allow
+        multiple generators on map slices. Rules enforced on entity generation
+        id > 0
+        """
+        entities = []
+        for cur_value in valid_values:
+            mask_slice, mask = get_sliced_mask(image, cur_value)
+            new_entity = Entity(cur_value)
+            new_entity.from_mask(mask_slice, mask, offset)
+            entities.append(new_entity)
+
+        self.entities = entities
+
+    @depreciated(fromGreyscaleImage)
+    def from_greyscale_image(self, image, offset=(0, 0)):
+        pass
 
 
 class EntityManager:
@@ -131,7 +171,7 @@ class EntityManager:
 
         return new_entity
 
-    def add_entity(self, entity):
+    def addEntity(self, entity):
         """add an externally generated entity
 
         Raises
@@ -211,7 +251,7 @@ class EntityManager:
         new_id = self._find_unused_eid()
         return new_id
 
-    def generate_from_pixelmap(self, pixelmap):
+    def generateFromPixelmap(self, pixelmap):
         """Encapsulate the usage of the entity generator
         to aid in concurrency later on
 
@@ -222,6 +262,32 @@ class EntityManager:
             or to an entity with an id pixelmap[i, j] == id
         """
         gen = EntityGenerator()
-        gen.from_greyscale_image(pixelmap)
+        gen.fromGreyscaleImage(pixelmap)
         for entity in gen.entities:
-            self.add_entity(entity)
+            self.addEntity(entity)
+
+    def generateFromContours(self, objIds, contours):
+        """Encapsulate the usage of the entity generator
+        to aid in concurrency later on
+
+        Parameters
+        ----------
+        objIds : int iterable
+            iterable with the object ids mapped to the contours
+
+        contours : tuple iterable
+            iterable containing floating point tuples of abritary size
+            these points define a polgon for an entity to be generated
+        """
+        gen = EntityGenerator()
+        gen.fromContours(objIds, contours)
+        for entity in gen.entities:
+            self.addEntity(entity)
+    
+    @depreciated(generateFromPixelmap)
+    def generate_from_pixelmap(self, pixelmap):
+        pass
+
+    @depreciated(addEntity)
+    def add_entity(self, entity):
+        pass

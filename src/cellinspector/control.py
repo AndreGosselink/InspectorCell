@@ -17,7 +17,7 @@ class Controller():
         self.viewer = Viewer()
         self.entityManager = EntityManager()
 
-    def loadEntities(self, *args, **kwargs):
+    def generateEntities(self, *args, **kwargs):
         """loads the entities by triggering the 
         the entityManager functions applicable 
         """
