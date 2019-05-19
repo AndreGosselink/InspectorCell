@@ -1,5 +1,7 @@
 """Controller, bridges between 
 """
+import warnings
+
 from .viewer import Viewer
 from .entities import EntityManager
 
@@ -16,6 +18,16 @@ class Controller():
         """
         self.viewer = Viewer()
         self.entityManager = EntityManager()
+
+    def clearEntities(self):
+        """Clears all entities generated including the graphic
+        representations for the entities. with highest level of
+        contorl/abstraction this function has to ensure that all
+        steps are done to free memory
+        """
+        #TODO implement me
+        msg = '<Controller.clearEntities()> no entitie was cleared!'
+        warnings.warn(NotImplementedError(msg))
 
     def generateEntities(self, *args, **kwargs):
         """loads the entities by triggering the 
