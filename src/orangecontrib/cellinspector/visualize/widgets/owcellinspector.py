@@ -21,23 +21,17 @@ from Orange.widgets.utils.colorpalette import (
 
 import numpy as np
 
+if __name__ == '__main__':
+    # if run directly, this is propably for debugging reasons and therfor
+    # we can assume the directory structure as found in the src dir
+    # hence an relative import is needed, to avoid reinstalling all the time
+    from pathlib import Path
+    import sys
 
-try:
-    from cellinspector import Controller
-except ImportError as err:
-    if __name__ == '__main__':
-        # if run directly, this is propably for debugging reasons and therfor
-        # we can assume the directory structure as found in the src dir
-        # hence an relative import is needed, to avoid reinstalling all the time
-        from pathlib import Path
-        import sys
+    modpath = Path('../../../../').absolute().resolve()
+    sys.path.insert(0, str(modpath))  
 
-        modpath = Path('../../../../').absolute().resolve()
-        sys.path.insert(0, str(modpath))  
-    else:
-        raise err
-
-    from cellinspector import Controller
+from cellinspector import Controller
 
 
 class OWCellInpspector(OWWidget):
@@ -63,7 +57,7 @@ class OWCellInpspector(OWWidget):
     autocommit = False
 
     class Inputs:
-        entities = Input('Contours', OTable)
+        entities = Input('Entities', OTable)
 
     class Outputs:
         sample = Output("Sampled Data", OTable)
@@ -151,41 +145,31 @@ class OWCellInpspector(OWWidget):
         
         # get data columns from contour data and raise an error
         # if none can be extracted
-        entity_contours = get_column(self.entity_data, self.attr_contour)
+        entity_contours_str = get_column(self.entity_data, self.attr_contour)
         entity_ids = get_column(self.entity_data, self.attr_eid)
         # no data
-        if entity_contours is None or entity_ids is None:
+        if entity_contours_str is None or entity_ids is None:
             self.Error.clear()
             return
         
-        contour_data = {}
+        entity_contours = []
         try:
-            for eid, contour_paths in zip(entity_ids, entity_contours):
-                print(eid, contour_paths)
-        except (TypeError, IndexError):
+            for eid, str_contour in zip(entity_ids, entity_contours_str):
+                path = []
+                for pt_string in str_contour.split(' '):
+                    pt_float = list(float(p) for p in pt_string.split(','))
+                    path.append(pt_float)
+                econ = [np.array(path, float)]
+                entity_contours.append((int(eid), econ))
+        except (TypeError, IndexError, AttributeError):
             self.Error.no_valid_contours()
             return
 
         # clear all enteties as we use new dataset now...
         self.controller.clearEntities()
-
-        # # pen_data, brush_data = self.get_colors()
-        # for row in column_data:
-        #     for contour in split(" ")
-        #     poly = QPolygonF()
-        #     for p in path:
-        #         coord = p.split(",")
-
-        #         if len(coord) is not 2:
-        #             self.Error.no_valid_contours()
-        #             return
-
-        #         point = QtCore.QPointF(float(coord[0]), float(coord[1]))
-        #         poly.append(point)
-
-        # # self.Error.clear()
-        # # cont_color = self.is_continuous_color()
-        # # color_labels = None if cont_color else self.get_color_labels()
+        
+        # set entities with parsed contour data
+        self.controller.generateEntities(entityContours=entity_contours)
 
     def _on_attr_color_changed(self, *args, **kwargs):
         print(args, kwargs)
@@ -266,37 +250,10 @@ def get_column(dataset, attr):
     # nothing happens...
     if attr is None:
         return None
-
-    needs_merging = attr.is_discrete and merge_infrequent \
-                    and len(attr.values) >= max_cat
-
-    if not needs_merging:
-        return attr.values
-
-    all_data = dataset.get_column_view(attr)[0]
-    if all_data.dtype == object and attr.is_primitive():
-        all_data = all_data.astype(float)
-    if filter_valid and self.valid_data is not None:
-        all_data = all_data[self.valid_data]
     
-    if not needs_merging:
-        return all_data
-
-    dist = bincount(all_data, max_val=len(attr.values) - 1)[0]
-    infrequent = np.zeros(len(attr.values), dtype=bool)
-    infrequent[np.argsort(dist)[:-(max_cat - 1)]] = True
-    if return_labels:
-        return [value for value, infreq in zip(attr.values, infrequent)
-                if not infreq] + ["Other"]
-    else:
-        result = all_data.copy()
-        freq_vals = [i for i, f in enumerate(infrequent) if not f]
-        for i, infreq in enumerate(infrequent):
-            if infreq:
-                result[all_data == i] = MAX_CATEGORIES - 1
-            else:
-                result[all_data == i] = freq_vals.index(i)
-        return result
+    # only use values not sparsity
+    values, _ = dataset.get_column_view(attr)
+    return values
 
 
 if __name__ == "__main__":

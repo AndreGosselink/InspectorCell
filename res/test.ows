@@ -1,0 +1,48 @@
+<?xml version='1.0' encoding='utf-8'?>
+<scheme description="" title="" version="2.0">
+	<nodes>
+		<node id="0" name="Cellinspector" position="(384.0, 250.0)" project_name="cellinspector" qualified_name="orangecontrib.cellinspector.visualize.widgets.owcellinspector.OWCellInpspector" title="Cellinspector" version="" />
+		<node id="1" name="File" position="(140.0, 240.0)" project_name="Orange3" qualified_name="Orange.widgets.data.owfile.OWFile" title="File" version="" />
+	</nodes>
+	<links>
+		<link enabled="true" id="0" sink_channel="Entities" sink_node_id="0" source_channel="Data" source_node_id="1" />
+	</links>
+	<annotations />
+	<thumbnail />
+	<node_properties>
+		<properties format="literal" node_id="0">{'controlAreaVisible': True, 'savedWidgetGeometry': b'\x01\xd9\xd0\xcb\x00\x03\x00\x00\x00\x00\x05&amp;\x00\x00\x00\xe2\x00\x00\t\xa6\x00\x00\x04`\x00\x00\x05,\x00\x00\x01\x03\x00\x00\t\xa0\x00\x00\x04Y\x00\x00\x00\x00\x00\x00\x00\x00\n\x00\x00\x00\x05,\x00\x00\x01\x03\x00\x00\t\xa0\x00\x00\x04Y', 'selection': None, '__version__': 1, 'context_settings': []}</properties>
+		<properties format="pickle" node_id="1">gAN9cQAoWBIAAABjb250cm9sQXJlYVZpc2libGVxAYhYDAAAAHJlY2VudF9wYXRoc3ECXXEDKGNP
+cmFuZ2Uud2lkZ2V0cy51dGlscy5maWxlZGlhbG9ncwpSZWNlbnRQYXRoCnEEKYFxBX1xBihYBwAA
+AGFic3BhdGhxB1gzAAAAL2hvbWUvcmlraXNhL3NyYy9jZWxsdmlld21vZHVsZS9yZXMvY29udG91
+cnRlc3QuY3N2cQhYBgAAAHByZWZpeHEJWAcAAABiYXNlZGlycQpYBwAAAHJlbHBhdGhxC1gPAAAA
+Y29udG91cnRlc3QuY3N2cQxYBQAAAHRpdGxlcQ1YAAAAAHEOWAUAAABzaGVldHEPaA5YCwAAAGZp
+bGVfZm9ybWF0cRBOdWJoBCmBcRF9cRIoaAdYSAAAAC9ob21lL3Jpa2lzYS8ubG9jYWwvbGliL3B5
+dGhvbjMuNy9zaXRlLXBhY2thZ2VzL09yYW5nZS9kYXRhc2V0cy9pcmlzLnRhYnETaAlYDwAAAHNh
+bXBsZS1kYXRhc2V0c3EUaAtYCAAAAGlyaXMudGFicRVoDWgOaA9oDmgQTnViaAQpgXEWfXEXKGgH
+WEsAAAAvaG9tZS9yaWtpc2EvLmxvY2FsL2xpYi9weXRob24zLjcvc2l0ZS1wYWNrYWdlcy9PcmFu
+Z2UvZGF0YXNldHMvdGl0YW5pYy50YWJxGGgJaBRoC1gLAAAAdGl0YW5pYy50YWJxGWgNaA5oD2gO
+aBBOdWJoBCmBcRp9cRsoaAdYSwAAAC9ob21lL3Jpa2lzYS8ubG9jYWwvbGliL3B5dGhvbjMuNy9z
+aXRlLXBhY2thZ2VzL09yYW5nZS9kYXRhc2V0cy9ob3VzaW5nLnRhYnEcaAloFGgLWAsAAABob3Vz
+aW5nLnRhYnEdaA1oDmgPaA5oEE51YmgEKYFxHn1xHyhoB1hRAAAAL2hvbWUvcmlraXNhLy5sb2Nh
+bC9saWIvcHl0aG9uMy43L3NpdGUtcGFja2FnZXMvT3JhbmdlL2RhdGFzZXRzL2hlYXJ0X2Rpc2Vh
+c2UudGFicSBoCWgUaAtYEQAAAGhlYXJ0X2Rpc2Vhc2UudGFicSFoDWgOaA9oDmgQTnViZVgLAAAA
+cmVjZW50X3VybHNxIl1xI1gTAAAAc2F2ZWRXaWRnZXRHZW9tZXRyeXEkQ0IB2dDLAAMAAAAAA8gA
+AAF8AAAGKwAAA8oAAAPOAAABnQAABiUAAAPDAAAAAAAAAAAKAAAAA84AAAGdAAAGJQAAA8NxJVgL
+AAAAc2hlZXRfbmFtZXNxJn1xJ1gGAAAAc291cmNlcShLAFgDAAAAdXJscSloDlgNAAAAZG9tYWlu
+X2VkaXRvcnEqfXErWAsAAABfX3ZlcnNpb25fX3EsSwFYEAAAAGNvbnRleHRfc2V0dGluZ3NxLV1x
+LmNPcmFuZ2Uud2lkZ2V0cy5zZXR0aW5ncwpDb250ZXh0CnEvKYFxMH1xMShYBAAAAHRpbWVxMkdB
+1zhvrhmRYVgGAAAAdmFsdWVzcTN9cTQoWAkAAAB2YXJpYWJsZXNxNV1xNlgJAAAAeGxzX3NoZWV0
+cTdoDkr/////hnE4aCp9cTloNV1xOihdcTsoWAsAAABJbWFnZU51bWJlcnE8Y09yYW5nZS5kYXRh
+LnZhcmlhYmxlCkRpc2NyZXRlVmFyaWFibGUKcT1LAFgBAAAAMXE+iGVdcT8oWAwAAABPYmplY3RO
+dW1iZXJxQGNPcmFuZ2UuZGF0YS52YXJpYWJsZQpDb250aW51b3VzVmFyaWFibGUKcUFLAGgOiGVd
+cUIoWBAAAABMb2NhdGlvbl9Db250b3VycUNjT3JhbmdlLmRhdGEudmFyaWFibGUKU3RyaW5nVmFy
+aWFibGUKcURLAmgOiWVlc2gsSwF1WAoAAABhdHRyaWJ1dGVzcUVYCwAAAEltYWdlTnVtYmVycUZd
+cUdoPmGGcUhYDAAAAE9iamVjdE51bWJlcnFJSwKGcUqGcUtYBQAAAG1ldGFzcUxYEAAAAExvY2F0
+aW9uX0NvbnRvdXJxTUsDhnFOhXFPWAoAAABjbGFzc192YXJzcVApWBIAAABtb2RpZmllZF92YXJp
+YWJsZXNxUV1xUnViYXUu
+</properties>
+	</node_properties>
+	<session_state>
+		<window_groups />
+	</session_state>
+</scheme>

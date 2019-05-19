@@ -38,7 +38,7 @@ def contoursToPath(contours):
         return None
 
     path = QPainterPath()
-
+    
     for contour in contours:
         polygon = QPolygonF()
         for x, y in contour:
@@ -171,7 +171,7 @@ class Entity:
             msg = 'Number of polygons is 0'
             raise ValueError(msg)
 
-        self.contours = contours
+        self.contours = contours = np.array(contours)
 
         x, y, w, h = convertToInt(self.boundingbox.getRect())
         self.mask = np.zeros((w+1, h+1), np.uint8)

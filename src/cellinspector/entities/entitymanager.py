@@ -46,39 +46,6 @@ class EntityGenerator:
 
         self.entities = entities
 
-    def fromContours(self, objIds, contourPoints):
-        """populates the entities list based on contour Points associated
-        with objIds
-
-        Parameters
-        ----------
-        objIds : int iterable
-            iterable with the object ids mapped to the contours
-
-        contours : tuple iterable
-            iterable containing floating point tuples of abritary size
-            these points define a polgon for an entity to be generated
-
-        Raises
-        ------
-        ValueError 
-            If any objId is 0, an ValueError is raised
-
-        Notes
-        -----
-        Populates EntityGenerator.entities w/o any asking, has an offset to allow
-        multiple generators on map slices. Rules enforced on entity generation
-        id > 0
-        """
-        entities = []
-        for cur_value in valid_values:
-            mask_slice, mask = get_sliced_mask(image, cur_value)
-            new_entity = Entity(cur_value)
-            new_entity.from_mask(mask_slice, mask, offset)
-            entities.append(new_entity)
-
-        self.entities = entities
-
     @depreciated(fromGreyscaleImage)
     def from_greyscale_image(self, image, offset=(0, 0)):
         pass
@@ -171,6 +138,24 @@ class EntityManager:
 
         return new_entity
 
+    def getEntity(self, eid):
+        """Looks up entity by id. If eid is not found, None is returned
+
+        Parameters
+        ----------
+        eid : int
+            entity id to look up
+
+        Returns
+        -------
+        entity : Entity or None
+            if Entity with eid is found, it is returned. Otherwise None
+            is returned
+        """
+        entities_dict = self._entity_dat['entities']
+
+        return entities_dict.get(eid, None)
+
     def addEntity(self, entity):
         """add an externally generated entity
 
@@ -251,6 +236,8 @@ class EntityManager:
         new_id = self._find_unused_eid()
         return new_id
 
+    #TODO Make an generator to process pixmaps and then use the generateEntities
+    #interface as well
     def generateFromPixelmap(self, pixelmap):
         """Encapsulate the usage of the entity generator
         to aid in concurrency later on
@@ -266,23 +253,42 @@ class EntityManager:
         for entity in gen.entities:
             self.addEntity(entity)
 
-    def generateFromContours(self, objIds, contours):
+    def generateFromContours(self, contourData):
         """Encapsulate the usage of the entity generator
         to aid in concurrency later on
 
         Parameters
         ----------
-        objIds : int iterable
-            iterable with the object ids mapped to the contours
-
-        contours : tuple iterable
-            iterable containing floating point tuples of abritary size
-            these points define a polgon for an entity to be generated
+        contourData : tuple iterable
+            iterable containing entityId and list of paths
+            where everey path is a list of float tuples
         """
-        gen = EntityGenerator()
-        gen.fromContours(objIds, contours)
-        for entity in gen.entities:
-            self.addEntity(entity)
+
+        entityData = []
+
+        for eid, contours in contourData:
+            contours = [np.array(cont, float) for cont in contours]
+            entry = {'id': eid, 'contour': contours}
+            entityData.append(entry)
+
+        self.generateEntities(entityData)
+
+    def generateEntities(self, entityData):
+        """Add entities based on the entityData representation
+        will always use contours for generation of spatial information
+
+        Parameters
+        ----------
+        entityData : list of entityEntries
+            entityEntries are dicts
+        """
+        for entry in entityData:
+            eid = entry.get('id', None)
+            contour = entry['contour']
+            entity = self.make_entity(eid)
+            #FIXME
+            # entity.from_contours(contour)
+            print(entity.eid)
     
     @depreciated(generateFromPixelmap)
     def generate_from_pixelmap(self, pixelmap):

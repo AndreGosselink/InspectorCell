@@ -2,7 +2,7 @@ import pytest
 import cv2
 from pathlib import Path
 
-from src.entities import Entity, EntityManager
+from cellinspector.entities import Entity, EntityManager
 
 
 def test_make_entities():

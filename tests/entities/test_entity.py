@@ -3,8 +3,7 @@ import pytest
 import numpy as np
 from PyQt5.QtCore import QRectF
 
-from src.entities import Entity
-from src.entities.entity import contoursToPath, pathToContours
+from cellinspector.entities.entity import contoursToPath, pathToContours, Entity
 
 
 def test_from_contours():
