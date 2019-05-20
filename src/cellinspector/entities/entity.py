@@ -98,7 +98,13 @@ class Entity:
         # must be unique, enforced on factory level
         # on factory level to avoid resetting state of
         # class later on
-        self.eid = entity_id
+        eid = int(entity_id)
+        if float(eid) - entity_id != 0:
+            msg = 'Cannot cast entity_id {} into int unambigously!'
+            raise ValueError(msg.format(entity_id))
+        self.eid = eid
+        # if is an active or historic entity
+        self.isActive = True
 
         ### Imagepixel context ###
         # properties of the entity context of
@@ -171,7 +177,7 @@ class Entity:
             msg = 'Number of polygons is 0'
             raise ValueError(msg)
 
-        self.contours = contours = np.array(contours)
+        self.contours = contours
 
         x, y, w, h = convertToInt(self.boundingbox.getRect())
         self.mask = np.zeros((w+1, h+1), np.uint8)

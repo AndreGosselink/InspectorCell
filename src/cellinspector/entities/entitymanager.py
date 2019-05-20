@@ -62,15 +62,25 @@ class EntityManager:
     }
 
     def __new__(cls, *args, **kwargs):
-        if not cls.__instance:
-            cls.__instance = object.__new__(cls, *args, **kwargs)
+        if cls.__instance is None:
+            cls.__instance = super().__new__(cls, *args, **kwargs)
         return cls.__instance
 
     def __len__(self):
         """Number of entities in manager
         """
         return len(self._entity_dat['id_list'])
+    
+    def __iter__(self, filterActive=True):
+        """Convinience iterator over all entities that are active
+        """
+        def _iter():
+            for entity in self._entity_dat['entities'].values():
+                if entity.isActive:
+                    yield entity
 
+        return _iter()
+    
     def _add_entity(self, new_ent):
         """actuall adding of entity, updating stats
         will add w/o any checking for valid id or dat consistency
@@ -267,7 +277,8 @@ class EntityManager:
         entityData = []
 
         for eid, contours in contourData:
-            contours = [np.array(cont, float) for cont in contours]
+            contours = [np.round(np.array(cont)) for cont in contours]
+            contours = [cont.astype(int) for cont in contours]
             entry = {'id': eid, 'contour': contours}
             entityData.append(entry)
 
@@ -286,9 +297,7 @@ class EntityManager:
             eid = entry.get('id', None)
             contour = entry['contour']
             entity = self.make_entity(eid)
-            #FIXME
-            # entity.from_contours(contour)
-            print(entity.eid)
+            entity.from_contours(contour)
     
     @depreciated(generateFromPixelmap)
     def generate_from_pixelmap(self, pixelmap):
@@ -297,3 +306,14 @@ class EntityManager:
     @depreciated(addEntity)
     def add_entity(self, entity):
         pass
+    
+    @classmethod
+    def clear(cls):
+        """reset the whole entity manager, mainly for testabiliy
+        """
+        cls._entity_dat = _entity_dat = {
+            'entities': {},
+            'id_list': SortedList([]),
+        }
+
+

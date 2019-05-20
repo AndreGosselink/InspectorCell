@@ -7,6 +7,8 @@ from cellinspector.entities.entity import contoursToPath, pathToContours, Entity
 
 
 def test_from_contours():
+    """Test generation of entity
+    """
     mask = np.zeros((10, 10), np.uint8)
     mask[0:4, 1:9] = 1
     mask[7:10, 0:10] = 1
@@ -89,8 +91,8 @@ def test_set_contours():
 
 def testContoursToPath():
 
-    contours = [np.array([[0, 7], [0, 9], [9, 9], [9, 7], ], dtype=np.int32),
-                np.array([[1, 0], [1, 3], [8, 3], [8, 0], ], dtype=np.int32)]
+    contours = [np.array([[0, 7], [0, 9], [9, 9], [9, 7]], dtype=np.int32),
+                np.array([[1, 0], [1, 3], [8, 3], [8, 0]], dtype=np.int32)]
 
     path = contoursToPath(contours)
 
@@ -101,5 +103,11 @@ def testContoursToPath():
 
     mask2 = np.zeros((10, 10), np.uint8)
     cv2.drawContours(mask2, contoursBack, -1, 1, -1)
-
+    
+    # assert different objects
     assert not mask1 is mask2
+    # assert same values
+    assert np.all(mask1 == mask2)
+    # assert non trivial (not all 0 or all 1)
+    assert 0 < np.sum(mask1) < 100
+    assert 0 < np.sum(mask2) < 100
