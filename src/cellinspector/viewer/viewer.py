@@ -15,6 +15,7 @@ from AnyQt import QtGui as qg, QtCore as qc, QtWidgets as qw
 # project
 from ..util import CallTracker
 from .image import BackgroundImage
+from .label import ChannelLabel
 
 
 class Channel(pg.GraphicsView):
@@ -29,10 +30,18 @@ class Channel(pg.GraphicsView):
         self.enableMouse(True)
         self.setAspectLocked(True)
 
-    def drawBackground(self, painter, rect):
-        super().drawBackground(painter, rect)
+        self.chanLabel = ChannelLabel()
+        self.chanLabel.set(0, text='INIT')
+
+    # def drawBackground(self, painter, rect):
+    #     super().drawBackground(painter, rect)
+    #     # implicit drawing at (0, 0)
+    #     self.background.paint(painter)
+
+    def drawForeground(self, painter, rect):
+        super().drawForeground(painter, rect)
         # implicit drawing at (0, 0)
-        self.background.paint(painter)
+        self.chanLabel.paint(painter, self.parent())
 
     def wheelEvent(self, event):
         """We ignore the event here and process
@@ -76,7 +85,20 @@ class Viewer(qw.QWidget):
         
         # register calls to function to save viewstate
         # later on
-        self.state = CallTracker()
+        # self.state = CallTracker()
+
+        self.viewSetup = {
+            'rows': 2,
+            'cols': 2,
+            'cross': False,
+        }
+
+    def update(self):
+        """view layout, crosshair and other from 
+        self.viewSetup
+        """
+        self._spawn_views(cols=self.viewSetup['cols'],
+                          rows=self.viewSetup['rows'])
 
     def setGridlayout(self, rows, cols):
         """ sets up the main viewgrid, depending on row and col number

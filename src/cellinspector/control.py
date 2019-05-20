@@ -3,6 +3,7 @@
 import warnings
 
 from .viewer import Viewer
+from .viewer.dialog import ViewSetupDialog
 from .entities import EntityManager
 
 
@@ -18,6 +19,26 @@ class Controller():
         """
         self.viewer = Viewer()
         self.entityManager = EntityManager()
+
+        self.dialogs = {}
+        self.addDialogs()
+
+    def addDialogs(self):
+        """populates Controller.dialogs
+        viewer and entityManager must be already set!
+        """
+        viewSetupDialog = ViewSetupDialog(
+            parent=self.viewer,
+            viewSetup=self.viewer.viewSetup,
+            callback=self.viewer.update)
+
+        self.dialogs = {
+            'viewSetup': viewSetupDialog }
+
+    def initViewer(self):
+        """Initializes the GUI/Viewer
+        """
+        self.viewer.setGridlayout(2, 2)
 
     def clearEntities(self):
         """Clears all entities generated including the graphic
@@ -79,3 +100,15 @@ class Controller():
         some statefull object, or manipulate directly
         """
         pass
+    
+    def showViewSetupDialog(self):
+        """shows the ViewSetup dialog and updated view after it is accepted
+        or closed. syncs the view and dialog values
+        """
+        diag = self.dialogs['viewSetup']
+        diag.updateGui()
+        diag.show()
+
+    @property
+    def widget(self):
+        return self.viewer

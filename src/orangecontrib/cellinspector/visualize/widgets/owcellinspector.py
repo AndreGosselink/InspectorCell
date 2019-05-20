@@ -1,12 +1,6 @@
 import os
 import sys
 
-# from AnyQt import QtGui, QtCore, QtWidgets
-# import AnyQt.QtCore as qc
-# import AnyQt.QtWidgets as qw
-
-# from Orange.widgets.utils.sql import check_sql_input
-
 from Orange.widgets.widget import OWWidget, Input, Output, Msg
 from Orange.widgets import gui
 from Orange.data import Table as OTable
@@ -20,6 +14,7 @@ from Orange.widgets.utils.colorpalette import (
     ColorPaletteGenerator, ContinuousPaletteGenerator, DefaultRGBColors)
 
 import numpy as np
+
 
 if __name__ == '__main__':
     # if run directly, this is propably for debugging reasons and therfor
@@ -51,7 +46,6 @@ class OWCellInpspector(OWWidget):
     attr_color = ContextSetting(None)
     selection = Setting(None, schema_only=True)
     show_legend = False
-    background_image_enabled = False
     # too_many_labels = Signal(bool)
     graph_name = "scene"
     autocommit = False
@@ -69,20 +63,8 @@ class OWCellInpspector(OWWidget):
         super().__init__()
         
         self.controller = Controller()
-        self.controller.viewer.setGridlayout(2, 2)
-        self.scene = self.controller.viewer.entity_scn
+        self.controller.initViewer()
 
-        # self.settingsHandler = DomainContextHandler()
-        # self.attr_contour = ContextSetting(None)
-        # self.attr_label = ContextSetting(None)
-        # self.attr_color = ContextSetting(None)
-        # self.selection = Setting(None, schema_only=True)
-        # self.show_legend = False
-        self.background_image_enabled = False
-        # # self.too_many_labels = Signal(bool)
-        # self.graph_name = "scene"
-        # self.autocommit = False
-        
         #TODO cleanup
         self.entity_contours = None
         self.entity_ids = None
@@ -105,8 +87,8 @@ class OWCellInpspector(OWWidget):
         # just add the viewer to the mainArea and we are done
         # with it
         mainlayout = self.mainArea.layout()
-        mainlayout.addWidget(self.controller.viewer)
-        
+        mainlayout.addWidget(self.controller.widget)
+
         # and the control area
         #TODO into a seperate class or into a factory function
         layout = gui.vBox(self.controlArea, True)
@@ -128,7 +110,10 @@ class OWCellInpspector(OWWidget):
         cb_attr_color = gui.comboBox(
             layout, self, 'attr_color', label='Color:',
             model=self.color_var, callback=self._entities_changed)
-        
+        # layoutIcon = self.style().
+        self.btnViewLayout = gui.button(layout, self, label='Set Layout',
+            callback=self.controller.showViewSetupDialog)
+
         # adds an stretch
         gui.rubber(layout)
         
