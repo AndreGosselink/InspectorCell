@@ -7,7 +7,10 @@ import numpy as np
 from .entity import Entity
 from .misc import get_sliced_mask
 
+from ..util import depreciated
 
+
+#TODO generator factory -> data into unified job format return generators
 class EntityGenerator:
     """Divide the process of generation and management of entities
     does not enforce any rules, just is set of entities based on some input
@@ -17,7 +20,7 @@ class EntityGenerator:
     def __init__(self):
         self.entities = None
 
-    def from_greyscale_image(self, image, offset=(0, 0)):
+    def fromGreyscaleImage(self, image, offset=(0, 0)):
         """populates the entities list from a greyscale map
 
         Parameters
@@ -29,7 +32,7 @@ class EntityGenerator:
 
         Notes
         -----
-        Popultes EntityGenerator.entities w/o any asking, has an offset to allow
+        Populates EntityGenerator.entities w/o any asking, has an offset to allow
         multiple generators on map slices. Rules enforced on entity generation
         id > 0
         """
@@ -43,6 +46,10 @@ class EntityGenerator:
 
         self.entities = entities
 
+    @depreciated(fromGreyscaleImage)
+    def from_greyscale_image(self, image, offset=(0, 0)):
+        pass
+
 
 class EntityManager:
     __instance = None
@@ -55,15 +62,25 @@ class EntityManager:
     }
 
     def __new__(cls, *args, **kwargs):
-        if not cls.__instance:
-            cls.__instance = object.__new__(cls, *args, **kwargs)
+        if cls.__instance is None:
+            cls.__instance = super().__new__(cls, *args, **kwargs)
         return cls.__instance
 
     def __len__(self):
         """Number of entities in manager
         """
         return len(self._entity_dat['id_list'])
+    
+    def __iter__(self, filterActive=True):
+        """Convinience iterator over all entities that are active
+        """
+        def _iter():
+            for entity in self._entity_dat['entities'].values():
+                if entity.isActive:
+                    yield entity
 
+        return _iter()
+    
     def _add_entity(self, new_ent):
         """actuall adding of entity, updating stats
         will add w/o any checking for valid id or dat consistency
@@ -131,7 +148,25 @@ class EntityManager:
 
         return new_entity
 
-    def add_entity(self, entity):
+    def getEntity(self, eid):
+        """Looks up entity by id. If eid is not found, None is returned
+
+        Parameters
+        ----------
+        eid : int
+            entity id to look up
+
+        Returns
+        -------
+        entity : Entity or None
+            if Entity with eid is found, it is returned. Otherwise None
+            is returned
+        """
+        entities_dict = self._entity_dat['entities']
+
+        return entities_dict.get(eid, None)
+
+    def addEntity(self, entity):
         """add an externally generated entity
 
         Raises
@@ -211,7 +246,9 @@ class EntityManager:
         new_id = self._find_unused_eid()
         return new_id
 
-    def generate_from_pixelmap(self, pixelmap):
+    #TODO Make an generator to process pixmaps and then use the generateEntities
+    #interface as well
+    def generateFromPixelmap(self, pixelmap):
         """Encapsulate the usage of the entity generator
         to aid in concurrency later on
 
@@ -222,6 +259,61 @@ class EntityManager:
             or to an entity with an id pixelmap[i, j] == id
         """
         gen = EntityGenerator()
-        gen.from_greyscale_image(pixelmap)
+        gen.fromGreyscaleImage(pixelmap)
         for entity in gen.entities:
-            self.add_entity(entity)
+            self.addEntity(entity)
+
+    def generateFromContours(self, contourData):
+        """Encapsulate the usage of the entity generator
+        to aid in concurrency later on
+
+        Parameters
+        ----------
+        contourData : tuple iterable
+            iterable containing entityId and list of paths
+            where everey path is a list of float tuples
+        """
+
+        entityData = []
+
+        for eid, contours in contourData:
+            contours = [np.round(np.array(cont)) for cont in contours]
+            contours = [cont.astype(int) for cont in contours]
+            entry = {'id': eid, 'contour': contours}
+            entityData.append(entry)
+
+        self.generateEntities(entityData)
+
+    def generateEntities(self, entityData):
+        """Add entities based on the entityData representation
+        will always use contours for generation of spatial information
+
+        Parameters
+        ----------
+        entityData : list of entityEntries
+            entityEntries are dicts
+        """
+        for entry in entityData:
+            eid = entry.get('id', None)
+            contour = entry['contour']
+            entity = self.make_entity(eid)
+            entity.from_contours(contour)
+    
+    @depreciated(generateFromPixelmap)
+    def generate_from_pixelmap(self, pixelmap):
+        pass
+
+    @depreciated(addEntity)
+    def add_entity(self, entity):
+        pass
+    
+    @classmethod
+    def clear(cls):
+        """reset the whole entity manager, mainly for testabiliy
+        """
+        cls._entity_dat = _entity_dat = {
+            'entities': {},
+            'id_list': SortedList([]),
+        }
+
+
