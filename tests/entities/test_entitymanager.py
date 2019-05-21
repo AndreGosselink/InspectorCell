@@ -1,8 +1,9 @@
 import pytest
 import cv2
 from pathlib import Path
+import numpy as np
 
-from src.entities import Entity, EntityManager
+from cellinspector.entities import Entity, EntityManager
 
 
 def test_make_entities():
@@ -10,6 +11,7 @@ def test_make_entities():
     and id is always an integer
     """
 
+    EntityManager.clear()
     eman = EntityManager()
 
     # must fail as 0 ist invalid ID
@@ -54,6 +56,7 @@ def test_add_entities():
     and id is always an integer
     """
 
+    EntityManager.clear()
     eman = EntityManager()
 
     # must fail as 0 ist invalid ID
@@ -61,9 +64,9 @@ def test_add_entities():
         new_ent = Entity(0)
         eman.add_entity(new_ent)
 
-    # must fail as 1.0 is not int
+    # must fail as 1.1 cannot cast into int w/o remainder
     with pytest.raises(ValueError):
-        new_ent = Entity(1.0)
+        new_ent = Entity(1.1)
         eman.add_entity(new_ent)
 
     # id now are [1, 2, 3, 4, 5, 6, 7, 8, 9]
@@ -99,31 +102,75 @@ def test_add_entities():
 def test_large_eids():
     """Test adding lage numbers
     """
+    EntityManager.clear()
+
     eman = EntityManager()
     eman.make_entity(32768)
 
     new_ent = Entity(int(0xffff))
     eman.add_entity(new_ent)
 
-def test_creation_from_map():
+def testCreationFromMap():
     """ test if creation of entities from map works
     """
     test_path = Path('../../tests/res/testmask.png')
-    pixmap = cv2.imread(str(test_path), cv2.IMREAD_ANYDEPTH)
+    if not test_path.exists():
+        test_path = Path('./tests/res/testmask.png')
+    if not test_path.exists():
+        raise ValueError('testmask not found!')
 
+    pixmap = cv2.imread(str(test_path), cv2.IMREAD_ANYDEPTH)
+    pixmap = pixmap.astype(int)
+
+    EntityManager.clear()
     eman = EntityManager()
     eman.generate_from_pixelmap(pixmap)
+    
+    assert len(eman) == 11
 
-    assert len(eman) == 12
+def testSingletonFunctionality():
 
+    EntityManager.clear()
 
-def test_singleton_functionality():
     eman1 = EntityManager()
     eman2 = EntityManager()
 
-    assert eman1 != eman2
+    assert eman1 is eman2
 
-    ent1 = eman1.make_entity()
-    ent2 = eman2.make_entity()
+    # ent1 = eman1.make_entity()
+    # ent2 = eman2.make_entity()
 
-    assert ent1.eid == ent2.eid
+    # assert ent1.eid == ent2.eid
+
+def testGenerateFromContours():
+    EntityManager.clear()
+
+    eman = EntityManager()
+
+    contours = [np.array([[0, 7], [0, 9], [9, 9], [9, 7]], dtype=np.int32),
+                np.array([[1, 0], [1, 3], [8, 3], [8, 0]], dtype=np.int32)]
+    # path = np.array(
+    #     [[0, 0],
+    #      [0, 3],
+    #      [3, 3],
+    #      [3, 0]],
+    #     np.int32)
+
+    contourData = [(5, contours), (10, [c+5 for c in contours])]
+
+    eman.generateFromContours(contourData)
+
+def testEntityIterator():
+
+    EntityManager.clear()
+    eman = EntityManager()
+    
+    requested = set(int(v) for v in np.random.randint(1, 100, 10))
+    for eid in requested:
+        eman.make_entity(entity_id=eid)
+    
+    # test the generator
+    all_eids = set([entity.eid for entity in eman])
+
+    assert all_eids == requested
+

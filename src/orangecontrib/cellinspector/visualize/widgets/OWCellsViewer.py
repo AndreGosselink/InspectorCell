@@ -54,95 +54,6 @@ BgImgFormats = [
 ]
 
 
-class CellsViewerLegend(QGraphicsItem):
-    def __init__(self, items, pos_x, pos_y, parent, **kwargs):
-        super().__init__(None, **kwargs)
-        self.setFlag(QGraphicsItem.ItemIsMovable)
-        self.items = items
-        self.n_items = 0 if self.items is None else len(self.items)
-        self.pos_x = pos_x
-        self.pos_y = pos_y
-        self.parent = parent
-
-    def paint(self, painter, option, widget):
-        painter.setOpacity(0.9)
-        painter.setBrush(QtGui.QBrush(QColor(221, 221, 221, 150)))
-
-        painter.drawRect(self.pos_x - 85, self.pos_y - 24 * self.n_items - 30, 80, 24 * self.n_items + 25)
-
-        for i, label in enumerate(self.items):
-            color = QColor(*self.parent.palette.getRGB(i))
-            painter.setBrush(QBrush(color))
-            painter.drawEllipse(QPointF(self.pos_x - 85 + 15, self.pos_y - 24 * self.n_items - 5 + 22 * i), 8, 8)
-            painter.setPen(QColor(0, 0, 0, 255))
-            painter.drawText(QPointF(self.pos_x - 85 + 30, self.pos_y - 24 * self.n_items + 22 * i), str(label))
-
-    def boundingRect(self):
-        return QRectF(self.pos_x - 85, self.pos_y - 24 * self.n_items - 30, 80, 24 * self.n_items + 25)
-
-
-class CellViewerScene(QGraphicsScene):
-    def __init__(self, *args, **kwds):
-        QGraphicsScene.__init__(self, *args, **kwds)
-
-    def mousePressEvent(self, event):
-        itemUnderMouse = self.itemAt(event.scenePos().x(), event.scenePos().y(), self.views()[0].transform())
-        if itemUnderMouse is None:
-            return
-
-        if (event.modifiers() & Qt.ShiftModifier) and (itemUnderMouse.flags() & QGraphicsItem.ItemIsSelectable):
-            itemUnderMouse.setSelected(not itemUnderMouse.isSelected())
-
-        else:
-            QGraphicsScene.mousePressEvent(self, event)
-
-
-class Cell(QGraphicsPolygonItem):
-    __shape = None
-
-    def __init__(self, id, poly, brush, pen, **kwargs):
-        super().__init__(None, **kwargs)
-        self.old_pen = None
-        self.id = id
-        self.setBrush(brush)
-        self.setPen(pen)
-        self.setPolygon(poly)
-        self.setFlag(QGraphicsItem.ItemIsSelectable)
-        self._selected = False
-
-    def boundingRect(self):
-        return self.polygon().boundingRect()
-
-    def itemChange(self, change, value):
-
-        if change == QGraphicsItem.ItemSelectedChange:
-            if value:
-                self.old_pen = self.pen()
-                new_pen = QPen()
-                new_pen.setColor(QColor(255, 99, 71, 255))
-                new_pen.setWidth(5)
-                self.setPen(new_pen)
-                self._selected = True
-            else:
-                if self.old_pen is not None:
-                    self.setPen(self.old_pen)
-                    self._selected = False
-
-        return value
-
-    def paint(self, painter, option, widget):
-        if option.state & QStyle.State_Selected:
-            print("paint State_Selected", self.id)
-        if option.state & QStyle.State_HasFocus:
-            print("paint State_HasFocus", self.id)
-        if option.state & QStyle.State_MouseOver:
-            print("paint State_MouseOver", self.id)
-
-        painter.setBrush(self.brush())
-        painter.setPen(self.pen())
-        painter.drawPolygon(self.polygon())
-
-
 class OWCellsViewer(OWWidget):
     name = "Cells Viewer"
     icon = "icons/mywidget.svg"
@@ -287,7 +198,6 @@ class OWCellsViewer(OWWidget):
 
         if self.data is not None:
             self.contour_var.set_domain(self.data.domain)
-            self.label_var.set_domain(self.data.domain)
             self.color_var.set_domain(self.data.domain)
 
             if self.data.domain is not None:
@@ -586,6 +496,7 @@ class OWCellsViewer(OWWidget):
             all_data = all_data.astype(float)
         if filter_valid and self.valid_data is not None:
             all_data = all_data[self.valid_data]
+
         if not needs_merging:
             return all_data
 
