@@ -13,6 +13,8 @@ from Orange.statistics.util import bincount
 from Orange.widgets.utils.colorpalette import (
     ColorPaletteGenerator, ContinuousPaletteGenerator, DefaultRGBColors)
 
+from cellinspector.graphics import GFX
+
 import numpy as np
 
 
@@ -87,8 +89,24 @@ class OWCellInpspector(OWWidget):
         # just add the viewer to the mainArea and we are done
         # with it
         mainlayout = self.mainArea.layout()
-        mainlayout.addWidget(self.controller.widget)
+        mainlayout.addWidget(self.controller.viewer)
+        
+        #FIXME REMOVE AFTER DEBUG!
+        widget = self.controller.viewer#TestlWidget()
+        
+        widget.set_gridlayout(2, 2)
+        for i in range(2):
+            for j in range(2):
+                imdat = np.random.uniform(0, 0xfff, 4096 * 4096)
+                imdat = imdat.reshape(4096, 4096).astype(np.uint16)
+                bl0, bl1 = np.random.randint(96, 1024, 2)
+                bu0, bu1 = np.random.randint(2048, 4000, 2)
+                imdat[bl0:bu1, bl1:bu1] *= 2
+                widget.set_background((i, j), imdat)
 
+        widget.show_entities((0, 0))
+        ### REMOVE AFTER DEBUG!
+        
         # and the control area
         #TODO into a seperate class or into a factory function
         layout = gui.vBox(self.controlArea, True)
@@ -172,7 +190,6 @@ class OWCellInpspector(OWWidget):
         print(args, kwargs)
 
     def get_colors(self, max_cat=15):
-        print("get colors")
         self.palette = self.get_palette(max_cat)
         c_data = self.get_color_data()
         subset = None  # self.get_subset_mask()
@@ -206,7 +223,6 @@ class OWCellInpspector(OWWidget):
     def set_entities(self, entity_data):
         """set data domains to select from
         """
-        
         if entity_data is not None:
             self.entity_data = entity_data
             # sets selection options according to contour_data

@@ -6,6 +6,8 @@ from .viewer import Viewer
 from .viewer.dialog import ViewSetupDialog
 from .entities import EntityManager
 
+import ipdb
+
 
 class Controller():
     """Cotrols the app, including data and gui. Every feature should be
@@ -80,6 +82,8 @@ class Controller():
         # contours are given. transform them into the contourData format
         elif not entityContours is None:
             self.entityManager.generateFromContours(entityContours)
+            for entity in self.entityManager:
+                self.viewer.add_item(entity.GFX)
 
         # transform masks into the contour format
         elif not entityMask is None:
