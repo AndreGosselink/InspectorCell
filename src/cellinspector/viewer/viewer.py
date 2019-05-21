@@ -32,22 +32,19 @@ class Channel(pg.GraphicsView):
 
         self.chanLabel = ChannelLabel()
         self.chanLabel.set(0, text='INIT')
+        self.chanLabel.setFlags(qw.QGraphicsItem.ItemIgnoresTransformations)
 
-    # def drawBackground(self, painter, rect):
-    #     super().drawBackground(painter, rect)
-    #     # implicit drawing at (0, 0)
-    #     self.background.paint(painter)
+    def drawBackground(self, painter, rect):
+        super().drawBackground(painter, rect)
+        # implicit drawing at (0, 0)
+        self.background.paint(painter)
 
     def drawForeground(self, painter, rect):
-        super().drawForeground(painter, rect)
+        # super().drawForeground(painter, rect)
         # implicit drawing at (0, 0)
-        self.chanLabel.paint(painter, self.parent())
-
-    def wheelEvent(self, event):
-        """We ignore the event here and process
-        it in the Viewer
-        """
-        event.ignore()
+        # option = qw.QStyleOptionGraphicsItem.SO_GraphicsItem
+        style = qw.QStyleOptionGraphicsItem()
+        self.chanLabel.paint(painter, style, self.parent())
 
     def wheelEvent(self, event):
         """rewrtiting as event.delta seems to be gone
@@ -56,7 +53,7 @@ class Channel(pg.GraphicsView):
             scf = 1.2
         else:
             scf = 0.8
-        self.scale(scf, scf)
+        self.background.scale(scf, scf)
         event.accept()
 
     
@@ -163,7 +160,6 @@ class Viewer(qw.QWidget):
             chan.setScene(self.entity_scn)
         else:
             chan.setScene(self.empty_scn)
-
 
     # DEPRECIATED functions or properties
     @property

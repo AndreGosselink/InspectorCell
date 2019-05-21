@@ -1,6 +1,6 @@
 import pyqtgraph as pg
 # import AnyQt.QtCore as qc
-# from AnyQt import QtGui as qg, QtCore as qc, QtWidgets as qw
+from AnyQt import QtGui as qg, QtCore as qc, QtWidgets as qw
 
 
 class LabelElement():
@@ -38,20 +38,21 @@ class LabelElement():
     # def text(self, text=''):
     #     self._text = text
 
-
-class ChannelLabel(pg.LabelItem):
+class ChannelLabel(qw.QGraphicsTextItem):
 
     def __init__(self, *args, **kwargs):
         super().__init__()
 
         self.elements = [LabelElement() for i in range(3)]
+        # self.options = qw.QStyleOptionGraphicsItem
+        # self.options = qw.QStyleOptionGraphicsItem.SO_GraphicsItem
 
         self._html = """<body><b>{:}</b> <em>{:}</em> <em>{:}</em></body>"""
 
     def update(self):
         strings = (str(em) for em in self.elements)
         html = self._html.format(*strings)
-        self.item.setHtml(html)
+        self.setHtml(html)
 
     def set(self, index, fgColor=None, bgColor=None, text=None):
         element = self.elements[index]
