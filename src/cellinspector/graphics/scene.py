@@ -8,8 +8,8 @@ from PyQt5.QtCore import Qt, QPointF
 from PyQt5.QtGui import QPainterPath
 from PyQt5.QtWidgets import QGraphicsItem, QInputDialog
 
-from src.cellinspector.entities import EntityManager
-from src.cellinspector.graphics import gfx
+from ..entities import EntityManager
+from ..graphics import gfx
 
 RADIUS_MAX = 100
 RADIUS_MIN = 2

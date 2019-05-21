@@ -8,7 +8,7 @@ import cv2
 from PyQt5.QtCore import QPointF
 from PyQt5.QtGui import QPolygonF, QPainterPath
 
-from src.cellinspector.graphics.gfx import GFX
+from ..graphics.gfx import GFX
 
 
 def pathToContours(path):

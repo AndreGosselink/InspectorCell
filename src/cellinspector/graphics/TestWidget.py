@@ -8,9 +8,19 @@ from pyqtgraph.Qt import QtGui as qg, QtCore as qc
 import pyqtgraph as pg
 import numpy as np
 
-from src.cellinspector import Controller
-from src.cellinspector.graphics import GFX
-from src.cellinspector.viewer import Viewer
+if __name__ == '__main__':
+    # if run directly, this is propably for debugging reasons and therfor
+    # we can assume the directory structure as found in the src dir
+    # hence an relative import is needed, to avoid reinstalling all the time
+    from pathlib import Path
+    import sys
+
+    modpath = Path('./src').absolute().resolve()
+    sys.path.insert(0, str(modpath))  
+
+from cellinspector import Controller
+from cellinspector.viewer import Viewer
+from cellinspector.graphics import GFX
 
 
 class SingleViewBox(pg.ViewBox):
@@ -64,7 +74,8 @@ class TestlWidget(QtGui.QWidget):
         cells = []
 
         # read contours from file
-        contours_file = "/Volumes/Macintosh HD/Users/tanya/MyExpt_03IdentifyPrimaryObjects.csv"
+        # contours_file = "/Volumes/Macintosh HD/Users/tanya/MyExpt_03IdentifyPrimaryObjects.csv"
+        contours_file = "../../../res/contourtest.csv"
         brush1 = QBrush(QColor(255, 199, 171, 255))
         numberOfShowedObjects = 300
         with open(contours_file, "r") as csv_file:
@@ -197,7 +208,8 @@ for i in range(2):
         widget.set_background((i, j), imdat)
 
 # read contours from file
-contours_file = "/Volumes/Macintosh HD/Users/tanya/MyExpt_03IdentifyPrimaryObjects.csv"
+# contours_file = "/Volumes/Macintosh HD/Users/tanya/MyExpt_03IdentifyPrimaryObjects.csv"
+contours_file = "./res/contourtest.csv"
 numberOfShowedObjects = 300
 with open(contours_file, "r") as csv_file:
     csv_reader = csv.reader(csv_file, delimiter=',')

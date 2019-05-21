@@ -287,6 +287,8 @@ class EntityManager:
     def generateEntities(self, entityData):
         """Add entities based on the entityData representation
         will always use contours for generation of spatial information
+        
+        common entity data structure here!
 
         Parameters
         ----------
@@ -298,6 +300,7 @@ class EntityManager:
             contour = entry['contour']
             entity = self.make_entity(eid)
             entity.from_contours(contour)
+            entity.makeGFX()
     
     @depreciated(generateFromPixelmap)
     def generate_from_pixelmap(self, pixelmap):

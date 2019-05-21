@@ -12,7 +12,7 @@ import pyqtgraph as pg
 from AnyQt import QtCore as qc, QtWidgets as qw
 
 # project
-from src.cellinspector.graphics.scene import ViewerScene
+from ..graphics.scene import ViewerScene
 from ..util import CallTracker
 from .image import BackgroundImage
 
