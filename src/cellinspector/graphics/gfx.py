@@ -1,14 +1,19 @@
 import pyqtgraph as pg
-from PyQt5.QtGui import QPen, QColor
+from PyQt5.QtGui import QPen, QColor, QBrush
 from PyQt5.QtWidgets import QGraphicsItem
 
 COLOR_SELECTED_ITEM = QColor(128, 128, 128, 255)
+COLOR_DEFAULT_PEN = QColor(2, 2, 2, 255)
+COLOR_DEFAULT_BRUSH = QColor(255, 255, 255, 255)
 
 
 class GFX(pg.GraphicsObject):
-
+    """A graphic object, which is defined by path
+    """
     @property
     def brush(self):
+        if self.__brush is None:
+            self.__brush = QBrush(COLOR_DEFAULT_BRUSH)
         return self.__brush
 
     @brush.setter
@@ -17,6 +22,10 @@ class GFX(pg.GraphicsObject):
 
     @property
     def pen(self):
+        if self.__pen is None:
+            self.__pen = QPen()
+            self.__pen.setColor(COLOR_DEFAULT_PEN)
+            self.__pen.setWidth(1)
         return self.__pen
 
     @pen.setter
@@ -36,10 +45,11 @@ class GFX(pg.GraphicsObject):
     def selectedPen(self, pen):
         self.__selectedPen = pen
 
-    def __init__(self, poly, brush, pen):
+    def __init__(self, entity, brush=None, pen=None):
 
         super(GFX, self).__init__()
 
+        self.entity = entity
         self.brush = brush
         self.pen = pen
 
@@ -47,6 +57,7 @@ class GFX(pg.GraphicsObject):
         self.setFlag(QGraphicsItem.ItemIsFocusable, True)
         self.setFlag(QGraphicsItem.ItemIsSelectable, True)
         self.setAcceptHoverEvents(True)
+        self.showTags = False
 
     def boundingRect(self):
         return self.entity.boundingbox
@@ -64,3 +75,11 @@ class GFX(pg.GraphicsObject):
 
         for poly in self.entity.path.toSubpathPolygons():
             painter.drawPolygon(poly)
+
+        if self.showTags and len(self.entity.tags) > 0:
+            painter.drawText(self.boundingRect(), 1, str(self.entity.tags))
+
+    def hoverLeaveEvent(self, event):
+        self.showTags = False
+        self.update()
+

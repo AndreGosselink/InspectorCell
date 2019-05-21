@@ -1,10 +1,14 @@
 """Container for data, masks, graphics items, annotations logic etc. pp.
 related to a single, identifyable thingy in an image stack
 """
+from datetime import datetime
+
 import numpy as np
 import cv2
 from PyQt5.QtCore import QPointF
 from PyQt5.QtGui import QPolygonF, QPainterPath
+
+from src.cellinspector.graphics.gfx import GFX
 
 
 def pathToContours(path):
@@ -77,6 +81,27 @@ class Entity:
         self.__path = path
 
     @property
+    def GFX(self):
+        return self.__GFX
+
+    @GFX.setter
+    def GFX(self, gfx):
+        self.__GFX = gfx
+
+    @property
+    def historical(self):
+        return self.__historical
+
+    @path.setter
+    def historical(self, historical):
+        self.__historical = historical
+        self.__timestamp = datetime.now()
+
+    @property
+    def timestamp(self):
+        return self.__timestamp
+
+    @property
     def boundingbox(self):
         """
         properties of the entity in context of
@@ -136,6 +161,16 @@ class Entity:
         # can be manipulated directly
         self.tags = []
         self.scalars = {}
+
+        # Id of parent entity, set in case of merging
+        self.parentEid = None
+        # By default is false, if entity was removed or merged set to true
+        self.historical = False
+        # Timestamp of making entity historical, can be used for recovery
+        self.__timestamp = None
+
+        # Graphic Object
+        self.__GFX = None
 
     def from_polygons(self, polygons, offset=(0, 0)):
         """Sets the mask, given the contour points:
@@ -228,3 +263,18 @@ class Entity:
             contours, _ = cv2.findContours(self.mask.astype(np.uint8), mode, method)
 
         self.contours = [cont.squeeze() for cont in contours]
+
+    def makeGFX(self, brush=None, pen=None):
+        """
+        Creates new GFX object
+        """
+        self.GFX = GFX(self, brush, pen)
+
+        return self.GFX
+
+    def removeGFX(self, parentEid=None):
+        """ Removes GFX object
+        """
+        self.historical = True
+        self.parentEid = parentEid
+        self.GFX = None

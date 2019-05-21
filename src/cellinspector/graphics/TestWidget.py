@@ -1,13 +1,16 @@
 from PyQt5 import QtGui, QtCore
 from PyQt5.QtCore import QRectF, QPointF
-from PyQt5.QtGui import QPen, QBrush, QColor, QPolygonF
+from PyQt5.QtGui import QPen, QBrush, QColor, QPolygonF, QPainterPath
+import csv
 
 from pyqtgraph.Qt import QtGui as qg, QtCore as qc
 
 import pyqtgraph as pg
 import numpy as np
 
-from src.graphics import EntityGraphicObject, CentralGraphicUnit
+from src.cellinspector import Controller
+from src.cellinspector.graphics import GFX
+from src.cellinspector.viewer import Viewer
 
 
 class SingleViewBox(pg.ViewBox):
@@ -21,11 +24,18 @@ class SingleViewBox(pg.ViewBox):
         self.mouse_hovermoved.emit(event.pos())
         super().hoverMoveEvent(event)
 
+    def mouseClickEvent(self, event):
+        #print("View MousePress", event.pos())
+        super().mouseClickEvent(event)
+
+
 class TestlWidget(QtGui.QWidget):
     drawingModeSetted = QtCore.pyqtSignal(int)
     mergeRequested = QtCore.pyqtSignal()
     radiusIncreased = QtCore.pyqtSignal()
     radiusDecreased = QtCore.pyqtSignal()
+    mousePressed = QtCore.pyqtSignal(QPointF, bool)
+    removeRequested = QtCore.pyqtSignal()
 
     def __init__(self, parent=None):
         super(TestlWidget, self).__init__(parent=parent)
@@ -53,6 +63,33 @@ class TestlWidget(QtGui.QWidget):
 
         cells = []
 
+        # read contours from file
+        contours_file = "/Volumes/Macintosh HD/Users/tanya/MyExpt_03IdentifyPrimaryObjects.csv"
+        brush1 = QBrush(QColor(255, 199, 171, 255))
+        numberOfShowedObjects = 300
+        with open(contours_file, "r") as csv_file:
+            csv_reader = csv.reader(csv_file, delimiter=',')
+            for lines in csv_reader:
+
+                if numberOfShowedObjects == 0:
+                    break
+
+                polygon = QPolygonF()
+                coordinates = lines[2].split(" ")
+
+                for c in coordinates:
+                    pos = c.split(",")
+                    if len(pos) == 2:
+                        polygon << QPointF(float(pos[0]),float(pos[1]))
+                if not polygon.isEmpty():
+                    ego = EntityGraphicObject([polygon], brush1, pen)
+                    self.w1.addItem(ego)
+                    cells.append(ego)
+                    numberOfShowedObjects = numberOfShowedObjects - 1
+
+        print("csv data is imported")
+
+        """ 
         brush1 = QBrush(QColor(255, 199, 171, 255))
         p1 = EntityGraphicObject([QPolygonF(QRectF(40, 90, 50, 100))], brush1, pen)
         self.w1.addItem(p1)
@@ -90,6 +127,7 @@ class TestlWidget(QtGui.QWidget):
         p8 = EntityGraphicObject([QPolygonF(QRectF(100, 0, 50, 20))], brush6, pen)
         self.w1.addItem(p8)
         cells.append(p8)
+        """
 
         self.cgu = CentralGraphicUnit(cells)
 
@@ -98,22 +136,26 @@ class TestlWidget(QtGui.QWidget):
         self.drawingModeSetted.connect(self.cgu.setDrawingMode)
         self.radiusIncreased.connect(self.cgu.increaseRadius)
         self.radiusDecreased.connect(self.cgu.decreaseRadius)
+        self.mousePressed.connect(self.cgu.draw)
+        self.removeRequested.connect(self.cgu.remove)
 
     def eventFilter(self, obj, event):
 
         if event.type() == QtCore.QEvent.GraphicsSceneMouseMove:
             self.current_mouse_position = event.pos()
-            #print("GUI MouseMove", self.current_mouse_position)
+            #"GUI MouseMove", self.current_mouse_position)
 
         if event.type() == QtCore.QEvent.GraphicsSceneMousePress:
-            print("GUI MousePress", self.current_mouse_position)
+            #print("GUI MousePress", self.current_mouse_position)
+            self.mousePressed.emit(event.pos(), False)
 
         if event.type() == QtCore.QEvent.GraphicsSceneMouseRelease:
-            print("GUI MouseRelesae", self.current_mouse_position)
+            pass
+            #print("GUI MouseRelesae", self.current_mouse_position)
 
         if event.type() == QtCore.QEvent.GraphicsSceneHoverMove:
             self.current_mouse_position = event.pos()
-            #print("GUI MouseHOVER", self.current_mouse_position)
+           # print("GUI MouseHOVER", self.current_mouse_position)
 
         return False
 
@@ -124,6 +166,8 @@ class TestlWidget(QtGui.QWidget):
             self.mergeRequested.emit()
         elif event.key() == QtCore.Qt.Key_D:
             self.drawingModeSetted.emit(2)
+        elif event.key() == QtCore.Qt.Key_E:
+            self.removeRequested.emit()
         elif event.key() == QtCore.Qt.Key_Plus:
             self.radiusIncreased.emit()
         elif event.key() == QtCore.Qt.Key_Minus:
@@ -137,8 +181,49 @@ class TestlWidget(QtGui.QWidget):
 # Initializing Qt
 app = QtGui.QApplication([])
 
+controller = Controller()
 # Create a top-level widget to hold everything
-widget = TestlWidget()
+widget = controller.viewer#TestlWidget()
+
+widget.set_gridlayout(2, 2)
+for i in range(2):
+    for j in range(2):
+        imdat = np.random.uniform(0, 0xfff, 4096 * 4096)
+        imdat = imdat.reshape(4096, 4096).astype(np.uint16)
+        bl0, bl1 = np.random.randint(96, 1024, 2)
+        bu0, bu1 = np.random.randint(2048, 4000, 2)
+        imdat[bl0:bu1, bl1:bu1] *= 2
+
+        widget.set_background((i, j), imdat)
+
+# read contours from file
+contours_file = "/Volumes/Macintosh HD/Users/tanya/MyExpt_03IdentifyPrimaryObjects.csv"
+numberOfShowedObjects = 300
+with open(contours_file, "r") as csv_file:
+    csv_reader = csv.reader(csv_file, delimiter=',')
+    for lines in csv_reader:
+
+        if numberOfShowedObjects == 0:
+            break
+
+        polygon = QPolygonF()
+        coordinates = lines[2].split(" ")
+
+        for c in coordinates:
+            pos = c.split(",")
+            if len(pos) == 2:
+                polygon << QPointF(float(pos[0]), float(pos[1]))
+        if not polygon.isEmpty():
+            newEntity = controller.entityManager.make_entity()
+            newEntity.from_polygons([polygon])
+            gfx = newEntity.makeGFX()
+            widget.add_item(gfx)
+            numberOfShowedObjects = numberOfShowedObjects - 1
+
+print("csv data is imported")
+
+# Display objects in view 0,0
+widget.show_entities((0,0))
 
 # Display the widget as a new window
 widget.show()

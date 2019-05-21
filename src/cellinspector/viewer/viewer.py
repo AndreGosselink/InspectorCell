@@ -9,10 +9,10 @@ import warnings
 
 # GUI stuff
 import pyqtgraph as pg
-import AnyQt.QtCore as qc
-from AnyQt import QtGui as qg, QtCore as qc, QtWidgets as qw
+from AnyQt import QtCore as qc, QtWidgets as qw
 
 # project
+from src.cellinspector.graphics.scene import ViewerScene
 from ..util import CallTracker
 from .image import BackgroundImage
 
@@ -71,8 +71,8 @@ class Viewer(qw.QWidget):
 
         # Channel, Scene
         self.channels = {}
-        self.entity_scn = pg.GraphicsScene(parent=self)
-        self.empty_scn = pg.GraphicsScene(parent=self)
+        self.entity_scn = ViewerScene(parent=self) #pg.GraphicsScene(parent=self)
+        self.empty_scn = ViewerScene(parent=self) #pg.GraphicsScene(parent=self)
         
         # register calls to function to save viewstate
         # later on
