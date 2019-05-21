@@ -13,7 +13,6 @@ from Orange.statistics.util import bincount
 from Orange.widgets.utils.colorpalette import (
     ColorPaletteGenerator, ContinuousPaletteGenerator, DefaultRGBColors)
 
-from cellinspector.graphics import GFX
 
 import numpy as np
 
@@ -29,6 +28,7 @@ if __name__ == '__main__':
     sys.path.insert(0, str(modpath))  
 
 from cellinspector import Controller
+from cellinspector.graphics import GFX
 
 
 class OWCellInpspector(OWWidget):

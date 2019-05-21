@@ -6,8 +6,6 @@ from .viewer import Viewer
 from .viewer.dialog import ViewSetupDialog
 from .entities import EntityManager
 
-import ipdb
-
 
 class Controller():
     """Cotrols the app, including data and gui. Every feature should be
