@@ -1,5 +1,6 @@
 import os
 import sys
+from pathlib import Path
 
 from Orange.widgets.widget import OWWidget, Input, Output, Msg
 from Orange.widgets import gui
@@ -24,7 +25,7 @@ if __name__ == '__main__':
     from pathlib import Path
     import sys
 
-    modpath = Path('../../../../').absolute().resolve()
+    modpath = Path('../../../').absolute().resolve()
     sys.path.insert(0, str(modpath))  
 
 from cellinspector import Controller
@@ -42,18 +43,15 @@ class OWCellInpspector(OWWidget):
     # # Should the widget construct a controlArea.
     # want_control_area = True
 
-    settingsHandler = DomainContextHandler()
     attr_contour = ContextSetting(None)
     attr_eid = ContextSetting(None)
     attr_color = ContextSetting(None)
-    selection = Setting(None, schema_only=True)
-    show_legend = False
-    # too_many_labels = Signal(bool)
-    graph_name = "scene"
+    attrImage = ContextSetting(None)
     autocommit = False
 
     class Inputs:
         entities = Input('Entities', OTable)
+        images = Input('Images', OTable)
 
     class Outputs:
         sample = Output("Sampled Data", OTable)
@@ -72,14 +70,7 @@ class OWCellInpspector(OWWidget):
         self.entity_ids = None
 
         self.contours = None
-        self.legend = None
-        self.n_contours = 0
         self.subset_is_shown = False
-        self.alpha_value = 50
-        self.zoom_value = 250
-        self.label_only_selection = False
-        self.labels = []
-        self._too_many_labels = False
 
         self.setup_gui()
 
@@ -229,6 +220,26 @@ class OWCellInpspector(OWWidget):
             self.contour_var.set_domain(self.entity_data.domain)
             self.eid_var.set_domain(self.entity_data.domain)
             self.color_var.set_domain(self.entity_data.domain)
+
+    @Inputs.images
+    @check_sql_input
+    def setImages(self, imageData):
+        """Informs the controller which images are availabel
+        """
+        if not imageData is None:
+            choices = []
+            for inst in imageData:
+                # get all variables from table
+                name = inst['image name']
+                img = inst['image']
+                imgDir = img.variable.attributes.get('origin', '')
+                # construct path
+                imgPath = Path(str(imgDir)) / str(img)
+                # if path exists, append it to choices
+                if imgPath.exists():
+                    choices.append((str(name), imgPath))
+            
+            self.controller.setImages(choices)
 
     def commit(self):
         if self.data is not None:

@@ -111,6 +111,20 @@ class Controller():
         diag.updateGui()
         diag.show()
 
+    def setImages(self, imageSelection):
+        """sets image selection viable to display in all kinds of
+        layers
+
+        Parameter
+        ---------
+        imageSelection : list of tuples
+            each item in the list is an image represented by an tuple. the tuple
+            constist of an string and a path. the string is the display name and
+            the path points to the respective image file
+        """
+        self.viewer.setBackgroundSelection(imageSelection)
+
+
     @property
     def widget(self):
         return self.viewer

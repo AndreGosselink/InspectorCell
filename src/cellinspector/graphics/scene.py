@@ -50,7 +50,9 @@ class ViewerScene(pg.GraphicsScene):
 
     def mousePressEvent(self, event):
         self.mouseDrawingPath = []
-        pg.GraphicsScene.mousePressEvent(self, event)
+
+        event.ignore()
+        super().mousePressEvent(event)
 
     def mouseReleaseEvent(self, event):
         """ if we are in a drawing mode and selected one object draw or eraise
@@ -81,7 +83,9 @@ class ViewerScene(pg.GraphicsScene):
                         item.update()
 
         self.mouseDrawingPath = []
-        pg.GraphicsScene.mouseReleaseEvent(self, event)
+
+        event.ignore()
+        super().mouseReleaseEvent(event)
 
     def deselectFirstNSelectedObjects(self, n):
 

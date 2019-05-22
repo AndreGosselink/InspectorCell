@@ -16,6 +16,7 @@ from ..graphics.scene import ViewerScene
 from ..util import CallTracker
 from .image import BackgroundImage
 from .label import ChannelLabel
+from .context import ContextMenu
 
 
 class Channel(pg.GraphicsView):
@@ -29,7 +30,8 @@ class Channel(pg.GraphicsView):
 
         self.enableMouse(True)
         self.setAspectLocked(True)
-
+        
+        # readout label in channel
         self.chanLabel = ChannelLabel()
         self.chanLabel.set(0, text='INIT')
         self.chanLabel.setFlags(qw.QGraphicsItem.ItemIgnoresTransformations)
@@ -77,8 +79,12 @@ class Viewer(qw.QWidget):
 
         # Channel, Scene
         self.channels = {}
-        self.entity_scn = ViewerScene(parent=self) #pg.GraphicsScene(parent=self)
-        self.empty_scn = ViewerScene(parent=self) #pg.GraphicsScene(parent=self)
+        self.entity_scn = ViewerScene(parent=self)
+        self.empty_scn = ViewerScene(parent=self)
+
+        # Context menu
+        self.contextMenu = ContextMenu()
+        self.contextBtn = qc.Qt.RightButton
         
         # register calls to function to save viewstate
         # later on
@@ -90,12 +96,21 @@ class Viewer(qw.QWidget):
             'cross': False,
         }
 
+        self.imageRepository = {'background': {}}
+
     def update(self):
         """view layout, crosshair and other from 
         self.viewSetup
         """
         self._spawn_views(cols=self.viewSetup['cols'],
                           rows=self.viewSetup['rows'])
+
+    def setBackgroundSelection(self, imageSelection):
+        """view layout, crosshair and other from 
+        self.viewSetup
+        """
+        rep = self.imageRepository['background'] = dict(imageSelection)
+        self.contextMenu.updateSelection(rep.keys(), 'channelBg')
 
     def setGridlayout(self, rows, cols):
         """ sets up the main viewgrid, depending on row and col number
@@ -136,6 +151,10 @@ class Viewer(qw.QWidget):
         for cur_chan in self.channels.values():
             cur_chan.blockSignals(False)
 
+    def mousePressEvent(self, event):
+        if event.button() == self.contextBtn:
+            self.contextMenu.popup(event.screenPos().toPoint())
+
     def set_background(self, index, imagedata):
         """Sets the background of channel at index to imagedata
         will silently fail if there is no channel at index
@@ -160,6 +179,11 @@ class Viewer(qw.QWidget):
             chan.setScene(self.entity_scn)
         else:
             chan.setScene(self.empty_scn)
+    
+    @qc.pyqtSlot(str, str)
+    def changeResource(self, resName, locationName):
+        if locationName == 'channelBg':
+            print('request for resName', resName)
 
     # DEPRECIATED functions or properties
     @property

@@ -3,9 +3,11 @@
 	<nodes>
 		<node id="0" name="File" position="(140.0, 240.0)" project_name="Orange3" qualified_name="Orange.widgets.data.owfile.OWFile" title="File" version="" />
 		<node id="1" name="Cellinspector" position="(347.0, 236.0)" project_name="cellinspector" qualified_name="orangecontrib.cellinspector.widgets.owcellinspector.OWCellInpspector" title="Cellinspector" version="" />
+		<node id="2" name="Import Images" position="(126.0, 323.0)" project_name="Orange3-ImageAnalytics" qualified_name="orangecontrib.imageanalytics.widgets.owimageimport.OWImportImages" title="Import Images" version="" />
 	</nodes>
 	<links>
 		<link enabled="true" id="0" sink_channel="Entities" sink_node_id="1" source_channel="Data" source_node_id="0" />
+		<link enabled="true" id="1" sink_channel="Images" sink_node_id="1" source_channel="Data" source_node_id="2" />
 	</links>
 	<annotations />
 	<thumbnail />
@@ -30,7 +32,7 @@ c3EiXXEjWBMAAABzYXZlZFdpZGdldEdlb21ldHJ5cSRDQgHZ0MsAAwAAAAADzgAAAZ0AAAYlAAAD
 wwAAA84AAAGdAAAGJQAAA8MAAAAAAAAAAAyAAAADzgAAAZ0AAAYlAAADw3ElWAsAAABzaGVldF9u
 YW1lc3EmfXEnWAYAAABzb3VyY2VxKEsAWAMAAAB1cmxxKWgOWA0AAABkb21haW5fZWRpdG9ycSp9
 cStYCwAAAF9fdmVyc2lvbl9fcSxLAVgQAAAAY29udGV4dF9zZXR0aW5nc3EtXXEuY09yYW5nZS53
-aWRnZXRzLnNldHRpbmdzCkNvbnRleHQKcS8pgXEwfXExKFgEAAAAdGltZXEyR0HXOUIsSPZLWAYA
+aWRnZXRzLnNldHRpbmdzCkNvbnRleHQKcS8pgXEwfXExKFgEAAAAdGltZXEyR0HXOVWnu/o8WAYA
 AAB2YWx1ZXNxM31xNChYCQAAAHZhcmlhYmxlc3E1XXE2WAkAAAB4bHNfc2hlZXRxN2gOSv////+G
 cThoKn1xOWg1XXE6KF1xOyhYCwAAAEltYWdlTnVtYmVycTxjT3JhbmdlLmRhdGEudmFyaWFibGUK
 RGlzY3JldGVWYXJpYWJsZQpxPUsAWAEAAAAxcT6IZV1xPyhYDAAAAE9iamVjdE51bWJlcnFAY09y
@@ -42,6 +44,14 @@ cnFNSwOGcU6FcU9YCgAAAGNsYXNzX3ZhcnNxUClYEgAAAG1vZGlmaWVkX3ZhcmlhYmxlc3FRXXFS
 dWJhdS4=
 </properties>
 		<properties format="literal" node_id="1">{'controlAreaVisible': True, 'savedWidgetGeometry': b'\x01\xd9\xd0\xcb\x00\x03\x00\x00\x00\x00\x03\xe9\x00\x00\x01h\x00\x00\x05f\x00\x00\x02p\x00\x00\x03\xe9\x00\x00\x01h\x00\x00\x05f\x00\x00\x02p\x00\x00\x00\x00\x00\x00\x00\x00\x0c\x80\x00\x00\x03\xe9\x00\x00\x01h\x00\x00\x05f\x00\x00\x02p', 'selection': None, '__version__': 1, 'context_settings': []}</properties>
+		<properties format="pickle" node_id="2">gAN9cQAoWBIAAABjb250cm9sQXJlYVZpc2libGVxAYhYDAAAAHJlY2VudF9wYXRoc3ECXXEDY09y
+YW5nZS53aWRnZXRzLnV0aWxzLmZpbGVkaWFsb2dzClJlY2VudFBhdGgKcQQpgXEFfXEGKFgHAAAA
+YWJzcGF0aHEHWC0AAAAvaG9tZS9hbmRyZS9tbGV4cGVyaW1lbnRzL2ltZy9vdmNhXzMwNS93MWZs
+ZDFxCFgGAAAAcHJlZml4cQlOWAcAAAByZWxwYXRocQpOWAUAAAB0aXRsZXELWAAAAABxDFgFAAAA
+c2hlZXRxDWgMWAsAAABmaWxlX2Zvcm1hdHEOTnViYVgTAAAAc2F2ZWRXaWRnZXRHZW9tZXRyeXEP
+Q0IB2dDLAAMAAAAAA3cAAAGiAAAE3AAAAiwAAAN3AAABogAABNwAAAIsAAAAAAAAAAAMgAAAA3cA
+AAGiAAAE3AAAAixxEFgLAAAAX192ZXJzaW9uX19xEUsBdS4=
+</properties>
 	</node_properties>
 	<session_state>
 		<window_groups />
