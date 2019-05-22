@@ -7,6 +7,9 @@ and including background images.
 # built-ins
 import warnings
 
+# extern
+import cv2
+
 # GUI stuff
 import pyqtgraph as pg
 from AnyQt import QtCore as qc, QtWidgets as qw
@@ -81,6 +84,7 @@ class Viewer(qw.QWidget):
         self.channels = {}
         self.entity_scn = ViewerScene(parent=self)
         self.empty_scn = ViewerScene(parent=self)
+        self._activeChannel = None
 
         # Context menu
         self.contextMenu = ContextMenu()
@@ -97,6 +101,14 @@ class Viewer(qw.QWidget):
         }
 
         self.imageRepository = {'background': {}}
+
+        self._connect()
+
+    def _connect(self):
+        """connects
+        """
+        # proxy signal through
+        self.contextMenu.sigSelected.connect(self.loadImage)
 
     def update(self):
         """view layout, crosshair and other from 
@@ -154,6 +166,34 @@ class Viewer(qw.QWidget):
     def mousePressEvent(self, event):
         if event.button() == self.contextBtn:
             self.contextMenu.popup(event.screenPos().toPoint())
+            self.setActiveChannel(event)
+
+        event.ignore()
+        super().mousePressEvent(event)
+
+    # def paint(self, painter):
+    #     try:
+    #         rect = self.viewRect
+    #         color = qg.QColor(255, 80, 100, 255)
+    #         pen = qg.QPen(color)
+    #         painer.setPen(pen)
+    #         painer.drawRect(rect)
+    #     except:
+    #         rect = None
+    #     super().paint(painter)
+
+    def setActiveChannel(self, event):
+        for curIndex, curChan in self.channels.items():
+            if curChan.underMouse():
+                self._activeChannel = curIndex
+                break
+
+        # if not ch_coords is None:
+        #     for cur_view in self.views.values():
+        #         cur_view.set_crosshair(ch_coords)
+
+        event.ignore()
+        super().mouseMoveEvent(event)
 
     def set_background(self, index, imagedata):
         """Sets the background of channel at index to imagedata
@@ -165,6 +205,16 @@ class Viewer(qw.QWidget):
             return
 
         chan.background.setImage(imagedata)
+
+    @qc.pyqtSlot(str, str)
+    def loadImage(self, aName, selector):
+        """load image to selector
+        """
+        if selector == 'channelBg':
+            path = self.imageRepository['background'][aName]
+            img = cv2.imread(str(path), cv2.IMREAD_ANYDEPTH)
+            if not img is None and not self._activeChannel is None:
+                self.set_background(self._activeChannel, img)
 
     def show_entities(self, index, show=True):
         """Sets channel at index to show entities

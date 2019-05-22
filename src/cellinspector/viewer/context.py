@@ -3,7 +3,7 @@ from AnyQt import QtGui as qg, QtWidgets as qw, QtCore as qc
 
 class ContextMenu(qg.QMenu):
 
-    sigContextSelected = qc.pyqtSignal(str, str)
+    sigSelected = qc.pyqtSignal(str, str)
 
     def __init__(self):
         super().__init__()
@@ -60,7 +60,7 @@ class ContextMenu(qg.QMenu):
     @qc.pyqtSlot()
     def onSelection(self):
         aName, selector = self.sender().callbackInfo
-        self.sigContextSelected.emit(selector, aName)
+        self.sigSelected.emit(selector, aName)
 
         # elif layer_name == 'tags':
         #     self._tag_selection = name_selection

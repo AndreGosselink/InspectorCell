@@ -22,6 +22,13 @@ class Controller():
 
         self.dialogs = {}
         self.addDialogs()
+        self._connect()
+
+    def _connect(self):
+        """Connects elements
+        """
+        # self.viewer.
+        pass
 
     def addDialogs(self):
         """populates Controller.dialogs
