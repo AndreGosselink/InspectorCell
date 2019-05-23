@@ -5,7 +5,8 @@ from pathlib import Path
 from Orange.widgets.widget import OWWidget, Input, Output, Msg
 from Orange.widgets import gui
 from Orange.data import (
-    Table as OTable, DiscreteVariable, ContinuousVariable, Domain)
+    Table as OTable, DiscreteVariable, StringVariable, ContinuousVariable,
+    Domain)
 from Orange.widgets.settings import (
     Setting, ContextSetting, DomainContextHandler, SettingProvider)
 
@@ -57,7 +58,7 @@ class OWCellInpspector(OWWidget):
 
     class Outputs:
         entities = Output('Entities', OTable)
-        selection = Output('Selected Entities', OTable)
+        # selection = Output('Selected Entities', OTable)
 
     class Error(OWWidget.Error):
         no_valid_contours = Msg("No contours due to no valid data.")
@@ -237,18 +238,23 @@ class OWCellInpspector(OWWidget):
 
     def commit(self):
         if self.entity_data is not None:
-            entity_id = ContinuousVariable(self.attr_eid.name)
-            contours = StringVariable(self.attr_contour)
+            eid_var = ContinuousVariable(self.attr_eid.name)
+            cont_var = StringVariable(self.attr_contour.name)
 
-            domain = Domain([entity_id, contours])
+            domain = Domain([eid_var], metas=[cont_var])
 
             contour_data = []
             for entity in self.controller.getEntityData():
                 eid = entity['id']
-                contours = entity['contours'][0]
-                contour_data.append((eid, contours))
+                a_contour = EntityContour()
+                a_contour.contour = entity['contour']
+                contour_data.append((eid, a_contour.string))
 
-            entity_data = OTable(domain)
+            entity_data = OTable(domain, contour_data)
+
+            self.Outputs.entities.send(entity_data)
+        else:
+            self.Outputs.entities.send(None)
 
         #     ids = []
         #     for c in self.contours:

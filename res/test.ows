@@ -4,15 +4,17 @@
 		<node id="0" name="Cellinspector" position="(379.0, 274.0)" project_name="cellinspector" qualified_name="orangecontrib.cellinspector.widgets.owcellinspector.OWCellInpspector" title="Cellinspector" version="" />
 		<node id="1" name="Import Images" position="(190.0, 369.0)" project_name="Orange3-ImageAnalytics" qualified_name="orangecontrib.imageanalytics.widgets.owimageimport.OWImportImages" title="Import Images" version="" />
 		<node id="2" name="File" position="(178.0, 247.0)" project_name="Orange3" qualified_name="Orange.widgets.data.owfile.OWFile" title="File" version="" />
+		<node id="3" name="Data Table" position="(530.0, 254.0)" project_name="Orange3" qualified_name="Orange.widgets.data.owtable.OWDataTable" title="Data Table" version="" />
 	</nodes>
 	<links>
 		<link enabled="true" id="0" sink_channel="Images" sink_node_id="0" source_channel="Data" source_node_id="1" />
 		<link enabled="true" id="1" sink_channel="Entities" sink_node_id="0" source_channel="Data" source_node_id="2" />
+		<link enabled="true" id="2" sink_channel="Data" sink_node_id="3" source_channel="Entities" source_node_id="0" />
 	</links>
 	<annotations />
 	<thumbnail />
 	<node_properties>
-		<properties format="literal" node_id="0">{'controlAreaVisible': True, 'savedWidgetGeometry': b'\x01\xd9\xd0\xcb\x00\x03\x00\x00\x00\x00\x03\xe9\x00\x00\x01h\x00\x00\x05f\x00\x00\x02p\x00\x00\x03\xe9\x00\x00\x01h\x00\x00\x05f\x00\x00\x02p\x00\x00\x00\x00\x00\x00\x00\x00\x0c\x80\x00\x00\x03\xe9\x00\x00\x01h\x00\x00\x05f\x00\x00\x02p', '__version__': 1}</properties>
+		<properties format="literal" node_id="0">{'controlAreaVisible': True, 'savedWidgetGeometry': b'\x01\xd9\xd0\xcb\x00\x03\x00\x00\x00\x00\x01\xc8\x00\x00\x01p\x00\x00\x03E\x00\x00\x02x\x00\x00\x01\xc8\x00\x00\x01p\x00\x00\x03E\x00\x00\x02x\x00\x00\x00\x00\x00\x00\x00\x00\x0c\x80\x00\x00\x01\xc8\x00\x00\x01p\x00\x00\x03E\x00\x00\x02x', '__version__': 1}</properties>
 		<properties format="pickle" node_id="1">gAN9cQAoWBIAAABjb250cm9sQXJlYVZpc2libGVxAYhYDAAAAHJlY2VudF9wYXRoc3ECXXEDY09y
 YW5nZS53aWRnZXRzLnV0aWxzLmZpbGVkaWFsb2dzClJlY2VudFBhdGgKcQQpgXEFfXEGKFgHAAAA
 YWJzcGF0aHEHWC0AAAAvaG9tZS9hbmRyZS9tbGV4cGVyaW1lbnRzL2ltZy9vdmNhXzMwNS93MWZs
@@ -41,7 +43,7 @@ AdnQywADAAAAAAPOAAABnQAABiUAAAPDAAADzgAAAZ0AAAYlAAADwwAAAAAAAAAADIAAAAPOAAAB
 nQAABiUAAAPDcSNYCwAAAHNoZWV0X25hbWVzcSR9cSVYBgAAAHNvdXJjZXEmSwBYAwAAAHVybHEn
 aAxYDQAAAGRvbWFpbl9lZGl0b3JxKH1xKVgLAAAAX192ZXJzaW9uX19xKksBWBAAAABjb250ZXh0
 X3NldHRpbmdzcStdcSxjT3JhbmdlLndpZGdldHMuc2V0dGluZ3MKQ29udGV4dApxLSmBcS59cS8o
-WAQAAAB0aW1lcTBHQdc5pIqnXBlYBgAAAHZhbHVlc3ExfXEyKFgJAAAAdmFyaWFibGVzcTNdcTRY
+WAQAAAB0aW1lcTBHQdc5pjrMR7FYBgAAAHZhbHVlc3ExfXEyKFgJAAAAdmFyaWFibGVzcTNdcTRY
 CQAAAHhsc19zaGVldHE1aAxK/////4ZxNmgofXE3aDNdcTgoXXE5KFgLAAAASW1hZ2VOdW1iZXJx
 OmNPcmFuZ2UuZGF0YS52YXJpYWJsZQpEaXNjcmV0ZVZhcmlhYmxlCnE7SwBYAQAAADFxPIhlXXE9
 KFgMAAAAT2JqZWN0TnVtYmVycT5jT3JhbmdlLmRhdGEudmFyaWFibGUKQ29udGludW91c1Zhcmlh
@@ -51,6 +53,7 @@ bWFnZU51bWJlcnFEXXFFaDxhhnFGWAwAAABPYmplY3ROdW1iZXJxR0sChnFIhnFJWAUAAABtZXRh
 c3FKWBAAAABMb2NhdGlvbl9Db250b3VycUtLA4ZxTIVxTVgKAAAAY2xhc3NfdmFyc3FOKVgSAAAA
 bW9kaWZpZWRfdmFyaWFibGVzcU9dcVB1YmF1Lg==
 </properties>
+		<properties format="literal" node_id="3">{'auto_commit': True, 'color_by_class': True, 'controlAreaVisible': True, 'dist_color_RGB': (220, 220, 220, 255), 'savedWidgetGeometry': None, 'select_rows': True, 'selected_cols': None, 'selected_rows': None, 'show_attribute_labels': True, 'show_distributions': False, '__version__': 1, 'context_settings': []}</properties>
 	</node_properties>
 	<session_state>
 		<window_groups />

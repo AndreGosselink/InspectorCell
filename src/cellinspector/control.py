@@ -146,7 +146,7 @@ class Controller():
                 'id': entity.eid,
                 'tags': entity.tags,
                 'scalars': entity.scalars,
-                'contours': entity.contours,
+                'contour': entity.contours,
             }
             entity_data.append(entry)
         return entity_data
