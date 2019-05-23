@@ -12,7 +12,7 @@ import cv2
 
 # GUI stuff
 import pyqtgraph as pg
-from AnyQt import QtCore as qc, QtWidgets as qw
+from AnyQt import QtCore as qc, QtWidgets as qw, QtGui as qg
 
 # project
 from ..graphics.scene import ViewerScene
@@ -45,11 +45,8 @@ class Channel(pg.GraphicsView):
         self.background.paint(painter)
 
     def drawForeground(self, painter, rect):
-        # super().drawForeground(painter, rect)
-        # implicit drawing at (0, 0)
-        # option = qw.QStyleOptionGraphicsItem.SO_GraphicsItem
-        style = qw.QStyleOptionGraphicsItem()
-        self.chanLabel.textItem.paint(painter, style, self.parent())
+        super().drawForeground(painter, rect)
+        self.chanLabel.paint(painter, rect)
 
     def wheelEvent(self, event):
         """rewrtiting as event.delta seems to be gone
@@ -171,17 +168,6 @@ class Viewer(qw.QWidget):
         event.ignore()
         super().mousePressEvent(event)
 
-    # def paint(self, painter):
-    #     try:
-    #         rect = self.viewRect
-    #         color = qg.QColor(255, 80, 100, 255)
-    #         pen = qg.QPen(color)
-    #         painer.setPen(pen)
-    #         painer.drawRect(rect)
-    #     except:
-    #         rect = None
-    #     super().paint(painter)
-
     def setActiveChannel(self, event):
         for curIndex, curChan in self.channels.items():
             if curChan.underMouse():
@@ -215,6 +201,8 @@ class Viewer(qw.QWidget):
             img = cv2.imread(str(path), cv2.IMREAD_ANYDEPTH)
             if not img is None and not self._activeChannel is None:
                 self.set_background(self._activeChannel, img)
+            elif img is None:
+                self.set_background(self._activeChannel, np.array([], int))
 
     def show_entities(self, index, show=True):
         """Sets channel at index to show entities

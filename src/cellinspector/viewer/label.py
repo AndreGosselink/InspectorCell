@@ -38,17 +38,24 @@ class LabelElement():
     # def text(self, text=''):
     #     self._text = text
 
-# class ChannelLabel(qw.QGraphicsTextItem):
-class ChannelLabel(pg.TextItem):
+class ChannelLabel(qw.QGraphicsTextItem):
+# class ChannelLabel(pg.TextItem):
 
-    def __init__(self, *args, **kwargs):
-        super().__init__()
+    def __init__(self, *args, parent=None, **kwargs):
+        super().__init__(parent=parent)
 
         self.elements = [LabelElement() for i in range(3)]
         # self.options = qw.QStyleOptionGraphicsItem
         # self.options = qw.QStyleOptionGraphicsItem.SO_GraphicsItem
 
         self._html = """<body><b>{:}</b> <em>{:}</em> <em>{:}</em></body>"""
+
+        self._transform = qg.QTransform(
+            1, 0, 0,
+            0, 1, 0,
+            10, 10, 1)
+
+        self._txtstyle = qw.QStyleOptionGraphicsItem()
 
     def update(self):
         strings = (str(em) for em in self.elements)
@@ -68,3 +75,11 @@ class ChannelLabel(pg.TextItem):
 
         element.update()
         self.update()
+
+    def paint(self, painter, rect):
+        painter.save()
+        painter.setTransform(self._transform)
+
+        super().paint(painter, self._txtstyle, self.parent())
+
+        painter.restore()
