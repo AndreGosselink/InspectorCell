@@ -80,7 +80,7 @@ class Viewer(qw.QWidget):
         # Channel, Scene
         self.channels = {}
         self.entity_scn = ViewerScene(parent=self)
-        self.empty_scn = ViewerScene(parent=self)
+        self.empty_scn = ViewerScene(isDisabled=True, parent=self)
         self._activeChannel = None
 
         # Context menu

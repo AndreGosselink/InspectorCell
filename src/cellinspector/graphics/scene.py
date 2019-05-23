@@ -18,15 +18,16 @@ RADIUS_DEFAULT = 10
 
 class ViewerScene(pg.GraphicsScene):
 
-    def __init__(self, *args, **kwargs):
+    def __init__(self, isDisabled=False, *args, **kwargs):
         super().__init__(*args, **kwargs)
         self.drawingRadius = RADIUS_DEFAULT
         self.drawingMode = False
         self.drawingModeErase = False
         self.mouseDrawingPath = []
+        self.isDisabledScene = isDisabled
 
     def mouseDoubleClickEvent(self, event):
-        if not self.drawingMode:
+        if not self.isDisabledScene and not self.drawingMode:
             itemUnderMouse = self.itemAt(event.scenePos().x(), event.scenePos().y(), self.views()[0].transform())
 
             if itemUnderMouse is None:
