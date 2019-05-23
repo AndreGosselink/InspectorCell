@@ -49,7 +49,7 @@ class Channel(pg.GraphicsView):
         # implicit drawing at (0, 0)
         # option = qw.QStyleOptionGraphicsItem.SO_GraphicsItem
         style = qw.QStyleOptionGraphicsItem()
-        self.chanLabel.paint(painter, style, self.parent())
+        self.chanLabel.textItem.paint(painter, style, self.parent())
 
     def wheelEvent(self, event):
         """rewrtiting as event.delta seems to be gone
@@ -58,7 +58,7 @@ class Channel(pg.GraphicsView):
             scf = 1.2
         else:
             scf = 0.8
-        self.background.scale(scf, scf)
+        self.scale(scf, scf)
         event.accept()
 
     

@@ -131,6 +131,25 @@ class Controller():
         """
         self.viewer.setBackgroundSelection(imageSelection)
 
+    def getEntityData(self):
+        """Generates a list of all data about entities 
+
+        Returns
+        -------
+        entityData : list of dicts
+            lost of dicts, each dict is a entity entry with the tags
+            Id, tags, scalars and contour
+        """
+        entity_data = []
+        for entity in self.entityManager:
+            entry = {
+                'id': entity.eid,
+                'tags': entity.tags,
+                'scalars': entity.scalars,
+                'contours': entity.contours,
+            }
+            entity_data.append(entry)
+        return entity_data
 
     @property
     def widget(self):

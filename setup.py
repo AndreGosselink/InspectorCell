@@ -39,6 +39,7 @@ def get_requires():
     """minimally needed to run
     """
     ret = [
+        'pathlib',
         'sortedcontainers',
         'Orange3',
     ]
@@ -101,6 +102,8 @@ if __name__ == '__main__':
 
         package_data=get_pkgfiles(),
         include_package_data=True,
+
+        python_requires='>=3',
 
         install_requires=get_requires(),
 

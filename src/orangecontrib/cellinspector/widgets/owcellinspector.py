@@ -4,7 +4,8 @@ from pathlib import Path
 
 from Orange.widgets.widget import OWWidget, Input, Output, Msg
 from Orange.widgets import gui
-from Orange.data import Table as OTable
+from Orange.data import (
+    Table as OTable, DiscreteVariable, ContinuousVariable, Domain)
 from Orange.widgets.settings import (
     Setting, ContextSetting, DomainContextHandler, SettingProvider)
 
@@ -30,6 +31,7 @@ if __name__ == '__main__':
 
 from cellinspector import Controller
 from cellinspector.graphics import GFX
+from cellinspector.util import EntityContour
 
 
 class OWCellInpspector(OWWidget):
@@ -46,7 +48,7 @@ class OWCellInpspector(OWWidget):
     attr_contour = ContextSetting(None)
     attr_eid = ContextSetting(None)
     attr_color = ContextSetting(None)
-    attrImage = ContextSetting(None)
+    attr_image = ContextSetting(None)
     autocommit = False
 
     class Inputs:
@@ -54,7 +56,8 @@ class OWCellInpspector(OWWidget):
         images = Input('Images', OTable)
 
     class Outputs:
-        sample = Output("Sampled Data", OTable)
+        entities = Output('Entities', OTable)
+        selection = Output('Selected Entities', OTable)
 
     class Error(OWWidget.Error):
         no_valid_contours = Msg("No contours due to no valid data.")
@@ -62,15 +65,18 @@ class OWCellInpspector(OWWidget):
     def __init__(self):
         super().__init__()
         
+        # add on core
         self.controller = Controller()
         self.controller.initViewer()
 
-        #TODO cleanup
+        # will contain data for entity creation
         self.entity_contours = None
         self.entity_ids = None
 
-        self.contours = None
-        self.subset_is_shown = False
+        # will be set by gui creation
+        self.contour_var = None
+        self.eid_var = None
+        self.color_var = None
 
         self.setup_gui()
 
@@ -83,7 +89,7 @@ class OWCellInpspector(OWWidget):
         mainlayout.addWidget(self.controller.viewer)
         
         #FIXME REMOVE AFTER DEBUG!
-        widget = self.controller.viewer#TestlWidget()
+        widget = self.controller.viewer #TestlWidget()
         
         widget.set_gridlayout(2, 2)
         for i in range(2):
@@ -147,15 +153,12 @@ class OWCellInpspector(OWWidget):
             return
         
         entity_contours = []
+        a_contour = EntityContour()
         try:
             for eid, str_contour in zip(entity_ids, entity_contours_str):
-                path = []
-                for pt_string in str_contour.split(' '):
-                    pt_float = list(float(p) for p in pt_string.split(','))
-                    path.append(pt_float)
-                econ = [np.array(path, float)]
-                entity_contours.append((int(eid), econ))
-        except (TypeError, IndexError, AttributeError):
+                a_contour.string = str_contour
+                entity_contours.append((int(eid), a_contour.contour))
+        except (TypeError, IndexError, AttributeError) as err:
             self.Error.no_valid_contours()
             return
 
@@ -168,16 +171,7 @@ class OWCellInpspector(OWWidget):
     def _on_attr_color_changed(self, *args, **kwargs):
         print(args, kwargs)
 
-    def update_legend_visibility(self, *args, **kwargs):
-        print(args, kwargs)
-
     def _opacity_changed(self, *args, **kwargs):
-        print(args, kwargs)
-
-    def _zoom_changed(self, *args, **kwargs):
-        print(args, kwargs)
-
-    def _bg_image_enabled(self, *args, **kwargs):
         print(args, kwargs)
 
     def get_colors(self, max_cat=15):
@@ -223,7 +217,7 @@ class OWCellInpspector(OWWidget):
 
     @Inputs.images
     @check_sql_input
-    def setImages(self, imageData):
+    def set_images(self, imageData):
         """Informs the controller which images are availabel
         """
         if not imageData is None:
@@ -242,19 +236,32 @@ class OWCellInpspector(OWWidget):
             self.controller.setImages(choices)
 
     def commit(self):
-        if self.data is not None:
-            ids = []
-            for c in self.contours:
-                if c._selected:
-                    ids.append(c.id)
-                    self.data[c.id]["Selected"] = True
-                else:
-                    self.data[c.id]["Selected"] = False
-            self.Outputs.selected_data.send(self.data[ids])
-            self.Outputs.data.send(self.data)
-        else:
-            self.Outputs.selected_data.send(None)
-            self.Outputs.data.send(None)
+        if self.entity_data is not None:
+            entity_id = ContinuousVariable(self.attr_eid.name)
+            contours = StringVariable(self.attr_contour)
+
+            domain = Domain([entity_id, contours])
+
+            contour_data = []
+            for entity in self.controller.getEntityData():
+                eid = entity['id']
+                contours = entity['contours'][0]
+                contour_data.append((eid, contours))
+
+            entity_data = OTable(domain)
+
+        #     ids = []
+        #     for c in self.contours:
+        #         if c._selected:
+        #             ids.append(c.id)
+        #             self.data[c.id]["Selected"] = True
+        #         else:
+        #             self.data[c.id]["Selected"] = False
+        #     self.Outputs.selected_data.send(self.data[ids])
+        #     self.Outputs.data.send(self.data)
+        # else:
+        #     self.Outputs.selection.send(None)
+        #     self.Outputs.entities.send(None)
 
 
 def get_column(dataset, attr):

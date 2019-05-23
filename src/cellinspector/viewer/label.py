@@ -38,7 +38,8 @@ class LabelElement():
     # def text(self, text=''):
     #     self._text = text
 
-class ChannelLabel(qw.QGraphicsTextItem):
+# class ChannelLabel(qw.QGraphicsTextItem):
+class ChannelLabel(pg.TextItem):
 
     def __init__(self, *args, **kwargs):
         super().__init__()

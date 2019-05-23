@@ -27,7 +27,6 @@ def pathToContours(path):
 
     return contours
 
-
 def convertToInt(items):
     res_items = []
 
@@ -35,7 +34,6 @@ def convertToInt(items):
         res_items.append(int(item))
 
     return tuple(res_items)
-
 
 def contoursToPath(contours):
     if contours is None:
