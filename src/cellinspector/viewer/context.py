@@ -4,12 +4,19 @@ from AnyQt import QtGui as qg, QtWidgets as qw, QtCore as qc
 class ContextMenu(qg.QMenu):
 
     sigSelected = qc.pyqtSignal(str, str)
+    sigShowItems = qc.pyqtSignal(bool)
 
     def __init__(self):
         super().__init__()
 
         menuBg = self.addMenu('Select &Background...')
+
         self.addSeparator()
+
+        self.showItems = self.addAction('&Show cells', self.showItemsChanged)
+        self.showItems.setCheckable(True)
+        self.showItems.setChecked(False)
+        
         
         #TODO implement me
         menuTag = self.addMenu('Set &Tag...')
@@ -61,6 +68,10 @@ class ContextMenu(qg.QMenu):
     def onSelection(self):
         aName, selector = self.sender().callbackInfo
         self.sigSelected.emit(selector, aName)
+
+    @qc.pyqtSlot()
+    def showItemsChanged(self):
+        self.sigShowItems.emit(self.showItems.isChecked())
 
         # elif layer_name == 'tags':
         #     self._tag_selection = name_selection

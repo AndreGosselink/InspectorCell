@@ -106,6 +106,7 @@ class Viewer(qw.QWidget):
         """
         # proxy signal through
         self.contextMenu.sigSelected.connect(self.loadImage)
+        self.contextMenu.sigShowItems.connect(self.changeItemVisibility)
 
     def update(self):
         """view layout, crosshair and other from 
@@ -203,6 +204,12 @@ class Viewer(qw.QWidget):
                 self.set_background(self._activeChannel, img)
             elif img is None:
                 self.set_background(self._activeChannel, np.array([], int))
+
+    @qc.pyqtSlot(bool)
+    def changeItemVisibility(self, visible):
+        """change visivility of items in last active channel
+        """
+        self.show_entities(self._activeChannel, visible)
 
     def show_entities(self, index, show=True):
         """Sets channel at index to show entities
