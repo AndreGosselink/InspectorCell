@@ -8,14 +8,17 @@ from pyqtgraph.Qt import QtGui as qg, QtCore as qc
 import pyqtgraph as pg
 import numpy as np
 
+from pathlib import Path
+rootPath = Path(__file__) / '..' / '..' / '..' / '..'
+rootPath = rootPath.absolute().resolve()
+
 if __name__ == '__main__':
     # if run directly, this is propably for debugging reasons and therfor
     # we can assume the directory structure as found in the src dir
     # hence an relative import is needed, to avoid reinstalling all the time
-    from pathlib import Path
     import sys
 
-    modpath = Path('./src').absolute().resolve()
+    modpath = rootPath / 'src'
     sys.path.insert(0, str(modpath))  
 
 from cellinspector import Controller
@@ -27,7 +30,7 @@ app = QtGui.QApplication([])
 
 controller = Controller()
 # Create a top-level widget to hold everything
-widget = controller.viewer#TestlWidget()
+widget = controller.viewer
 
 widget.set_gridlayout(2, 2)
 for i in range(2):
@@ -41,9 +44,9 @@ for i in range(2):
         widget.set_background((i, j), imdat)
 
 # read contours from file
-contours_file = "./res/contourtest.csv"
+contoursFile = rootPath / 'res' / 'contourtest.csv'
 numberOfShowedObjects = 300
-with open(contours_file, "r") as csv_file:
+with contoursFile.open('r') as csv_file:
     csv_reader = csv.reader(csv_file, delimiter=',')
     for lines in csv_reader:
 
