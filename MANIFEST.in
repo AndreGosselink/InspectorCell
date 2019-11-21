@@ -1,0 +1,8 @@
+recursive-include doc *.py
+
+include orangecontrib/example/tutorials/*.ows
+include orangecontrib/example/widgets/icons/*
+
+include orangecontrib/cellinspector/widgets/icons/*
+include versioneer.py
+include src/cellinspector/_version.py
