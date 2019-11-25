@@ -4,7 +4,7 @@ import cv2
 import pytest
 import numpy as np
 
-from cellinspector.control import Controller
+from inspectorcell.control import Controller
 
 
 def testEntityDataGen(qtbot):

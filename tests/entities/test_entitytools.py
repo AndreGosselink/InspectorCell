@@ -5,10 +5,10 @@ from pathlib import Path
 import numpy as np
 from uuid import uuid4
 
-from cellinspector.entities import (EntityManager, pixmap_to_json,
+from inspectorcell.entities import (EntityManager, pixmap_to_json,
                                     read_into_manager)
 
-from cellinspector.entities.entitytools import (extract_features,
+from inspectorcell.entities.entitytools import (extract_features,
                                                 extract_annotations)
 
 

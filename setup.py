@@ -24,7 +24,7 @@ def get_pkgfiles():
     """Files stored in the package
     """
     ret = {
-        'orangecontrib.cellinspector.widgets': ['icons/*'],
+        'orangecontrib.inspectorcell.widgets': ['icons/*'],
     }
     return ret
 
@@ -58,7 +58,7 @@ def get_entry():
         # Entry points that marks this package as an orange add-on. If set, addon will
         # be shown in the add-ons manager even if not published on PyPi.
         'orange3.addon': (
-            'cellinspector = orangecontrib.cellinspector',
+            'inspectorcell = orangecontrib.inspectorcell',
         ),
         # # Entry point used to specify packages containing tutorials accessible
         # # from welcome screen. Tutorials are saved Orange Workflows (.ows files).
@@ -72,7 +72,7 @@ def get_entry():
             # Syntax: category name = path.to.package.containing.widgets
             # Widget category specification can be seen in
             #    orangecontrib/example/widgets/__init__.py
-            'CellInspector = orangecontrib.cellinspector.widgets',
+            'InspectorCell = orangecontrib.inspectorcell.widgets',
         ),
 
         # # Register widget help
@@ -98,7 +98,7 @@ def get_keywords():
 
 def main():
     setup(
-        name='cellinspector',
+        name='inspectorcell',
         version=versioneer.get_version(),
         cmdclass=versioneer.get_cmdclass(),
         # packages=find_packages('src'),
@@ -107,7 +107,7 @@ def main():
             # '': 'src',
             'orangecontrib': 'src/orangecontrib',
             # might be a nameclash
-            'cellinspector': 'src/cellinspector',
+            'inspectorcell': 'src/inspectorcell',
         },
         description='Analyse Cells in Orange',
 

@@ -4,7 +4,7 @@ import cv2
 from pathlib import Path
 import numpy as np
 
-from cellinspector.entities import Entity, EntityManager, read_into_manager
+from inspectorcell.entities import Entity, EntityManager, read_into_manager
 
 #TODO testcases for more interesting from
 #FIXME path = np.array([[1, 1], [1, 5], [5, 5], [5, 1]])

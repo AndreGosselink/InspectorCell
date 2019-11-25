@@ -4,7 +4,7 @@ import pytest
 
 import numpy as np
 
-from cellinspector.entities.misc import get_sliced_mask, get_kernel
+from inspectorcell.entities.misc import get_sliced_mask, get_kernel
 
 def test_get_masks_grey():
     mapping = np.zeros((300, 500), np.uint16)

@@ -1,4 +1,4 @@
-"""Implements the adapter bewtween the cellinspector core and the Orange3 App
+"""Implements the adapter bewtween the inspectorcell core and the Orange3 App
 """
 ### Build-Ins
 import os
@@ -44,9 +44,9 @@ if __name__ == '__main__':
     print(modpath)
     sys.path.insert(0, str(modpath))
 
-from cellinspector import Controller
-from cellinspector.util import EntityContour
-from cellinspector.util.image import getImagedata
+from inspectorcell import Controller
+from inspectorcell.util import EntityContour
+from inspectorcell.util.image import getImagedata
 
 
 class SelectRadiusWidget(QWidget):
@@ -73,7 +73,7 @@ class SelectRadiusWidget(QWidget):
 
 
 class OWCellInpspector(OWWidget):
-    name = "CellInspector"
+    name = "InspectorCell"
     description = "Randomly selects a subset of instances from the dataset"
     pluginPath = os.path.dirname(__file__)
     icon = os.path.join(pluginPath, 'icons', 'mywidget.svg')

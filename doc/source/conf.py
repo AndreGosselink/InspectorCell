@@ -31,12 +31,12 @@ shutil.copyfile(
     str(root / 'doc' / 'source' / 'CHANGELOG.rst')
     )
 
-from cellinspector import __version__
+from inspectorcell import __version__
 # warnings.warn('Could not import repository')
 
 
 rst_epilog = """
-.. |LatestWheel| replace:: :download:`0.2.0rc3+9 </_static/dist/cellinspector-0.2.0rc3+9.ge1c382f-py3-none-any.whl>`
+.. |LatestWheel| replace:: :download:`0.2.0rc3+9 </_static/dist/inspectorcell-0.2.0rc3+9.ge1c382f-py3-none-any.whl>`
 """
 
 # build the filelist

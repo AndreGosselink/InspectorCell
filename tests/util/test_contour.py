@@ -1,7 +1,7 @@
 import pytest
 import numpy as np
 
-from cellinspector.util import EntityContour
+from inspectorcell.util import EntityContour
 
 AS_CONTOUR = [np.array([[1, 1], [2, 2], [3, 3],], float)]
 AS_STRING = '1.0,1.0 2.0,2.0 3.0,3.0'

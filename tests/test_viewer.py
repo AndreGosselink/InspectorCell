@@ -2,9 +2,9 @@
 """
 import pytest
 
-from cellinspector.viewer import ViewContext
-from cellinspector.datamanager import DataManager
-from cellinspector.entities import EntityManager
+from inspectorcell.viewer import ViewContext
+from inspectorcell.datamanager import DataManager
+from inspectorcell.entities import EntityManager
 
 from AnyQt.QtGui import QPainterPath
 from AnyQt.QtCore import QRectF, QPoint
