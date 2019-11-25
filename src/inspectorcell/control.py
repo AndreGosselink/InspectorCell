@@ -55,8 +55,8 @@ class Controller():
     def _loadFromJson(self, jsonFile):
         """Loading from json file, setting the tags accordingly
 
-        Parameter
-        ---------
+        Parameters
+        ----------
         jsonFile : Path
             path to a jsonfile where entity data is written to as json
         """
@@ -72,8 +72,8 @@ class Controller():
         """Unified interface for storing the entity space
         to an file format or other source
 
-        Parameter
-        ---------
+        Parameters
+        ----------
         jsonFile : Path
             path to a jsonfile where entity data is written to as json
         """
@@ -87,8 +87,8 @@ class Controller():
         converts both inputs into a entity format
         Either entityMask OR entityContours
 
-        Parameter
-        ---------
+        Parameters
+        ----------
         entityMask : ndarray
             ndarray encoding the entity id per pixel
 
@@ -150,8 +150,8 @@ class Controller():
         """sets image selection viable to display in all kinds of
         layers
 
-        Parameter
-        ---------
+        Parameters
+        ----------
         imageSelection : list of tuples
             each item in the list is an image represented by an tuple. the tuple
             constist of an string and a path. the string is the display name and

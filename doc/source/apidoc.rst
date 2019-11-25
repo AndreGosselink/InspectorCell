@@ -3,21 +3,21 @@ API Reference
 
 .. autosummary::
    
-   cellinspector.Controller
+   inspectorcell.Controller
 
-   cellinspector.entities.EntityManager
-   cellinspector.entities.EntityFile
-   cellinspector.entities.Entity
+   inspectorcell.entities.EntityManager
+   inspectorcell.entities.EntityFile
+   inspectorcell.entities.Entity
 
-   cellinspector.entities.entitytools
+   inspectorcell.entities.entitytools
 
-   cellinspector.viewer.ViewContext
+   inspectorcell.viewer.ViewContext
 
-.. automodule:: cellinspector
+.. automodule:: inspectorcell
 
 .. autoclass:: Controller
 
-.. automodule:: cellinspector.entities
+.. automodule:: inspectorcell.entities
 
 .. autoclass:: EntityManager
 
@@ -25,8 +25,8 @@ API Reference
 
 .. autoclass:: Entity
 
-.. automodule:: cellinspector.entities.entitytools
+.. automodule:: inspectorcell.entities.entitytools
 
-.. automodule:: cellinspector.viewer
+.. automodule:: inspectorcell.viewer
 
 .. autoclass:: ViewContext

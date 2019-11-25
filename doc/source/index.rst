@@ -5,7 +5,7 @@
 
 Welcome to InspectorCell's documentation!
 =========================================
-What is main application?
+What is the main feature?
 -------------------------
 InspectorCell is an application for efficient manual analysis of
 higly-multiplexed images. Primarly, it can be used to evaluate correctness of
@@ -32,10 +32,11 @@ the :ref:`Quick Guide`!
    :maxdepth: 1
    
    quick.rst
-   install.rst
    controls.rst
+   install.rst
+   how2cite.rst
    apidoc.rst
-   CHANGELOG.rst
+   changelog.rst
 
 .. Indices and tables
 .. ==================
@@ -43,3 +44,4 @@ the :ref:`Quick Guide`!
 .. * :ref:`genindex`
 .. * :ref:`modindex`
 .. * :ref:`search`
+

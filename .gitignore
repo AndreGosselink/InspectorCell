@@ -2,6 +2,7 @@
 **/*.swp
 **/*.swo
 **/*.pyc
+**/*.whl
 *.dot
 *.out
 *.log
@@ -19,4 +20,4 @@ profiling.log
 profiling.pstats
 /venv
 /res/mock*
-doc/source/CHANGELOG.rst
+doc/source/changelog.rst

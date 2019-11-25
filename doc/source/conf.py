@@ -28,15 +28,14 @@ sys.path.insert(0, str(packages))
 # copy destlog into the documentation source
 shutil.copyfile(
     str(root / 'CHANGELOG.rst'),
-    str(root / 'doc' / 'source' / 'CHANGELOG.rst')
+    str(root / 'doc' / 'source' / 'changelog.rst')
     )
 
 from inspectorcell import __version__
 # warnings.warn('Could not import repository')
 
-
 rst_epilog = """
-.. |LatestWheel| replace:: :download:`0.2.0rc3+9 </_static/dist/inspectorcell-0.2.0rc3+9.ge1c382f-py3-none-any.whl>`
+.. |LatestWheel| replace:: :download:`0.2.0rc4 </_static/dist/inspectorcell-0.2.0rc4-py3-none-any.whl>`
 """
 
 # build the filelist

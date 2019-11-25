@@ -2,11 +2,11 @@ Installation Guide
 ==================
 The easises way to install InspectorCell is described in the :ref:`Quick Guide`.
 Of course you can always install via commandline :ref:`How to get a commandline?`
-
-.. code-block:: bash
-
-   $> pip install inspectorcell
-
+.. 
+.. .. code-block:: bash
+.. 
+..    $> pip install inspectorcell
+.. 
 To install from source you can clone our git repository and install via python
 
 .. code-block:: bash

@@ -1,11 +1,13 @@
-Keyboard Reference
-==================
+Controls
+========
 To faciliate a fast and interruption free work flow, InspectorCell promotes the 
 use of keyboard shortcuts and modes.
 
 You can switch into different modes using the `Object editing` section in the
 gui or the respective keys.
 
+Key Reference
+-------------
 Modes
 ^^^^^
 * ``n`` Switch to normal mode
@@ -39,8 +41,8 @@ Entity Manipulation
 * ``v`` Selected Entities are hidden
 * ``s`` All hidden Entities are shown
 
-Mouse Ref
-=========
+Mouse Reference
+---------------
 
 .. figure:: /_static/img/mouse.png
    :figwidth: 100%
