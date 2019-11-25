@@ -25,8 +25,8 @@ Preview
 
    InspectorCell provides a ViewContext, that displays multiple channels of multiplexed images simultaneously. Cells and their segmentation can be evaluated, edited, and annotated in a single workflow.
 
-Disclaimer and Licence
-----------------------
+Credits
+-------
 InspectorCell Version 0.2.0
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^
 | Copyright 2019 (c) InspectorCell
@@ -46,7 +46,7 @@ InspectorCell Version 0.2.0
 
 Icons
 ^^^^^
-| Category.svg icon made by surang from www.flaticon.com, used under CC BY
-| Mywidget.svg icon made by Freepik from www.flaticon.com, used under CC BY
-| icons8*.png icons from www.icons8.com, used under CC BY-ND 3.0
+| Category.svg icon made by surang from https://flaticon.com, used under CC BY
+| Mywidget.svg icon made by Freepik from https://flaticon.com, used under CC BY
+| icons8*.png icons from https://icons8.com, used under CC BY-ND 3.0
 | Other icons made by 2016 Bioinformatics Laboratory, University of Ljubljana from https://github.com/biolab/orange3, used under GPLv3.0
