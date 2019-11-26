@@ -1,0 +1,2 @@
+src/cellinspector/_version.py export-subst
+src/inspectorcell/_version.py export-subst
