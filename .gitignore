@@ -3,6 +3,7 @@
 **/*.swo
 **/*.pyc
 **/*.whl
+**/*.bin
 *.dot
 *.out
 *.log

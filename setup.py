@@ -48,7 +48,7 @@ def get_extra_requires():
     """
     extras = {
         'dev': ['versioneer', 'wheel', 'CProfileV', 'pytest', 'pytest-qt'],
-        'util': ['pandas', 'openpyxls'],
+        'util': ['pandas', 'openpyxls', 'shapely'],
         'doc': ['sphinx', 'sphinx-automodapi'],
     }
     return extras
