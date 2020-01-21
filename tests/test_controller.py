@@ -1,5 +1,7 @@
 """Some controller integration tests
 """
+from pathlib import Path
+
 import cv2
 import pytest
 import numpy as np
@@ -71,3 +73,16 @@ def test_entity_data_integration_contour(qtbot):
 
     # Also testing entit manager here
     assert e.mask.shape == (6, 6)
+
+
+def test_entity_data_integration_mask_path(qtbot):
+    """test mask generation integrates nicely
+    """
+    test_mask_path = Path('./tests/res/testmask.png')
+
+    ctrl = Controller()
+    qtbot.addWidget(ctrl.viewer)
+
+    ctrl.generateEntities(entityMaskPath=test_mask_path)
+
+    assert len(ctrl.entityManager)
