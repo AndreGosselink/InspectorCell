@@ -78,6 +78,10 @@ def get_entry():
         # # Register widget help
         # "orange.canvas.help": (
         #     'html-index = orangecontrib.example.widgets:WIDGET_HELP_PATH',)
+
+        'console_scripts': [
+            'entitytool=inspectorcell.util.consolescripts.entitytool:main',
+        ],
     }
     return ret
 
@@ -97,6 +101,7 @@ def get_keywords():
 
 
 def main():
+    print(find_packages('src'))
     setup(
         name='inspectorcell',
         version=versioneer.get_version(),
