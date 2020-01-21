@@ -11,6 +11,7 @@ from ..util.image import getImagedata
 from ..entities import EntityManager, EntityFile
 from ..entities import EntityFile
 
+
 def _print(arr):
     img = ''
     for row in arr:

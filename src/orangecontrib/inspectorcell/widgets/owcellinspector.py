@@ -196,13 +196,13 @@ class OWCellInpspector(OWWidget):
         btnGenerateFromJson = gui.button(
             box_entity,
             self,
-            label='Load JSON',
+            label='Load from...',
             callback=self._jsonLoad)
 
         btnDumpToJson = gui.button(
             box_entity,
             self,
-            label='Save JSON',
+            label='Save JSON to...',
             callback=self._jsonSave)
 
         box_graphics = gui.vBox(self.controlArea, True)
@@ -330,7 +330,7 @@ class OWCellInpspector(OWWidget):
             acceptMode=QFileDialog.AcceptOpen,
             fileMode=QFileDialog.ExistingFile
         )
-        filters = ['JSON (*.json)']
+        filters = ['JSON (*.json)', 'TIFF (*.tif)', 'PNG (*.png)']
         dlg.setNameFilters(filters)
 
         if filters:
@@ -341,14 +341,18 @@ class OWCellInpspector(OWWidget):
             return
 
         try:
-            jsonfile = Path(dlg.selectedFiles()[0])
+            srcfile = Path(dlg.selectedFiles()[0])
         except TypeError:
             # shouldn't happen but who knows what qt does
             return
 
-        if jsonfile.exists() and not jsonfile.is_dir():
-            self.controller.clearEntities()
-            self.controller.generateEntities(jsonFile=jsonfile)
+        if srcfile.exists() and not srcfile.is_dir():
+            if srcfile.suffix.lower() == '.json':
+                self.controller.clearEntities()
+                self.controller.generateEntities(jsonFile=srcfile)
+            elif srcfile.suffix.lower() in ('.tif', '.png'):
+                self.controller.clearEntities()
+                self.controller.generateEntities(entityMaskPath=srcfile)
 
     def _jsonSave(self):
         """save entities to json

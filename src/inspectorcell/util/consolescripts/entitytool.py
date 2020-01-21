@@ -44,34 +44,38 @@ def extract_features(args):
     if not args.dryrun:
         extract_to_table(args.jsonfile, imagefiles=imagefiles, ext='xls')
 
-entitytool = argparse.ArgumentParser(
-    prog='Entity CLI tool',
-    description='CLI tool to work with the InspectorCell output')
 
+def main():
+    entitytool = argparse.ArgumentParser(
+        prog='Entity CLI tool',
+        description='CLI tool to work with the InspectorCell output')
+    
+    
+    command_parser = entitytool.add_subparsers(
+        title='Commands',
+        description='Main functionality the util script supplies',
+        )
+    
+    extract = command_parser.add_parser(
+        'extract',
+         description='Extracts annotations and scalar values from InspectorCell' +\
+                     'output',
+        )
+    
+    extract.add_argument('jsonfile', type=str)
+    extract.add_argument('imageglob', type=str, nargs='?', default='')
+    extract.add_argument('nameregex', type=str, nargs='?',
+                          default='^(.{1,10}).*\.[a-z]{1,3}$')
+    extract.add_argument('-n', '--dryrun', action='store_true')
+    extract.add_argument('-s', '--strict', action='store_true',
+                         help='Only select matching images')
+    extract.set_defaults(func=extract_features)
 
-command_parser = entitytool.add_subparsers(
-    title='Commands',
-    description='Main functionality the util script supplies',
-    )
-
-extract = command_parser.add_parser(
-    'extract',
-     description='Extracts annotations and scalar values from InspectorCell' +\
-                 'output',
-    )
-
-extract.add_argument('jsonfile', type=str)
-extract.add_argument('imageglob', type=str, nargs='?', default='')
-extract.add_argument('nameregex', type=str, nargs='?',
-                      default='^(.{1,10}).*\.[a-z]{1,3}$')
-extract.add_argument('-n', '--dryrun', action='store_true')
-extract.add_argument('-s', '--strict', action='store_true',
-                     help='Only select matching images')
-extract.set_defaults(func=extract_features)
-
-
-if __name__ == '__main__':
     parsed_args = entitytool.parse_args(sys.argv[1:])
 
     if hasattr(parsed_args, 'func'):
         parsed_args.func(parsed_args)
+
+
+if __name__ == '__main__':
+    main()

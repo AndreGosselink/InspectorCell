@@ -10,6 +10,7 @@ import numpy as np
 from .viewer import ViewContext
 from .entities import EntityManager, EntityFile, read_into_manager
 from .datamanager import DataManager
+from .util.image import getFlippedImagedata
 
 
 class Controller():
@@ -82,7 +83,7 @@ class Controller():
             trgt.writeEntities(self.getEntities())
 
     def generateEntities(self, entityMask=None, entityContours=None,
-                         jsonFile=None):
+                         jsonFile=None, entityMaskPath=None):
         """Unified interface for populating the entity space
         converts both inputs into a entity format
         Either entityMask OR entityContours
@@ -91,6 +92,9 @@ class Controller():
         ----------
         entityMask : ndarray
             ndarray encoding the entity id per pixel
+
+        entityMaskPath : Path to image file
+            Points to an image, that will be interpreted as entityMask
 
         entityContours : tuple
             tuple (Id, path) where Id is the entity id and path, a list of
@@ -107,7 +111,7 @@ class Controller():
         """
         # no source available, raise en error as it was called without
         # any attributes but needs one
-        opts = sum([1 for _ in (entityMask, entityContours, jsonFile)\
+        opts = sum([1 for _ in (entityMask, entityMaskPath, entityContours, jsonFile)\
                    if not _ is None]) 
         if opts != 1:
             msg = 'Only one sorce can be given at a time'
@@ -124,6 +128,11 @@ class Controller():
         # load from a json file
         elif not jsonFile is None:
             self._loadFromJson(jsonFile)
+
+        # load from a json file
+        elif not entityMaskPath is None:
+            entityMask = getFlippedImagedata(entityMaskPath)
+            self.entityManager.generateFromPixelmap(entityMask)
 
         # conflicting data sources are given. could be handled but for now
         # just raise an error

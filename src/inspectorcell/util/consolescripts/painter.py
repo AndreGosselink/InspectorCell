@@ -1,3 +1,5 @@
+"""Paints entities with cluster number
+"""
 import sys
 from pathlib import Path
 import warnings
@@ -31,7 +33,7 @@ def get_colorpicker(dframe, mapping):
 
 
 root = Path('~/fileserver/R&D_Reagents/$Central_Documents',
-            '1a_Studenten/Andre Gosselink/colabsegmentation',
+            '1a_Studenten/Andre_Gosselink/colabsegmentation',
             'features_annotations_ovca').expanduser()
 jsonf = root / 'jsons/Fld1/OvCa_Fld1_InspectorCell.json'
 clusf = root / 'OvCa_Fld1_InspectorCell_features_log_lin_clustered.csv'
