@@ -52,3 +52,4 @@ Misc
 Known Issues
 ^^^^^^^^^^^^
 * Occasionally the view can not be panned anymore using the middle mouse button in draw mode. Switching to select mode and back into draw mode reenabels panning again
+* Loading cell segments from an image directly is broken. As a workaround rotate the pixelmap by 90° counter clockwise and afterwards flip the image horizontially. Lets assume a transfromation function T(i) for the image i, then T(i) = flip(rot(i))
