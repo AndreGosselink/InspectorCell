@@ -19,8 +19,27 @@ from itertools import combinations
 import scipy.misc as spm
 import time
 import struct
+import networkx as nx
+import logging
+from functools import partial
 
 import IPython as ip
+
+
+def logwrap(logfunc):
+    return partial(logfunc, logger=logging.getLogger('NH'))
+
+@logwrap
+def info(msg, *args, logger=None):
+    logger.info(msg, *args)
+
+@logwrap
+def debug(msg, *args, logger=None):
+    logger.debug(msg, *args)
+
+@logwrap
+def warn(msg, *args, logger=None):
+    logger.debug(msg, *args)
 
 
 class DistanceMatrix():
@@ -29,15 +48,46 @@ class DistanceMatrix():
         self._entry_fmt = '<2h1f'
         self.dist_dict = {}
 
+    def __setitem__(self, eids, val):
+        k0, k1 = eids
+        ref_dict = self.dist_dict.get(k0, None)
+        if not ref_dict is None:
+            ref_dict[k1] = val
+        else:
+            self.dist_dict[k0] = dict([(k1, val)])
+
+    def _lookup(self, one, other):
+        ref_dict = self.dist_dict.get(one, None)
+        if not ref_dict is None:
+            return ref_dict.get(other, None)
+        else:
+            return None
+
+    def __getitem__(self, eids):
+        one, other = eids
+        val = self._lookup(one, other)
+
+        if not val is None:
+            return val
+        else:
+            val = self._lookup(other, one)
+
+        if not val is None:
+            return val
+        elif one == other:
+            return 0.0
+        else:
+            raise KeyError(f'No valid pair: {eids}')
+        
     def dump(self, fname):
         entry_fmt = self._entry_fmt
         header_txt = bytes(f'struct::{entry_fmt}::', 'ascii')
         with Path(fname).open('wb') as bfile:
             bfile.write(header_txt)
-            for (k0, k1), value in self.dist_dict.items():
-                packed = struct.pack(entry_fmt, k0, k1, value)
-                bfile.write(packed)
-
+            for k0, ref_dict in self.dist_dict.items():
+                for k1, value in ref_dict.items():
+                    packed = struct.pack(entry_fmt, k0, k1, value)
+                    bfile.write(packed)
 
     def clear(self, overwrite):
         if len(self.dist_dict):
@@ -45,6 +95,7 @@ class DistanceMatrix():
                 raise ValueError('Overwriting...')
             else:
                 self.dist_dict = {}
+                self._eid_lookup = None
 
     def load(self, fname, overwrite=False):
         entry_fmt = '<2h1f'
@@ -57,11 +108,12 @@ class DistanceMatrix():
             packed = bfile.read(entry_bytes)
             while packed:
                 k0, k1, val = struct.unpack(entry_fmt, packed)
-                self.dist_dict[(k0, k1)] = val
+                self[k0, k1] = val
                 packed = bfile.read(entry_bytes)
         return self.dist_dict
 
     def calculate_for(self, entity_manager, overwrite=False):
+        raise NotImplementedError('Fixme to ack nested dicts')
         object_polygons = OrderedDict((ent.eid, Polygon(ent.contours[0]))\
                                       for ent in entity_manager)
         entity_combinations = combinations([ent.eid for ent in entity_manager],
@@ -75,13 +127,22 @@ class DistanceMatrix():
             self.dist_dict[comb] = object_polygons[eid0].distance(
                 object_polygons[eid1])
             if n % 1000:
-                print(f'\r{n}', end='')
+                logging.info(f'\r{n}', end='')
         tn = time.time()
         dt = tn - t0
         dps = n / float(dt)
-        print(f'{n} distances in {dt:.2f} s ({dps:.2f} d/s)')
+        info('%d distances in %.2f s (%.2f d/s)', n, dt, dps)
 
 
+logger = logging.getLogger('NH')
+log_stream = logging.StreamHandler()
+log_stream.setFormatter(logging.Formatter(
+    '%(relativeCreated)d %(name)s %(levelname)s %(message)s'))
+logger.setLevel(logging.DEBUG)
+logger.addHandler(log_stream)
+
+
+info('Starting')
 root = Path('~/fileserver/R&D_Reagents/$Central_Documents',
             '1a_Studenten/Andre_Gosselink/colabsegmentation',
             'features_annotations_ovca').expanduser()
@@ -89,29 +150,32 @@ jsonf = root / 'jsons/Fld1/OvCa_Fld1_CellInspector.json'
 clusf = root / 'OvCa_Fld1_CellInspector_features_log_lin_clustered.csv'
 distf = root / 'distances.bin'
 
+info('Creating entities')
 eman = read_into_manager(jsonf, strip=True)
+info('Loading cluster information')
 dframe = pd.read_csv(clusf, skiprows=range(1, 3))
-
-distmat = DistanceMatrix()
-distmat.load(distf)
 
 for ent in eman:
     try:
         cluster, = dframe[dframe.CellID == ent.eid].Cluster
+        ent.tags.add(cluster)
     except ValueError:
-        print('no cluster assignment for', ent.eid)
+        warn('no cluster assignment for %d', ent.eid)
         continue
-    ent.tags.add(cluster)
+
+info('Loading distance matrix')
+distmat = DistanceMatrix()
+distmat.load(distf)
+
+info('Building neighborhood graph')
+graph = nx.Graph()
+graph.add_nodes_from()
+graph.add_edges_from([(1, 2), (1, 3), (2, 4), (2, 3)])
+
+f, ax = plt.subplots()
+nx.draw(graph, with_labels=True, ax=ax)
+plt.show()
 
 
-def neighbours_for(distmat, ent, thr):
-    all_items = distmat.dist_dict.items()
-    ret = []
-    for key, dist in all_items:
-        if ent.eid in key and dist <= thr:
-            ret.append(key)
-    return ret
-
-print(neighbours_for(distmat, eman.getEntity(103)), 1)
 
 ip.embed()

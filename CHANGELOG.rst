@@ -1,16 +1,20 @@
 Changelog
 =========
+Version 0.2.3
+-------------
+* Pop functionality for EntityManager
+
 Version 0.2.2
 -------------
-- Segmentation pixmaps can be loaded directly
+* Segmentation pixmaps can be loaded directly
 
 Version 0.2.1
 -------------
-- Changed to Apache Licence
+* Changed to Apache Licence
 
 Version 0.2.0
 -------------
-Initial release
+* Initial release
 
 ViewContext
 ^^^^^^^^^^^
