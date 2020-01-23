@@ -1,5 +1,10 @@
 Changelog
 =========
+Version 0.2.3
+-------------
+* EntityManager offers two iterations now: Active only or All
+* EntityManager can pop entities, analogous to Dict.pop
+
 Version 0.2.2
 -------------
 * Segmentation pixmaps can be loaded directly

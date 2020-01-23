@@ -3,6 +3,7 @@ import pytest
 import cv2
 from pathlib import Path
 import numpy as np
+import random as rnd
 
 from inspectorcell.entities import Entity, EntityManager, read_into_manager
 
@@ -287,8 +288,47 @@ def testEntityIterator():
     for eid in requested:
         eman.make_entity(entity_id=eid)
 
+    # test the generators
+    assert requested == set([entity.eid for entity in eman])
+    assert requested == set([entity.eid for entity in eman.iter_all()])
+
+def testEntityIteratorFilter():
+
+    eman = EntityManager()
+    eman.clear()
+
+    requested = set(int(v) for v in np.random.randint(1, 100, 10))
+    filtered = set([])
+    for eid in requested:
+        ent = eman.make_entity(entity_id=eid)
+        if not eid % 2:
+            ent.isActive = False
+            filtered.add(ent.eid)
+
     # test the generator
-    all_eids = set([entity.eid for entity in eman])
+    active = set([])
+    for ent in eman.iter_active():
+        active.add(ent.eid)
+    
+    assert active == requested.difference(filtered)
 
-    assert all_eids == requested
+def testPopEntity():
 
+    eman = EntityManager()
+    eman.clear()
+
+    requested = set(int(v) for v in np.random.randint(1, 100, 10))
+    for eid in requested:
+        eman.make_entity(entity_id=eid)
+
+    # test the generator
+    pop_id, = rnd.sample(requested, 1)
+    get_ent = eman.getEntity(pop_id)
+    pop_ent = eman.popEntity(pop_id)
+    assert eman.getEntity(pop_id) is None
+    assert pop_ent.eid == pop_id
+    assert pop_ent is get_ent
+
+    # test if id is free again
+    new_ent = eman.make_entity(entity_id=pop_id)
+    assert not pop_ent is new_ent
