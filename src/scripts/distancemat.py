@@ -153,9 +153,12 @@ info('Starting')
 root = Path('~/fileserver/R&D_Reagents/$Central_Documents',
             '1a_Studenten/Andre_Gosselink/colabsegmentation',
             'features_annotations_ovca').expanduser()
+fld1 = root / 'images/field_1'
 jsonf = root / 'jsons/Fld1/OvCa_Fld1_CellInspector.json'
 clusf = root / 'OvCa_Fld1_CellInspector_features_log_lin_clustered.csv'
+dapii = fld1 / '000_DAPIi__16bit_DF_FF_B - 2(fld 1 wv DAPI - DAPI).tif'
 distf = root / 'distances.bin'
+assert dapii.exists()
 
 info('Creating entities')
 eman = read_into_manager(jsonf, strip=True)
@@ -164,20 +167,16 @@ dframe = pd.read_csv(clusf, skiprows=range(1, 3))
 
 cluster_ids = set([])
 clst_key = ('clst', 1)
-invalid = set([])
 for ent in eman:
     try:
         cluster, = dframe[dframe.CellID == ent.eid].Cluster
-        # ent.tags.add(cluster)
         ent.scalars[clst_key] = int(cluster[1:])
         cluster_ids.add(int(cluster[1:]))
     except ValueError:
         warn('no cluster assignment for %d', ent.eid)
         ent.isActive = False
-        invalid.add(ent.eid)
         continue
-for inv_eid in invalid:
-    assert eman.popEntity(inv_eid) == inv_eid
+
 info('Using %d cluster: %s', len(cluster_ids), str(cluster_ids))
 
 info('Loading distance matrix')
@@ -189,14 +188,25 @@ graph = nx.Graph()
 for ent in eman.iter_active():
     poly = Polygon(ent.contours[0])
     ppos = tuple(*poly.centroid.coords)
+    assert not ppos is None
     props = dict(
         cluster=ent.scalars[clst_key],
         pos=ppos,)
     graph.add_node(ent.eid, **props)
 
-for edge, dist in distmat:
-    if dist <= 1:
-        graph.add_edge(*edge, distance=dist)
+for edge, pdist in distmat:
+    if pdist <= 10:
+        eid0, eid1 = edge
+        ent0 = eman.getEntity(eid0)
+        ent1 = eman.getEntity(eid1)
+        if not (ent0.isActive and ent1.isActive): continue
+        cent0 = graph.nodes[eid0]['pos']
+        cent1 = graph.nodes[eid1]['pos']
+        cdist = np.sqrt(np.sum((np.array(cent0) - np.array(cent1))**2))
+        eprob = dict(
+            pdist=pdist,
+            cdist=cdist,)
+        graph.add_edge(*edge, **eprob)
 
 # n0 = len(graph.nodes)
 # isolated = [n for n, d in iter(graph.degree) if not d]
@@ -204,12 +214,22 @@ for edge, dist in distmat:
 # n1 = len(graph.nodes)
 # info('Removed %d nodes', n0 - n1)
 
+dapi = np.array(Image.open(dapii))
+
 info('Plotting')
-f, ax = plt.subplots()
+f, axarr = plt.subplots(1, 2)
 npos = {}
 for node in graph.nodes:
-    npos[node] = graph.nodes[node].get('pos')
-nx.draw_networkx(graph, pos=npos)#, with_labels=True, ax=ax)
+    npos[node] = graph.nodes[node]['pos']
+axarr[0].imshow(dapi)
+cdists = [graph.edges[ed]['cdist'] for ed in graph.edges]
+pdists = [graph.edges[ed]['pdist'] for ed in graph.edges]
+e_col = pdists / cdist
+
+nx.draw_networkx_edges(graph, pos=npos, edge_color=e_col, ax=axarr[0])
+axarr[1].scatter(cdists, pdists, s=1.5)
+axarr[1].set_xlabel('dCentroid')
+axarr[1].set_ylabel('dPolygon')
 plt.show()
 
 ip.embed()
