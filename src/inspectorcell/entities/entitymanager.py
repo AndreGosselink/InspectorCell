@@ -60,15 +60,27 @@ class EntityManager:
         """
         return len(self._entity_dat['id_list'])
 
-    def __iter__(self, filterActive=True):
+    def iter_active(self):
+        """Convinience iterator over all entities that are active
+        """
+        def _filtered():
+            for ent in self.iter_all():
+                if ent.isActive: yield ent
+                else: continue
+        return _filtered()
+
+    def iter_all(self):
         """Convinience iterator over all entities that are active
         """
         def _iter():
             for entity in self._entity_dat['entities'].values():
-                if entity.isActive:
-                    yield entity
-
+                yield entity
         return _iter()
+
+    def __iter__(self):
+        """Defaults to iter_active
+        """
+        return self.iter_active()
 
     def _add_entity(self, new_ent):
         """actuall adding of entity, updating stats
@@ -212,6 +224,38 @@ class EntityManager:
 
         # add it to _entity_dat
         self._add_entity(entity)
+
+    def popEntity(self, eid):
+        """Looks up entity by id and pops it.
+
+        Looks up an entity form the manager by it's id. The entity is returned
+        and removed from the manager. Analog to Dict.pop(key)
+
+        Parameters
+        ----------
+        eid : int
+            entity id to pop
+
+        Returns
+        -------
+        entity : Entity or None
+            if Entity with eid is found, it is returned. Otherwise None
+            is returned
+
+        Note
+        ----
+        If the return value is not None, then the entity with the id eid is
+        removed form the manager afterwards. The popped eid is also freed and
+        can be reused
+        """
+        entities_dict = self._entity_dat['entities']
+        used_ids = self._entity_dat['id_list']
+        ent = entities_dict.pop(eid, None)
+
+        if not ent is None:
+            used_ids.remove(eid)
+
+        return ent
 
     def _find_unused_eid(self):
         """finds smalles unused entity id.

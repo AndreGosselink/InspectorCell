@@ -2,7 +2,8 @@ Changelog
 =========
 Version 0.2.3
 -------------
-* Pop functionality for EntityManager
+* EntityManager offers two iterations now: Active only or All
+* EntityManager can pop entities, analogous to Dict.pop
 
 Version 0.2.2
 -------------
