@@ -10,7 +10,7 @@ import numpy as np
 from .viewer import ViewContext
 from .entities import EntityManager, EntityFile, read_into_manager
 from .datamanager import DataManager
-from .util.image import getFlippedImagedata
+from .util.image import getImagedata
 
 
 class Controller():
@@ -131,9 +131,7 @@ class Controller():
 
         # load from a entity mask path file
         elif not entityMaskPath is None:
-            # entityMask = getFlippedImagedata(entityMaskPath)
-            EVERYTHING BAD HAPPENS HERE!!!!!
-            entityMask = getFlippedImagedata(entityMaskPath)
+            entityMask = getImagedata(entityMaskPath)
             self.entityManager.generateFromPixelmap(entityMask)
 
         # conflicting data sources are given. could be handled but for now
@@ -145,17 +143,6 @@ class Controller():
         for entity in self.entityManager:
             if not entity.historical:
                 self.viewer.addEntity(entity)
-
-    #TODO remove this section
-    # def sync(self, *args, **kwargs):
-    #     """Syncs the viewer and the entityManager
-    #     so that the viewer know what data is there to
-    #     show.
-
-    #     can set callbacks and do dependency injection to
-    #     some statefull object, or manipulate directly
-    #     """
-    #     pass
 
     def setImages(self, imageSelection):
         """sets image selection viable to display in all kinds of
