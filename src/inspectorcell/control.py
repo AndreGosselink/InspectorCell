@@ -9,6 +9,7 @@ import numpy as np
 # project
 from .viewer import ViewContext
 from .entities import EntityManager, EntityFile, read_into_manager
+from .entities.entity import dilatedEntity
 from .datamanager import DataManager
 from .util.image import getImagedata
 
@@ -131,8 +132,10 @@ class Controller():
 
         # load from a entity mask path file
         elif not entityMaskPath is None:
-            entityMask = getImagedata(entityMaskPath)
-            self.entityManager.generateFromPixelmap(entityMask)
+            pixelMap = getImagedata(entityMaskPath)
+            self.entityManager.generateFromPixelmap(pixelMap)
+            for ent in self.entityManager:
+                dilatedEntity(ent, 1)
 
         # conflicting data sources are given. could be handled but for now
         # just raise an error

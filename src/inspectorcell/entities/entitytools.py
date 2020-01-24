@@ -6,11 +6,9 @@ import cv2
 from pathlib import Path
 from functools import partial
 
-from .misc import get_kernel
 from ..util.image import getImagedata
 from ..entities import EntityManager, EntityFile
-from ..entities import EntityFile
-
+from .entity import dilatedEntity
 
 def _print(arr):
     img = ''
@@ -40,46 +38,6 @@ def slice_with_entity(array, entity):
         Values indexed by entity, with shape `(k)` where `k == entity.mask.size`
     """
     return array[entity.mask_slice][entity.mask]
-
-def dilatedEntity(entity, k):
-    """Inplace dilation of Entity shape
-
-    Dilates the shape of an entity with a circular kernel
-    The radius of the kernel is k pixels. Changes the entity
-    in place.
-
-    Parameters
-    ----------
-    entity : Entity
-        Refrence to the in-place dilates entity
-
-    k : int
-        diameter of radial used for dilation
-
-    Returns
-    -------
-    entity : Entity
-        Refrence to the in-place dilates entity
-
-    k : int
-        Pixel diameter of circular kernel used for dilation
-    """
-    if k < 0:
-        raise ValueError('Pixels must be >= 0!')
-    if k == 0:
-        return entity
-    newShape = tuple(dim + 2*k for dim in entity.mask.shape)
-    newMask = np.pad(entity.mask, k, 'constant', constant_values=False)
-    newRowSlice, newColSlice = entity.mask_slice
-    newSlice = (
-        slice(newRowSlice.start - k, newRowSlice.stop + k, newRowSlice.step),
-        slice(newColSlice.start - k, newColSlice.stop + k, newColSlice.step),
-        )
-    # dkern = np.ones((k, k), np.uint8)
-    dkern = get_kernel(k)
-    newMask = cv2.dilate(newMask.astype(np.uint8), dkern, iterations=1)
-    entity.from_mask(newSlice, newMask.astype(bool))
-    return entity
 
 def pixmap_to_json(pixmap, jsonfile, dilate=1):
     """Converts a pixelmap to json
