@@ -29,7 +29,7 @@ class Controller():
         self.entityManager = EntityManager()
 
         self.viewer = ViewContext(dataManager=self.dataManager,
-                             entityManager=self.entityManager)
+                                  entityManager=self.entityManager)
 
         # self._connect()
 
@@ -129,8 +129,10 @@ class Controller():
         elif not jsonFile is None:
             self._loadFromJson(jsonFile)
 
-        # load from a json file
+        # load from a entity mask path file
         elif not entityMaskPath is None:
+            # entityMask = getFlippedImagedata(entityMaskPath)
+            EVERYTHING BAD HAPPENS HERE!!!!!
             entityMask = getFlippedImagedata(entityMaskPath)
             self.entityManager.generateFromPixelmap(entityMask)
 

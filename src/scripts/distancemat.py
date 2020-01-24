@@ -19,6 +19,7 @@ from itertools import combinations
 import scipy.misc as spm
 import time
 import struct
+import networkx as nx
 
 import IPython as ip
 
@@ -196,7 +197,7 @@ for node in graph.nodes:
     npos[node] = graph.nodes[node].get('pos')
     if npos[node] is None:
         print(node, npos[node])
-        ip.embed()
+
 nx.draw_networkx(graph, pos=npos)#, with_labels=True, ax=ax)
 plt.show()
 
