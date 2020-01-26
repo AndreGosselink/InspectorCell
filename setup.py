@@ -15,10 +15,12 @@ def get_datafiles():
 
 
 def get_scripts():
-    # script_dir = Path('./res/scripts/')
-    # return [str(p) for p in script_dir.glob('*.bat')]
-    return []
-
+    # entity_scripts = ['./src/scripts/entitytool.sh',
+    #                   './src/scripts/entitytool.bat',
+    #         ]
+    # return entity_scripts
+    entity_scripts = ['./src/scripts/entitytool.py']
+    return entity_scripts
 
 def get_pkgfiles():
     """Files stored in the package
@@ -48,7 +50,7 @@ def get_extra_requires():
     """
     extras = {
         'dev': ['versioneer', 'wheel', 'CProfileV', 'pytest', 'pytest-qt'],
-        'util': ['pandas', 'openpyxls', 'shapely'],
+        'util': ['pandas', 'openpyxl', 'shapely'],
         'doc': ['sphinx', 'sphinx-automodapi'],
     }
     return extras
@@ -101,7 +103,6 @@ def get_keywords():
 
 
 def main():
-    print(find_packages('src'))
     setup(
         name='inspectorcell',
         version=versioneer.get_version(),

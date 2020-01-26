@@ -45,7 +45,7 @@ def extract_features(args):
         extract_to_table(args.jsonfile, imagefiles=imagefiles, ext='xls')
 
 
-def main():
+def main(*args, **kwargs):
     entitytool = argparse.ArgumentParser(
         prog='Entity CLI tool',
         description='CLI tool to work with the InspectorCell output')
