@@ -35,7 +35,7 @@ from inspectorcell import __version__
 # warnings.warn('Could not import repository')
 
 rst_epilog = """
-.. |LatestWheel| replace:: :download:`0.2.2 </_static/dist/inspectorcell-0.2.2-py3-none-any.whl>`
+.. |LatestWheel| replace:: :download:`0.2.3 </_static/dist/inspectorcell-0.2.3-py3-none-any.whl>`
 """
 
 # build the filelist

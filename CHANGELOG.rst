@@ -1,10 +1,15 @@
 Changelog
 =========
+Version 0.2.4
+-------------
+* Better filters for loading dialogs
+* Removed unused Inputs and Outputs from Orange3 Widget
+
 Version 0.2.3
 -------------
 * EntityManager offers two iterations now: Active only or All
 * EntityManager can pop entities, analogous to Dict.pop
-* Entities generated from Pixmap are dilated upon import by one pixel
+* Entities generated from Pixmap are dilated by one pixel upon loading, to allow for easy merging
 
 Version 0.2.2
 -------------
