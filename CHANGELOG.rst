@@ -1,8 +1,22 @@
 Changelog
 =========
+Version 0.2.3
+-------------
+* EntityManager offers two iterations now: Active only or All
+* EntityManager can pop entities, analogous to Dict.pop
+* Entities generated from Pixmap are dilated upon import by one pixel
+
+Version 0.2.2
+-------------
+* Segmentation pixmaps can be loaded directly
+
+Version 0.2.1
+-------------
+* Changed to Apache Licence
+
 Version 0.2.0
 -------------
-Initial release
+* Initial release
 
 ViewContext
 ^^^^^^^^^^^

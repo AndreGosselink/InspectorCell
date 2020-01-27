@@ -9,8 +9,9 @@ import numpy as np
 # project
 from .viewer import ViewContext
 from .entities import EntityManager, EntityFile, read_into_manager
+from .entities.entity import dilatedEntity
 from .datamanager import DataManager
-from .util.image import getFlippedImagedata
+from .util.image import getImagedata
 
 
 class Controller():
@@ -29,7 +30,7 @@ class Controller():
         self.entityManager = EntityManager()
 
         self.viewer = ViewContext(dataManager=self.dataManager,
-                             entityManager=self.entityManager)
+                                  entityManager=self.entityManager)
 
         # self._connect()
 
@@ -129,10 +130,12 @@ class Controller():
         elif not jsonFile is None:
             self._loadFromJson(jsonFile)
 
-        # load from a json file
+        # load from a entity mask path file
         elif not entityMaskPath is None:
-            entityMask = getFlippedImagedata(entityMaskPath)
-            self.entityManager.generateFromPixelmap(entityMask)
+            pixelMap = getImagedata(entityMaskPath)
+            self.entityManager.generateFromPixelmap(pixelMap)
+            for ent in self.entityManager:
+                dilatedEntity(ent, 1)
 
         # conflicting data sources are given. could be handled but for now
         # just raise an error
@@ -143,17 +146,6 @@ class Controller():
         for entity in self.entityManager:
             if not entity.historical:
                 self.viewer.addEntity(entity)
-
-    #TODO remove this section
-    # def sync(self, *args, **kwargs):
-    #     """Syncs the viewer and the entityManager
-    #     so that the viewer know what data is there to
-    #     show.
-
-    #     can set callbacks and do dependency injection to
-    #     some statefull object, or manipulate directly
-    #     """
-    #     pass
 
     def setImages(self, imageSelection):
         """sets image selection viable to display in all kinds of

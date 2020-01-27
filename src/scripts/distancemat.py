@@ -19,8 +19,25 @@ from itertools import combinations
 import scipy.misc as spm
 import time
 import struct
+import networkx as nx
 
 import IPython as ip
+
+
+def logwrap(logfunc):
+    return partial(logfunc, logger=logging.getLogger('NH'))
+
+@logwrap
+def info(msg, *args, logger=None):
+    logger.info(msg, *args)
+
+@logwrap
+def debug(msg, *args, logger=None):
+    logger.debug(msg, *args)
+
+@logwrap
+def warn(msg, *args, logger=None):
+    logger.warn(msg, *args)
 
 
 class DistanceMatrix():
@@ -29,6 +46,44 @@ class DistanceMatrix():
         self._entry_fmt = '<2h1f'
         self.dist_dict = {}
 
+    def __iter__(self):
+        def _iterator():
+            for k0, ref_dict in self.dist_dict.items():
+                for k1, dist in ref_dict.items():
+                    yield (k0, k1), dist
+        return _iterator()
+
+    def __setitem__(self, eids, val):
+        k0, k1 = eids
+        ref_dict = self.dist_dict.get(k0, None)
+        if not ref_dict is None:
+            ref_dict[k1] = val
+        else:
+            self.dist_dict[k0] = dict([(k1, val)])
+
+    def _lookup(self, one, other):
+        ref_dict = self.dist_dict.get(one, None)
+        if not ref_dict is None:
+            return ref_dict.get(other, None)
+        else:
+            return None
+
+    def __getitem__(self, eids):
+        one, other = eids
+        val = self._lookup(one, other)
+
+        if not val is None:
+            return val
+        else:
+            val = self._lookup(other, one)
+
+        if not val is None:
+            return val
+        elif one == other:
+            return 0.0
+        else:
+            raise KeyError(f'No valid pair: {eids}')
+        
     def dump(self, fname):
         entry_fmt = self._entry_fmt
         header_txt = bytes(f'struct::{entry_fmt}::', 'ascii')
@@ -92,26 +147,58 @@ distf = root / 'distances.bin'
 eman = read_into_manager(jsonf, strip=True)
 dframe = pd.read_csv(clusf, skiprows=range(1, 3))
 
-distmat = DistanceMatrix()
-distmat.load(distf)
-
+cluster_ids = set([])
+clst_key = ('clst', 1)
+invalid = set([])
 for ent in eman:
     try:
         cluster, = dframe[dframe.CellID == ent.eid].Cluster
+        # ent.tags.add(cluster)
+        ent.scalars[clst_key] = int(cluster[1:])
+        cluster_ids.add(int(cluster[1:]))
     except ValueError:
-        print('no cluster assignment for', ent.eid)
+        warn('no cluster assignment for %d', ent.eid)
+        ent.isActive = False
+        invalid.add(ent.eid)
         continue
-    ent.tags.add(cluster)
+for inv_eid in invalid:
+    assert eman.popEntity(inv_eid) == inv_eid
+info('Using %d cluster: %s', len(cluster_ids), str(cluster_ids))
 
 
-def neighbours_for(distmat, ent, thr):
-    all_items = distmat.dist_dict.items()
-    ret = []
-    for key, dist in all_items:
-        if ent.eid in key and dist <= thr:
-            ret.append(key)
-    return ret
+info('Loading distance matrix')
+distmat = DistanceMatrix()
+distmat.load(distf)
 
-print(neighbours_for(distmat, eman.getEntity(103)), 1)
+info('Building neighborhood graph')
+graph = nx.Graph()
+for ent in eman:
+    poly = Polygon(ent.contours[0])
+    ppos = tuple(*poly.centroid.coords)
+    props = dict(
+        cluster=ent.scalars[clst_key],
+        pos=ppos,)
+    graph.add_node(ent.eid, **props)
+
+for edge, dist in distmat:
+    if dist <= 1:
+        graph.add_edge(*edge, distance=dist)
+
+# n0 = len(graph.nodes)
+# isolated = [n for n, d in iter(graph.degree) if not d]
+# graph.remove_nodes_from(isolated)
+# n1 = len(graph.nodes)
+# info('Removed %d nodes', n0 - n1)
+
+info('Plotting')
+f, ax = plt.subplots()
+npos = {}
+for node in graph.nodes:
+    npos[node] = graph.nodes[node].get('pos')
+    if npos[node] is None:
+        print(node, npos[node])
+
+nx.draw_networkx(graph, pos=npos)#, with_labels=True, ax=ax)
+plt.show()
 
 ip.embed()
