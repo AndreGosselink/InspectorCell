@@ -360,7 +360,7 @@ class Entity:
         rows : int
             Number of pixels to move along horizontal image axis
         """
-        offsetted = [[(pt0 - rows, pt1 - cols) for (pt0, pt1) in cnt]\
+        offsetted = [[(pt0 + rows, pt1 + cols) for (pt0, pt1) in cnt]\
                      for cnt in self.contours]
         self.from_contours(offsetted)
 

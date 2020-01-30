@@ -223,8 +223,8 @@ def testMoveEntity():
     assert np.array_equal(ent.mask, mask)
     assert ent.mask_slice == mask_slice
     
-    ent.moveBy(3, 4)
-    shifted = np.s_[0:5, 1:7]
+    ent.moveBy(-3, 2)
+    shifted = np.s_[0:5, 7:13]
     assert ent.mask_slice == shifted
     assert ent.mask_slice != mask_slice
     assert np.array_equal(ent.mask, mask)
