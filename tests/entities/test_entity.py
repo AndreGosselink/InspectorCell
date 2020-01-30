@@ -98,7 +98,6 @@ def test_from_contours_offset_large():
     
     assert np.all(src_img == dst_img)
 
-    
 def test_from_map_invalid():
     mask = np.ones((5, 5), bool)
     mask_slice = np.s_[0:4, 0:4]
@@ -106,7 +105,6 @@ def test_from_map_invalid():
     ent = Entity(1)
     with pytest.raises(ValueError):
         ent.from_mask(mask_slice, mask)
-
 
 def test_from_map():
     mask = np.ones((5, 5), bool)
@@ -119,7 +117,6 @@ def test_from_map():
     assert np.all(ent.mask == mask)
     assert not ent.mask is mask
     assert ent.mask_slice == mask_slice
-
 
 def testFromMapOffset():
     mask = np.ones((5, 5), bool)
@@ -183,3 +180,51 @@ def testContoursToPath():
     # assert non trivial (not all 0 or all 1)
     assert 0 < np.sum(mask1) < 100
     assert 0 < np.sum(mask2) < 100
+
+def test_from_contours():
+    """Test generation of entity
+    """
+    mask = np.zeros((10, 10), np.uint8)
+    mask[0:4, 1:9] = 1
+    mask[7:10, 0:10] = 1
+    mask_slice = np.s_[0:10, 0:10]
+    mask_slice_off = np.s_[0:10, 5:15]
+    boundingbox = QRectF(0.0, 0.0, 9.0, 9.0)
+
+    ent = Entity(1)
+    pol = [np.array([[0, 7], [0, 9], [9, 9], [9, 7], ], dtype=np.int32),
+           np.array([[1, 0], [1, 3], [8, 3], [8, 0], ], dtype=np.int32)]
+    ent.from_contours(pol)
+
+    assert np.array_equal(ent.mask, mask)
+    assert ent.mask_slice == mask_slice
+    assert ent.mask_slice != mask_slice_off
+    assert ent.boundingbox == boundingbox
+
+def testMoveEntity():
+    """Test moving of entities inplace
+    """
+    # pixmap = np.zeros((20, 20), np.uint16)
+
+    mask = np.array([
+    [1, 1, 1, 0, 0, 0],
+    [1, 1, 1, 0, 0, 0],
+    [1, 1, 0, 0, 0, 0],
+    [0, 0, 0, 0, 1, 1],
+    [0, 0, 0, 0, 1, 1],
+    ], bool)
+    mask_slice = np.s_[3:8, 5:11]
+
+    ent = Entity(1)
+    pol = [np.array([[5, 3], [5, 5], [6, 5], [6, 4], [7, 4], [7, 3] ], dtype=np.int32),
+           np.array([[10, 6], [9, 6], [9, 7], [10, 7], ], dtype=np.int32)]
+    ent.from_contours(pol)
+
+    assert np.array_equal(ent.mask, mask)
+    assert ent.mask_slice == mask_slice
+    
+    ent.moveBy(3, 4)
+    shifted = np.s_[0:5, 1:7]
+    assert ent.mask_slice == shifted
+    assert ent.mask_slice != mask_slice
+    assert np.array_equal(ent.mask, mask)

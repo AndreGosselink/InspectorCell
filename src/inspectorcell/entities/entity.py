@@ -3,6 +3,7 @@ related to a single, identifyable thingy in an image stack
 """
 ### Build-Ins
 from datetime import datetime
+import warnings
 
 ### Extern
 import numpy as np
@@ -283,6 +284,9 @@ class Entity:
         list of numpy.arrays with the shape (n, 2),
         where each index i is on point in the polygon
         """
+        warnings.warn('The function Entity.from_polygons might drive the'+\
+                      'Entity in a faulty state, will be removed',
+                      DeprecationWarning)
 
         if len(polygons) == 0:
             msg = 'Number of polygons is 0'
@@ -318,7 +322,6 @@ class Entity:
 
         self._set_mask(offset=offset)
 
-
     def from_mask(self, mask_slice, mask, offset=(0, 0)):
         """Sets the polygon, given the bool mask for the eslice
         where bool mask is a np.array and eslice a tupple of slices
@@ -346,6 +349,20 @@ class Entity:
         # esp identity
         self.mask_slice = mask_slice
         self._set_contours()
+
+    def moveBy(self, cols, rows):
+        """Offsets Entity inplace by pixels
+
+        Parameters
+        ----------
+        cols : int
+            Number of pixels to move along vertical image axis
+        rows : int
+            Number of pixels to move along horizontal image axis
+        """
+        offsetted = [[(pt0 - rows, pt1 - cols) for (pt0, pt1) in cnt]\
+                     for cnt in self.contours]
+        self.from_contours(offsetted)
 
     def _set_contours(self):
         """Sets polygon from self.mask and self.slice
