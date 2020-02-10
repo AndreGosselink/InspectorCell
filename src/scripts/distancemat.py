@@ -220,20 +220,27 @@ info('Plotting')
 f, axarr = plt.subplots(1, 2)
 npos = {}
 for node in graph.nodes:
-    npos[node] = graph.nodes[node]['pos']
-axarr[0].imshow(dapi)
-cdists = [graph.edges[ed]['cdist'] for ed in graph.edges]
-pdists = [graph.edges[ed]['pdist'] for ed in graph.edges]
-# e_col = pdists / cdist
-e_col = 'r'
+    npos[node] = graph.nodes[node].get('pos')
+    if npos[node] is None:
+        print(node, npos[node])
 
-nx.draw_networkx_edges(graph, pos=npos, edge_color=e_col, ax=axarr[0])
-axarr[1].scatter(cdists, pdists, s=1.5)
-axarr[1].set_xlabel('dCentroid')
-axarr[1].set_ylabel('dPolygon')
+#for node in graph.nodes:
+#     npos[node] = graph.nodes[node]['pos']
+# axarr[0].imshow(dapi)
+# cdists = [graph.edges[ed]['cdist'] for ed in graph.edges]
+# pdists = [graph.edges[ed]['pdist'] for ed in graph.edges]
+# # e_col = pdists / cdist
+# e_col = 'r'
+# 
+# nx.draw_networkx_edges(graph, pos=npos, edge_color=e_col, ax=axarr[0])
+# axarr[1].scatter(cdists, pdists, s=1.5)
+# axarr[1].set_xlabel('dCentroid')
+# axarr[1].set_ylabel('dPolygon')
+# 
+# axarr[0].set_title('Neighbourhood Graph')
+# axarr[1].set_title('Linearity centroid distance and polygon distance')
 
-axarr[0].set_title('Neighbourhood Graph')
-axarr[1].set_title('Linearity centroid distance and polygon distance')
+nx.draw_networkx(graph, pos=npos)#, with_labels=True, ax=ax)
 plt.show()
 
 ip.embed()

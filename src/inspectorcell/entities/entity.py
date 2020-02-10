@@ -3,6 +3,7 @@ related to a single, identifyable thingy in an image stack
 """
 ### Build-Ins
 from datetime import datetime
+import warnings
 
 ### Extern
 import numpy as np
@@ -13,6 +14,49 @@ from AnyQt.QtGui import QPolygonF, QPainterPath
 
 ### Project
 from ..graphics.gfx import GFX, convertToInt
+from .misc import get_kernel
+
+
+def dilatedEntity(entity, k):
+    """Inplace dilation of Entity shape
+
+    Dilates the shape of an entity with a circular kernel
+    The radius of the kernel is k pixels. Changes the entity
+    in place.
+
+    Parameters
+    ----------
+    entity : Entity
+        Refrence to the in-place dilates entity
+
+    k : int
+        diameter of radial used for dilation
+
+    Returns
+    -------
+    entity : Entity
+        Refrence to the in-place dilates entity
+
+    k : int
+        Pixel diameter of circular kernel used for dilation
+    """
+    if k < 0:
+        raise ValueError('Pixels must be >= 0!')
+    if k == 0:
+        return entity
+    newShape = tuple(dim + 2*k for dim in entity.mask.shape)
+    newMask = np.pad(entity.mask, k, 'constant', constant_values=False)
+    newRowSlice, newColSlice = entity.mask_slice
+    newSlice = (
+        slice(newRowSlice.start - k, newRowSlice.stop + k, newRowSlice.step),
+        slice(newColSlice.start - k, newColSlice.stop + k, newColSlice.step),
+        )
+    # dkern = np.ones((k, k), np.uint8)
+    dkern = get_kernel(k)
+    newMask = cv2.dilate(newMask.astype(np.uint8), dkern, iterations=1)
+    entity.from_mask(newSlice, newMask.astype(bool))
+    return entity
+
 
 
 def contoursToPolgons(contours):
@@ -240,6 +284,9 @@ class Entity:
         list of numpy.arrays with the shape (n, 2),
         where each index i is on point in the polygon
         """
+        warnings.warn('The function Entity.from_polygons might drive the'+\
+                      'Entity in a faulty state, will be removed',
+                      DeprecationWarning)
 
         if len(polygons) == 0:
             msg = 'Number of polygons is 0'
@@ -275,7 +322,6 @@ class Entity:
 
         self._set_mask(offset=offset)
 
-
     def from_mask(self, mask_slice, mask, offset=(0, 0)):
         """Sets the polygon, given the bool mask for the eslice
         where bool mask is a np.array and eslice a tupple of slices
@@ -303,6 +349,20 @@ class Entity:
         # esp identity
         self.mask_slice = mask_slice
         self._set_contours()
+
+    def moveBy(self, cols, rows):
+        """Offsets Entity inplace by pixels
+
+        Parameters
+        ----------
+        cols : int
+            Number of pixels to move along vertical image axis
+        rows : int
+            Number of pixels to move along horizontal image axis
+        """
+        offsetted = [[(pt0 + rows, pt1 + cols) for (pt0, pt1) in cnt]\
+                     for cnt in self.contours]
+        self.from_contours(offsetted)
 
     def _set_contours(self):
         """Sets polygon from self.mask and self.slice

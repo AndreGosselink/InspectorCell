@@ -63,6 +63,8 @@ class _ObjTable():
         return self._objcount
 
     def toJson(self, objId, tags, scalars, contours, ancestors, historical):
+        if contours is None:
+            contours = []
         try:
             _objId = int(objId)
             if objId - _objId != 0: raise ValueError

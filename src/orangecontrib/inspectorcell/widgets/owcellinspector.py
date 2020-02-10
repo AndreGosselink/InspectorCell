@@ -93,12 +93,11 @@ class OWCellInpspector(OWWidget):
     autocommit = False
 
     class Inputs:
-        entities = Input('Entities', OTable)
         images = Input('Images', OTable)
 
-    class Outputs:
-        entities = Output('Entities', OTable)
-        # selection = Output('Selected Entities', OTable)
+    # class Outputs:
+    #     entities = Output('Entities', OTable)
+    #     # selection = Output('Selected Entities', OTable)
 
     class Error(OWWidget.Error):
         no_valid_contours = Msg("No contours due to no valid data.")
@@ -197,7 +196,7 @@ class OWCellInpspector(OWWidget):
             box_entity,
             self,
             label='Load from...',
-            callback=self._jsonLoad)
+            callback=self._entityLoad)
 
         btnDumpToJson = gui.button(
             box_entity,
@@ -324,17 +323,20 @@ class OWCellInpspector(OWWidget):
     def _zoom_reset_autorange_button_clicked(self):
         self.controller.viewer.resetZoom(autorange=True)
 
-    def _jsonLoad(self):
+    def _entityLoad(self):
         dlg = QFileDialog(
             self,
             acceptMode=QFileDialog.AcceptOpen,
             fileMode=QFileDialog.ExistingFile
         )
-        filters = ['JSON (*.json)', 'TIFF (*.tif)', 'PNG (*.png)']
+
+        imgExt = ('.tif', '.tiff', '.png', '.bmp', '.jpg')
+        imgGlob = ' '.join(['*{}'.format(ext) for ext in imgExt])
+
+        filters = ['Text (*.json)', 'Images ({})'.format(imgGlob), 'All (*.*)']
         dlg.setNameFilters(filters)
 
-        if filters:
-            dlg.selectNameFilter(filters[0])
+        dlg.selectNameFilter(filters[1])
 
         if dlg.exec_() != QFileDialog.Accepted:
             # not accepted, return
@@ -350,7 +352,7 @@ class OWCellInpspector(OWWidget):
             if srcfile.suffix.lower() == '.json':
                 self.controller.clearEntities()
                 self.controller.generateEntities(jsonFile=srcfile)
-            elif srcfile.suffix.lower() in ('.tif', '.png'):
+            elif srcfile.suffix.lower() in imgExt:
                 self.controller.clearEntities()
                 self.controller.generateEntities(entityMaskPath=srcfile)
 
@@ -465,33 +467,33 @@ class OWCellInpspector(OWWidget):
     def _opacity_changed(self):
         self.controller.viewer.setGlobalOpacity(self.opacity_var)
 
-    @Inputs.entities
-    @check_sql_input
-    def set_entities(self, entity_data):
-        """set data domains to select from
-        """
-        if entity_data is not None:
-            # create new orange data table
-            active = DiscreteVariable("Active", ("No", "Yes"))
-            my_attributes = []
-            for attr in entity_data.domain.attributes:
-                my_attributes.append(attr)
-            my_attributes.append(active)
+    # @Inputs.entities
+    # @check_sql_input
+    # def set_entities(self, entity_data):
+    #     """set data domains to select from
+    #     """
+    #     if entity_data is not None:
+    #         # create new orange data table
+    #         active = DiscreteVariable("Active", ("No", "Yes"))
+    #         my_attributes = []
+    #         for attr in entity_data.domain.attributes:
+    #             my_attributes.append(attr)
+    #         my_attributes.append(active)
 
-            domain = Domain(my_attributes, entity_data.domain.class_var,
-                            metas=entity_data.domain.metas)
+    #         domain = Domain(my_attributes, entity_data.domain.class_var,
+    #                         metas=entity_data.domain.metas)
 
-            #import numpy as np
-            n = len(entity_data)
-            X = np.c_[entity_data.X, np.ones(n)]
-            Y = entity_data.Y
+    #         #import numpy as np
+    #         n = len(entity_data)
+    #         X = np.c_[entity_data.X, np.ones(n)]
+    #         Y = entity_data.Y
 
-            self.entity_data = OTable(domain, X, entity_data.Y,
-                                      entity_data.metas)
+    #         self.entity_data = OTable(domain, X, entity_data.Y,
+    #                                   entity_data.metas)
 
-            # sets selection options according to contour_data
-            self.contour_var.set_domain(entity_data.domain)
-            self.eid_var.set_domain(entity_data.domain)
+    #         # sets selection options according to contour_data
+    #         self.contour_var.set_domain(entity_data.domain)
+    #         self.eid_var.set_domain(entity_data.domain)
 
     def valid_data(self):
         if self.entity_data is None:

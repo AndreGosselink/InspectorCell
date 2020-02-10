@@ -2,6 +2,7 @@
 Uses EntityLoader and EntitySaver to ensure persistense during session
 """
 from sortedcontainers import SortedList
+import warnings
 import numpy as np
 
 from .entity import Entity
@@ -362,18 +363,33 @@ class EntityManager:
         ----------
         entityData : list of entityEntries
             entityEntries are dicts
+
+        Notes
+        -----
+        If an entity has no contour, it will be automaticaly considered as
+        deleted and thus hisorical
         """
         for entry in entityData:
             eid = entry.get('id', None)
             contour = entry['contour']
             entity = self.make_entity(eid)
-            entity.from_contours(contour)
             entity.tags = set(entry['tags'])
             entity.scalars = entry['scalars']
             entity.historical = entry['historical']
+
             #TODO handel ancestors
             if not entity.historical:
-                entity.makeGFX()
+                try:
+                    entity.from_contours(contour)
+                    entity.makeGFX()
+                except ValueError as e:
+                    if not 'polygons' in str(e):
+                        raise e
+                    msg = 'Entity {} has no segment/contour. Will be' +\
+                          ' marked historic'
+                    warnings.warn(msg.format(eid))
+                    entity.historical = True
+                    entity.contours = []
 
     def clear(self):
         """reset the whole entity manager, mainly for testabiliy
