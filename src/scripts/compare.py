@@ -144,7 +144,6 @@ for eidi, budeids in buddies.items():
 # canvas /= canvas.max()
 # plt.imshow(canvas)
 # plt.show()
-SETBUDDY SUCHE
 single_cells = [] 
 for eidi, beids in buddies.items():
     enti = one.getEntity(eidi)
