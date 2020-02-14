@@ -4,13 +4,14 @@
 import sys
 from pathlib import Path
 import warnings
+from itertools import combinations
 
 from inspectorcell.entities.entitytools import (
     draw_entities, read_into_manager, simplify_contours)
 
 from inspectorcell.util.image import getImagedata
-
 from inspectorcell.entities import EntityManager, EntityFile
+
 import numpy as np
 import pandas as pd
 import matplotlib.pyplot as plt
@@ -24,166 +25,133 @@ import time
 import IPython as ip
 
 
-one = Path('/home/rikisa/seg_318/data/segments_ago.json')
-other = Path('/home/rikisa/seg_318/data/segments_niw3.json')
-dapi = Path('/home/rikisa/seg_318/data/images/000_DAPIi__16bit_DF_FF_C - 2(fld 1 wv DAPI - DAPI)_subset.tif')
-dapi = getImagedata(dapi).astype(float)
-dapi /= dapi.max()
-# one, other = other, one
-
-one = read_into_manager(one, strip=True)
-other = read_into_manager(other, strip=True)
-
-for eman in (one, other):
+def modify_ents(eman, pad):
+    """Creates polygons and adds them as attribute
+    inplace
+    """
     for ent in eman.iter_active():
-        # ent.moveBy(20, 20)
+        ent.moveBy(pad, pad)
         ent.polygon = Polygon(ent.contours[0]).simplify(
             tolerance=0.5, preserve_topology=True).buffer(0)
+    return eman
 
-# faulty = []
-# pairing = {}
-# for ent0 in one.iter_active():
-#     cur_pairs = pairing[ent0.eid] = {}
-#     for ent1 in other.iter_active():
-#         try:
-#             if ent0.polygon.area < ent1.polygon.area:
-#                 ent0, ent1 = ent1, ent0
-#             if ent0.polygon.intersects(ent1.polygon):
-#                 area = ent0.polygon.intersection(ent1.polygon).area
-#                 ratio = area/ent1.polygon.area
-#                 cur_pairs[ratio] = ent1.eid
-#         except:
-#             faulty.append((ent0.eid, ent1.eid))
-#             print('!!', faulty[-1])
-# 
-# for k, v in pairing.items():
-# 
-#     vals = list(v.keys())
-#     best = max(vals)
-#     best_eid = v[best]
-#     print(f'{k}: {best_eid} ({best}) <-{vals}')
-# 
-# ip.embed()
-indices = np.dstack(np.meshgrid(np.arange(len(one)), np.arange(len(other)))).reshape(-1, 2)
-entsi = [ent for ent in one.iter_active()]
-entsj = [ent for ent in other.iter_active()]
+def get_image(img_path, pad):
+    dapi = getImagedata(img_path).astype(float)
+    dapi /= dapi.max()
+    canvas = np.pad(dapi, ((pad, pad), (pad, pad)), mode='constant')
+    return (np.broadcast_to(canvas[:, :, None], canvas.shape + (3,))).copy()
 
-def get_bound(ent, min_x=np.inf, max_x=-np.inf, min_y=np.inf, max_y=-np.inf):
-    s0, s1 = ent.mask_slice
-    ex0, ex1 = s0.start, s0.stop
-    ey0, ey1 = s1.start, s1.stop
-    min_x = min(min_x, ex0)
-    max_x = max(max_x, ex1)
-    min_y = min(min_y, ey0)
-    max_y = max(max_y, ey1)
-    return min_x, max_x, min_y, max_y
+def overlay(img, eman, rgb):
+    """overlays eman additively in img with color rgb
+    """
+    img = img.copy()
+    for ent in eman:
+        img[ent.mask_slice][ent.mask] += rgb
 
-min_x = np.inf
-max_x = -np.inf
-min_y = np.inf
-max_y = -np.inf
+    return img
 
-for ent in entsi:
-    min_x, max_x, min_y, max_y = get_bound(ent, min_x, max_x, min_y, max_y)
+def match(eman0, eman1, thr):
+    """matches entities in the eman. adds them inplace
+    """
+    for ent0 in eman0:
+        ent0.matches = []
+    for ent1 in eman1:
+        ent1.matches = []
 
-for ent in entsj:
-    min_x, max_x, min_y, max_y = get_bound(ent, min_x, max_x, min_y, max_y)
+    for ent0 in eman0:
+        for ent1 in eman1:
+            if ent0.polygon.intersects(ent1.polygon):
+                areai = ent0.polygon.intersection(ent1.polygon).area
+                # skip line only intersections
+                if areai == 0:
+                    continue
+                area0 = ent0.polygon.area
+                area1 = ent1.polygon.area
+                if areai / area0 > thr or areai / area1 > thr:
+                    ent0.matches.append(ent1)
+                    ent1.matches.append(ent0)
 
-# for i, j in indices:
-#     e0 = entsi[i]
-#     e1 = entsi[j]
-#     if e0.polygon.area < e1.polygon.area:
-#         e0 = entsi[j]
-#         e1 = entsi[i]
-#     if e0.polygon.area == 0 or e1.polygon.area == 0: 
-#         canvas[i, j] = -1
-#     else:
-#         canvas[i, j] = e0.polygon.intersection(e1.polygon).area / e1.polygon.area
-padx = max(0, max_x - dapi.shape[0])
-pady = max(0, max_y - dapi.shape[1])
-canvas = np.pad(dapi, ((abs(min_x), padx), (abs(min_y), pady)), mode='constant')
-canvas = (np.broadcast_to(canvas[:, :, None], canvas.shape + (3,))).copy()
-for ent in entsi:
-    ent.moveBy(abs(min_x), abs(min_y))
-for ent in entsj:
-    ent.moveBy(abs(min_x), abs(min_y))
+def sc_agreement(ent0, ent1):
+    s0 = ent0.scalars
+    s1 = ent1.scalars
+    if not s0 and not s1:
+        return 1
+    if not s0:
+        return 0
+    if not s1:
+        return 0
+    all_keys = set(list(s0.keys()) + list(s1.keys()))
+    pos0 = [s0.get(k, -1) > 0 for k in all_keys]
+    pos1 = [s1.get(k, -1) > 0 for k in all_keys]
+    return sum(int(p0 == p1) for p0, p1 in zip(pos0, pos1)) / len(all_keys)
 
-buddies = {}
-buddies_rev = {}
-for ei in entsi:
-    buddies[ei.eid] = []
-    for ej in entsj:
-        brev = buddies_rev.get(ej.eid, None)
-        if brev is None:
-            brev = []
-            buddies_rev[ej.eid] = brev
-        if ei.polygon.area < ej.polygon.area:
-            e0 = ej
-            e1 = ei
-        else:
-            e0 = ei
-            e1 = ej
-        if e0.polygon.area == 0 or e1.polygon.area == 0: 
-            continue
-        area_ratio = e0.polygon.intersection(e1.polygon).area / e1.polygon.area
-        if area_ratio >= 0.70:
-            buddies[ei.eid].append(ej.eid)
-            brev.append(ei.eid)
+def quanti_stats(ents):
+    agreement = []
+    for eman in ents:
+        man_agree = []
+        for ent in eman:
+            assert sc_agreement(ent, ent) == 1
+            ent_agree = []
+            for ment in ent.matches:
+                ent_agree.append(sc_agreement(ent, ment))
+            if ent_agree == []:
+                if ent.scalars == {}:
+                    continue
+                else:
+                    man_agree.append(0)
+                    continue
+            man_agree.append(sum(ent_agree) / len(ent_agree))
+        agreement.append(sum(man_agree) / len(man_agree))
+    return agreement
 
-for eidi, budeids in buddies.items():
-    enti = one.getEntity(eidi)
-    if len(buddies) == 0:
-        canvas[enti.mask_slice][enti.mask] += [0, 0, 1]
-    else:
-        together = np.random.random(3)
-        canvas[enti.mask_slice][enti.mask] += together
-        for beid in budeids:
-            entj = other.getEntity(beid)
-            canvas[entj.mask_slice][entj.mask] += together
+def matching_stats(emans):
+    data = dict(
+        unique_seg=[sum([1 for ent in eman if not len(ent.matches)])\
+                    for eman in emans],
+        matched_seg=[sum([1 for ent in eman if len(ent.matches)])
+                     for eman in emans],
+        total_seg=[len(eman) for eman in emans],)
+    data['agree_seg'] = [m / t for t, m in zip(data['total_seg'],
+                         data['matched_seg'])]
+    data['agree_marker'] = quanti_stats(emans)
+    return data
 
-# canvas /= canvas.max()
-# plt.imshow(canvas)
-# plt.show()
-single_cells = [] 
-for eidi, beids in buddies.items():
-    enti = one.getEntity(eidi)
-    if len(buddies) == 0:
-        continue
-    min_x, max_x, min_y, max_y = get_bound(enti, np.inf, -np.inf, np.inf, -np.inf)
-    for beid in beids:
-        entj = other.getEntity(beid)
-        min_x, max_x, min_y, max_y = get_bound(entj, min_x, max_x, min_y, max_y)
-    w = max_x - min_x
-    h = max_y - min_y
-    cur = np.zeros((w, h, 3), float)
-    cur += canvas[min_x:max_x, min_y:max_y, :]
-    
-    enti.moveBy(-min_x, -min_y)
-    cur[enti.mask_slice][enti.mask] += [1, 0, 0]
-    enti.moveBy(min_x, min_y)
-    for beid in beids:
-        entj = other.getEntity(beid)
-        entj.moveBy(-min_x, -min_y)
-        cur[entj.mask_slice][entj.mask] += [0, 1, 0]
-        entj.moveBy(min_x, min_y)
-    single_cells.append(cur)
+root = Path('/home/andre/seg318')
+json_dir = root / 'jsons'
+img_dir = root / 'images'
+padding = 10
 
-maxh, maxw = -np.inf, -np.inf
-for sc in single_cells:
-    maxh = max(maxh, sc.shape[0])
-    maxw = max(maxw, sc.shape[1])
+jloader = lambda path: modify_ents(
+    read_into_manager(path, strip=True), pad=padding)
+entry_maker = lambda path: (path.name.split('.')[0].split('_')[1], jloader(path))
 
-column = np.asarray([np.zeros((maxh, maxw, 3)) for _ in single_cells])
-for i, sc in enumerate(single_cells):
-    slc = np.s_[:sc.shape[0], :sc.shape[1], :]
-    column[(i,) + slc] = (sc / sc.max())
+jsons = dict(entry_maker(path) for path in json_dir.glob('*.json'))
 
-dim = int(np.ceil(np.sqrt(column.shape[0])))
+indices = list(enumerate(jsons.keys()))
+seg_agree = np.zeros((len(indices), len(indices)))
+marker_agree = seg_agree.copy()
 
-f, axarr = plt.subplots(dim, dim)
-for sc, ax in zip(column, axarr.ravel()):
-    ax.imshow(sc)
-    ax.axis('off')
+for (i, key0), (j, key1) in combinations(indices, 2):
+    eman0 = jsons[key0]
+    eman1 = jsons[key1]
+    match(eman0, eman1, 0.5)
+    stats_fwd = matching_stats([eman0, eman1])
+    seg_agree[i, j] = stats_fwd['agree_seg'][0]
+    marker_agree[i, j] = stats_fwd['agree_marker'][0]
+    seg_agree[j, i] = stats_fwd['agree_seg'][1]
+    marker_agree[j, i] = stats_fwd['agree_marker'][1]
 
-plt.show()
-ip.embed()
+# the diag
+for ij, key01 in indices:
+    eman01 = jsons[key01]
+    match(eman01, eman01, 0.5)
+    stats_fwd = matching_stats([eman01, eman01])
+    seg_agree[ij, ij] = stats_fwd['agree_seg'][0]
+    marker_agree[ij, ij] = stats_fwd['agree_marker'][0]
+
+cols = [k for _, k in indices]
+excelwriter = pd.ExcelWriter(root / 'agreement.xlsx')
+pd.DataFrame(data=marker_agree, columns=cols).to_excel(excelwriter, startcol=0)
+pd.DataFrame(data=seg_agree, columns=cols).to_excel(excelwriter, startcol=10)
+excelwriter.save()
+excelwriter.close()
