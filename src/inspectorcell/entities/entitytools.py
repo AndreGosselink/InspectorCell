@@ -391,7 +391,7 @@ def extract_to_table(jsonfile, imagefiles=None, ext='csv'):
     else:
         raise ValueError('Unknown extension: {}'.format(ext))
 
-def draw_entities(canvas, eman, color_func, stroke=3):
+def draw_entities(canvas, eman, color_func, stroke=3, mode='set'):
     """Draws an image of all entities in an EntityManager
 
     Parameters
@@ -410,6 +410,10 @@ def draw_entities(canvas, eman, color_func, stroke=3):
         `(c,)` and `c` must be of the same size as in `canvas`.
     stroke : int
         Stroke width of drawn segments in pixels
+    mode : str either `set` or `add`
+        With `set` a black stroke is drawn and filled with the entity.
+        Everything under the entity segment will be overdrawn
+        With `add` only the entity is added to the canvas
     """
     # min_vals = {'row': np.inf, 'col': -np.inf}
     # max_vals = {'row': np.inf, 'col': -np.inf}
@@ -421,9 +425,14 @@ def draw_entities(canvas, eman, color_func, stroke=3):
         try:
             stroke_sl = entity.mask_slice[::]
             stroke_mk = entity.mask.copy()
-            dilatedEntity(entity, stroke)
-            canvas[entity.mask_slice][entity.mask] = 0
-            canvas[stroke_sl][stroke_mk] = color
+            if mode == 'set':
+                dilatedEntity(entity, stroke)
+                canvas[entity.mask_slice][entity.mask] = 0
+                canvas[stroke_sl][stroke_mk] = color
+            elif mode == 'add':
+                canvas[stroke_sl][stroke_mk] += color
+            else:
+                raise ValueError('Invalid mode: {}'.format(mode))
         except Exception as e:
             msg = 'Could not paint entity {} with error {}'
             warnings.warn(msg.format(entity.eid, str(e)))
