@@ -4,7 +4,7 @@
 import sys
 from pathlib import Path
 import warnings
-from itertools import combinations
+from itertools import combinations_with_replacement as cwr
 
 from inspectorcell.entities.entitytools import (
     draw_entities, read_into_manager, simplify_contours)
@@ -117,9 +117,13 @@ def matching_stats(emans):
     return data
 
 root = Path('/home/andre/seg318')
+analysis = root / 'out'
 json_dir = root / 'jsons'
 img_dir = root / 'images'
 padding = 10
+
+if not analysis.exists():
+    analysis.mkdir(exist_ok=True)
 
 jloader = lambda path: modify_ents(
     read_into_manager(path, strip=True), pad=padding)
@@ -127,11 +131,18 @@ entry_maker = lambda path: (path.name.split('.')[0].split('_')[1], jloader(path)
 
 jsons = dict(entry_maker(path) for path in json_dir.glob('*.json'))
 
+# agreement quantification
 indices = list(enumerate(jsons.keys()))
 seg_agree = np.zeros((len(indices), len(indices)))
 marker_agree = seg_agree.copy()
 
-for (i, key0), (j, key1) in combinations(indices, 2):
+# image stuff
+dapi_path = img_dir / '000_DAPIi__16bit_DF_FF_C - 2(fld 1 wv DAPI - DAPI)_subset.tif'
+dapi = get_image(dapi_path, padding)
+agreement_img = np.zeros_like(dapi)
+
+for (i, key0), (j, key1) in cwr(indices, 2):
+    # quantify
     eman0 = jsons[key0]
     eman1 = jsons[key1]
     match(eman0, eman1, 0.5)
@@ -141,17 +152,56 @@ for (i, key0), (j, key1) in combinations(indices, 2):
     seg_agree[j, i] = stats_fwd['agree_seg'][1]
     marker_agree[j, i] = stats_fwd['agree_marker'][1]
 
-# the diag
-for ij, key01 in indices:
-    eman01 = jsons[key01]
-    match(eman01, eman01, 0.5)
-    stats_fwd = matching_stats([eman01, eman01])
-    seg_agree[ij, ij] = stats_fwd['agree_seg'][0]
-    marker_agree[ij, ij] = stats_fwd['agree_marker'][0]
+    # images
+    img_path_avg = analysis / f'{key0}_vs_{key1}_avg.jpg'
+    img_path_abs = analysis / f'{key0}_vs_{key1}_abs.jpg'
+    canvas = np.zeros_like(dapi)
+    canvas = overlay(canvas, eman0, [1, 0, 0])
+    canvas = overlay(canvas, eman1, [0, 1, 0])
+    canv_avg = (canvas / canvas.max()) * 255
+    canv_abs = np.clip(canvas, 0, 1) * 255
+    iavg = Image.fromarray(canv_avg.astype(np.uint8))
+    iabs = Image.fromarray(canv_abs.astype(np.uint8))
+    iavg.save(img_path_avg, quality=95)
+    iabs.save(img_path_abs, quality=95)
+
+    draw0 = canvas[:, :, 0] >= 1
+    draw1 = canvas[:, :, 1] >= 1
+    cur_agreement = np.logical_and(draw0, draw1)
+    cur_disagreement = np.logical_xor(draw0, draw1)
+    agreement_img[cur_agreement, 1] += 1
+    agreement_img[cur_disagreement, 0] += 1
+
+
+img_path_avg = analysis / 'agreement_avg.jpg'
+aimg_avg = (agreement_img / agreement_img.max()) * 255
+iavg = Image.fromarray(aimg_avg.astype(np.uint8))
+
+img_path_abs = analysis / 'agreement_abs.jpg'
+disputed = np.logical_and(agreement_img[..., 0] >= 1, agreement_img[..., 1] >= 1)
+aimg_abs = agreement_img.copy()
+aimg_abs[disputed, 1] = 0
+aimg_abs[disputed, 0] = 1
+aimg_abs = np.clip(aimg_abs, 0, 1) * 255
+iabs = Image.fromarray(aimg_abs.astype(np.uint8))
+
+iavg.save(img_path_avg, quality=95)
+iabs.save(img_path_abs, quality=95)
+
+
+# # the diag
+# for ij, key01 in indices:
+#     eman01 = jsons[key01]
+#     match(eman01, eman01, 0.5)
+#     stats_fwd = matching_stats([eman01, eman01])
+#     seg_agree[ij, ij] = stats_fwd['agree_seg'][0]
+#     marker_agree[ij, ij] = stats_fwd['agree_marker'][0]
 
 cols = [k for _, k in indices]
-excelwriter = pd.ExcelWriter(root / 'agreement.xlsx')
+excelwriter = pd.ExcelWriter(analysis / 'agreement.xlsx')
 pd.DataFrame(data=marker_agree, columns=cols).to_excel(excelwriter, startcol=0)
 pd.DataFrame(data=seg_agree, columns=cols).to_excel(excelwriter, startcol=10)
 excelwriter.save()
 excelwriter.close()
+
+print('done')
