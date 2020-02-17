@@ -407,7 +407,19 @@ class EntityManager:
 
     @property
     def allTags(self):
+        """set of all tags from Entities owned by the EntityManager 
+        """
         allTags = set([])
         for entity in self._entity_dat['entities'].values():
             allTags.update(entity.tags)
         return allTags
+
+    @property
+    def allUserScalars(self):
+        """set of all user scalars from Entities owned by the EntityManager 
+        """
+        allScalars = set([])
+        for entity in self._entity_dat['entities'].values():
+            curScalars = set(key for key, _ in entity.scalars.keys())
+            allScalars.update(curScalars)
+        return allScalars
