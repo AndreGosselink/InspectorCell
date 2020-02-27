@@ -15,11 +15,10 @@ def get_datafiles():
 
 
 def get_scripts():
-    # entity_scripts = ['./src/scripts/entitytool.sh',
-    #                   './src/scripts/entitytool.bat',
-    #         ]
-    # return entity_scripts
-    entity_scripts = ['./src/scripts/entitytool.py']
+    entity_scripts = ['./src/scripts/entitytool.sh',
+                      './src/scripts/entitytool.bat',
+                      './src/scripts/entitytool.py'
+            ]
     return entity_scripts
 
 def get_pkgfiles():
@@ -82,7 +81,7 @@ def get_entry():
         #     'html-index = orangecontrib.example.widgets:WIDGET_HELP_PATH',)
 
         'console_scripts': [
-            'entitytool=inspectorcell.util.consolescripts.entitytool:main',
+            'entitytool=inspectorcell.util.entitycli:main',
         ],
     }
     return ret
@@ -128,7 +127,7 @@ def main():
         keywords=get_keywords(),
         namespace_packages=['orangecontrib'],
         entry_points=get_entry(),
-        # scripts=get_scripts(),
+        scripts=get_scripts(),
         # packages=setuptools.find_packages(),
         # package_data={'segtool': ['./res/data/*.csv', './res/data/*.json']},
         # data_files=get_datafiles(),
