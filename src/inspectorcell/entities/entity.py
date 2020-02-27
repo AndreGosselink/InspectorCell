@@ -396,7 +396,7 @@ class Entity:
             shiftedContours.append(cont)
         self.contours = shiftedContours
 
-    def makeGFX(self, brush, pen):
+    def makeGFX(self, brush=None, pen=None):
         """
         Creates new GFX object
         """
