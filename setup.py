@@ -81,7 +81,7 @@ def get_entry():
         #     'html-index = orangecontrib.example.widgets:WIDGET_HELP_PATH',)
 
         'console_scripts': [
-            'entitytool=inspectorcell.util.entitycli:main',
+            'entitycli=inspectorcell.util.entitycli:main',
         ],
     }
     return ret

@@ -1,11 +1,40 @@
-import sys
 import re
-from pathlib import Path
+import sys
 import glob
+import warnings
 
 import argparse
+import pandas as pd
+from pathlib import Path
+import numpy as np
+from PIL import Image
 
-from inspectorcell.entities.entitytools import extract_to_table
+from inspectorcell.entities.entitytools import (extract_to_table, read_into_manager,
+                                                draw_entities)
+from inspectorcell.entities import EntityFile
+
+
+class DryrunWrapper():
+    """Enforce usage of dryrun
+    """
+
+    def __init__(self, args):
+        self._dryrun = args.dryrun
+
+    def perform(self, func, args, kwargs, mock_ret=None):
+        args_str = ', '.join(str(arg) for arg in args)
+        kwargs_str = ', '.join('{}={}'.format(str(k), str(v))\
+                               for k, v in kwargs.items())
+        call_sig = str(func.__name__) + '(' + args_str + kwargs_str + ')'
+        if self._dryrun is True:
+            print('DRY RUN for:', call_sig)
+            return mock_ret
+        elif self._dryrun is False:
+            print('performing:', call_sig)
+            return func(*args, **kwargs)
+        else:
+            raise RuntimeError('We shouldn\'t be here...')
+
 
 def extract_features(args):
     matcher = re.compile(args.nameregex, re.IGNORECASE)
@@ -16,8 +45,7 @@ def extract_features(args):
         strict = False
         print('All globs')
 
-    if args.dryrun:
-        print('Dry-run, will not write anything')
+    wrapper = DryrunWrapper(args)
 
     if not args.imageglob:
         imagefiles = None
@@ -41,21 +69,87 @@ def extract_features(args):
         print('{}\t->\t{}'.format(Path(path).name, name))
 
     print('extracting for', args.jsonfile)
-    if not args.dryrun:
-        extract_to_table(args.jsonfile, imagefiles=imagefiles, ext='xls')
+    wrapper.perform(extract_to_table,
+        (args.jsonfile,), dict(imagefiles=imagefiles, ext='xls'))
+
+def merge_csv(args):
+    eman = read_into_manager(args.injson, strip=True)
+    dframe = pd.read_csv(args.incsv, skiprows=range(1, 3))
+    # import IPython as ip
+    # ip.embed()
+    stop = False
+    if not args.idcol in dframe.columns:
+        warnings.warn('{} does not exist!'.format(args.idcol))
+        stop = True
+    if not args.tagcol in dframe.columns:
+        warnings.warn('{} does not exist!'.format(args.idcol))
+        stop = True
+    if stop:
+        msg = 'Column names in {} are:\n{}'
+        warnings.warn(msg.format(args.incsv, str(dframe.columns)))
+        return
+
+    for ent in eman:
+        rmask = dframe[args.idcol] == ent.eid
+        try:
+            tag, = dframe[rmask][args.tagcol]
+            ent.tags.add(tag)
+        except ValueError:
+            msg = 'Could not find Entity-ID {} in table'
+            warnings.warn(msg.format(ent.eid))
+
+    def write_json(entities, jsonfile):
+        all_ents = list(entities.iter_all())
+        print('Writing {} entities to {}'.format(len(all_ents), jsonfile))
+        with EntityFile.open(jsonfile, 'w') as entf:
+            entf.writeEntities(all_ents)
+
+    wrapper = DryrunWrapper(args)
+    wrapper.perform(write_json, (), dict(entities=eman, jsonfile=args.outjson))
+
+def to_pixmap(args):
+    eman = read_into_manager(args.injson, strip=True)
+    xres = int(args.xres)
+    yres = int(args.yres)
+    
+    print('Clipping Entities...')
+    for ent in eman:
+        new_cont = []
+        for cont in ent.contours:
+            cur_cont = []
+            new_cont.append(cur_cont)
+            for (p0, p1) in cont:
+                p0 = min(max(p0, 0), xres)
+                p1 = min(max(p1, 0), yres)
+                cur_cont.append((p0, p1))
+
+        ent.from_contours(new_cont)
+    
+    def make_pixmap(xres, yres, tiffile):
+        col_fn = lambda ent: ent.eid
+        img = np.zeros((xres, yres, 1), np.uint16)
+        draw_entities(img, eman, col_fn, stroke=0)
+        pic = Image.fromarray(img[..., 0])
+        pic.save(tiffile)
+    
+    tiffile = Path(args.outtif)
+    wrapper = DryrunWrapper(args)
+    wrapper.perform(make_pixmap, (), dict(xres=xres, yres=yres,
+                    tiffile=args.outtif))
 
 
 def main(*args, **kwargs):
-    entitytool = argparse.ArgumentParser(
+    entitycli = argparse.ArgumentParser(
         prog='Entity CLI tool',
         description='CLI tool to work with the InspectorCell output')
     
     
-    command_parser = entitytool.add_subparsers(
+    command_parser = entitycli.add_subparsers(
         title='Commands',
         description='Main functionality the util script supplies',
         )
     
+    # Extract Features
     extract = command_parser.add_parser(
         'extract',
          description='Extracts annotations and scalar values from InspectorCell' +\
@@ -71,11 +165,42 @@ def main(*args, **kwargs):
                          help='Only select matching images')
     extract.set_defaults(func=extract_features)
 
-    parsed_args = entitytool.parse_args(sys.argv[1:])
+    # Load features from table
+    mergecsv = command_parser.add_parser(
+        'mergecsv',
+         description='Merges tags from CSV file into EntityFile',
+        )
+    
+    mergecsv.add_argument('injson', type=str, help='json file to read Entities from')
+    mergecsv.add_argument('incsv', type=str, help='json file to read Entities from')
+    mergecsv.add_argument('outjson', type=str, help='json file to write Entities to')
+    mergecsv.add_argument('idcol', type=str, default='CellID', nargs='?',
+                          help='Name of column in CSV with EntityID')
+    mergecsv.add_argument('tagcol', type=str, default='Cluster', nargs='?',
+                          help='Name of column in CSV with tag information')
+    mergecsv.add_argument('-n', '--dryrun', action='store_true')
+    mergecsv.set_defaults(func=merge_csv)
 
+    # Make pixmap
+    totif = command_parser.add_parser(
+        'totif',
+         description='Exports the segment information to a 16 bit tif',
+        )
+    
+    totif.add_argument('injson', type=str, help='json file to read Entities from')
+    totif.add_argument('outtif', type=str, help='tif file to write to')
+    totif.add_argument('--xres', type=int, help='tif pixel width', nargs='?',
+                       default=2048)
+    totif.add_argument('--yres', type=int, help='tif pixel hight', nargs='?',
+                       default=2048)
+    totif.add_argument('-n', '--dryrun', action='store_true')
+    totif.set_defaults(func=to_pixmap)
+
+    parsed_args = entitycli.parse_args(sys.argv[1:])
     if hasattr(parsed_args, 'func'):
         parsed_args.func(parsed_args)
-
+    else:
+        entitycli.print_usage()
 
 if __name__ == '__main__':
     main()
