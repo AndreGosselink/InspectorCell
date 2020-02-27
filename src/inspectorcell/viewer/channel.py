@@ -78,7 +78,8 @@ class Channel(pg.GraphicsView):
         transf = painter.transform()
         scale = transf.m11(), transf.m22()
         painter.resetTransform()
-        self.chanLabel.paint(painter, rect)
+        if self.chanLabel.isVisible():
+            self.chanLabel.paint(painter, rect)
 
         if not self._infoBox is None:
             self._infoBox.paint(painter, rect)

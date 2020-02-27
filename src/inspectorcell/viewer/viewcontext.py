@@ -450,6 +450,37 @@ class ViewContext(qw.QWidget):
                 newMode = 'N'
             self.setDrawMode(newMode)
             self.newDrawMode.emit(newMode)
+
+        elif event.key() == qc.Qt.Key_P:
+            chan = self._activeChannel
+            if chan is None:
+                return
+            chan.chanLabel.setVisible(False)
+            chan.updateForeground()
+            chan.setHighlightFrame(None)
+
+            viewName = chan.chanLabel.elements[0].text[:10] + '.png'
+            
+            #TODO make me a function
+            rect = qc.QRect(0, 0, chan.width(), chan.height())
+            pixMap = chan.grab(rect)
+            pixMap.save(viewName)
+
+            # import IPython as ip
+            # ip.embed()
+            
+            #FIXME
+            # fullRect = chan.scene().itemsBoundingRect()
+            # chan.setRange(fullRect, padding=0)
+            # pixMap = chan.grab(fullRect.toRect())
+            # fullName = chan.chanLabel.elements[0].text[:10] + '_full.png'
+            # pixMap.save(fullName)
+
+            # chan.setRange(rect, padding=0)
+
+            chan.chanLabel.setVisible(True)
+            chan.setHighlightFrame(self._highlightFrame)
+            chan.updateForeground()
         else:
             event.ignore()
 
