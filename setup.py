@@ -127,7 +127,7 @@ def main():
         keywords=get_keywords(),
         namespace_packages=['orangecontrib'],
         entry_points=get_entry(),
-        scripts=get_scripts(),
+        # scripts=get_scripts(),
         # packages=setuptools.find_packages(),
         # package_data={'segtool': ['./res/data/*.csv', './res/data/*.json']},
         # data_files=get_datafiles(),
