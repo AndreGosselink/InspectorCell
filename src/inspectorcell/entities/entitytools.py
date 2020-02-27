@@ -426,8 +426,9 @@ def draw_entities(canvas, eman, color_func, stroke=3, mode='set'):
             stroke_sl = entity.mask_slice[::]
             stroke_mk = entity.mask.copy()
             if mode == 'set':
-                dilatedEntity(entity, stroke)
-                canvas[entity.mask_slice][entity.mask] = 0
+                if stroke > 0:
+                    dilatedEntity(entity, stroke)
+                    canvas[entity.mask_slice][entity.mask] = 0
                 canvas[stroke_sl][stroke_mk] = color
             elif mode == 'add':
                 canvas[stroke_sl][stroke_mk] += color

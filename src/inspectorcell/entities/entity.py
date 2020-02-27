@@ -391,12 +391,12 @@ class Entity:
         shiftedContours = []
         for cont in self.contours:
             row_of, col_of = self.mask_slice
-            cont[:,0] += col_of.start
-            cont[:,1] += row_of.start
+            cont[:, 0] += col_of.start
+            cont[:, 1] += row_of.start
             shiftedContours.append(cont)
         self.contours = shiftedContours
 
-    def makeGFX(self, brush=None, pen=None):
+    def makeGFX(self, brush, pen):
         """
         Creates new GFX object
         """
