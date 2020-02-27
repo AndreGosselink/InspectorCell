@@ -4,12 +4,13 @@ Version 0.2.4
 -------------
 * Better filters for loading dialogs
 * Removed unused Inputs and Outputs from Orange3 Widget
-* Added Entity.moveBy() to move entity position by some offset pixels
-* DepreciationWarning for from_polygons
+* The tags 'C1' - 'C10' now have a hardcoded effect on coloring of segments
+* The consolescript 'entitycli' is working now and allows for non-gui entity manipulation
+  and extraction of information into various formats
 
 Version 0.2.3
 -------------
-* EntityManager offers two iterations now: active only or all
+* EntityManager offers two iterations now: Active only or All
 * EntityManager can pop entities, analogous to Dict.pop
 * Entities generated from Pixmap are dilated by one pixel upon loading, to allow for easy merging
 
@@ -61,4 +62,3 @@ Misc
 Known Issues
 ^^^^^^^^^^^^
 * Occasionally the view can not be panned anymore using the middle mouse button in draw mode. Switching to select mode and back into draw mode reenabels panning again
-* Not all Entity creation members provided by Entity end in the same Entity segment state (eg from_polygon does not create contours)
