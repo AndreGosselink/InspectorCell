@@ -7,6 +7,8 @@ Version 0.2.4
 * The tags 'C1' - 'C10' and 'done' now have a hardcoded effect on coloring of segments
 * The consolescript 'entitycli' is working now and allows for non-gui entity manipulation
   and extraction of information into various formats
+* Shortcut P to print the current channel only as png file
+* Shortcut Y to set the 'done' tag for last active entity (like keys 0-9)
 
 Version 0.2.3
 -------------
