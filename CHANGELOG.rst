@@ -4,7 +4,7 @@ Version 0.2.4
 -------------
 * Better filters for loading dialogs
 * Removed unused Inputs and Outputs from Orange3 Widget
-* The tags 'C1' - 'C10' now have a hardcoded effect on coloring of segments
+* The tags 'C1' - 'C10' and 'done' now have a hardcoded effect on coloring of segments
 * The consolescript 'entitycli' is working now and allows for non-gui entity manipulation
   and extraction of information into various formats
 

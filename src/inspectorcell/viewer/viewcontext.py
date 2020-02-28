@@ -481,6 +481,11 @@ class ViewContext(qw.QWidget):
             chan.chanLabel.setVisible(True)
             chan.setHighlightFrame(self._highlightFrame)
             chan.updateForeground()
+            event.accept()
+        elif event.key() == qc.Qt.Key_Y:
+            self._lastClickedEntity = self._lastActiveEntity
+            self._processSelection('done', 'tags')
+            event.accept()
         else:
             event.ignore()
 
