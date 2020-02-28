@@ -32,6 +32,13 @@ class Styles():
             widths=(1, 2),
         )
 
+        self.addStyle(
+            key='done',
+            brushes=((90, 159, 100, 10), (90, 159, 200, 10)),
+            pens=((90, 159, 100, 60), (90, 159, 100, 100)),
+            widths=(1, 2),
+        )
+
     def __getitem__(self, key):
         return self._styles[key]
 
