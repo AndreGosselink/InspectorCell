@@ -423,13 +423,24 @@ def draw_entities(canvas, eman, color_func, stroke=3, mode='set'):
     for entity in eman:
         color = color_func(entity)
         try:
+            ch = len(color)
+        except:
+            ch = 1
+        try:
             stroke_sl = entity.mask_slice[::]
             stroke_mk = entity.mask.copy()
             if mode == 'set':
-                if stroke > 0:
+                if stroke == 0:
+                    canvas[stroke_sl][stroke_mk] = color
+                elif stroke > 0:
                     dilatedEntity(entity, stroke)
                     canvas[entity.mask_slice][entity.mask] = 0
-                canvas[stroke_sl][stroke_mk] = color
+                    canvas[stroke_sl][stroke_mk] = color
+                elif stroke < 0:
+                    dilatedEntity(entity, -stroke)
+                    keep = canvas[stroke_sl][stroke_mk].copy()
+                    canvas[entity.mask_slice][entity.mask] = color
+                    canvas[stroke_sl][stroke_mk] = keep
             elif mode == 'add':
                 canvas[stroke_sl][stroke_mk] += color
             else:
