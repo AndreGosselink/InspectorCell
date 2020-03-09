@@ -9,6 +9,7 @@ Version 0.2.4
   and extraction of information into various formats
 * Shortcut P to print the current channel only as png file
 * Shortcut Y to set the 'done' tag for last active entity (like keys 0-9)
+* entitycli can now draw segments by a colorscheme
 
 Version 0.2.3
 -------------
