@@ -53,7 +53,7 @@ class EntityManager:
     def __init__(self, *args, **kwargs):
         # tracks all entities generated and some stats
         # about them
-        _entity_dat = None
+        self._entity_dat = None
         self.clear()
 
     def __len__(self):
@@ -167,6 +167,38 @@ class EntityManager:
         entities_dict = self._entity_dat['entities']
 
         return entities_dict.get(eid, None)
+
+    def popEntity(self, eid):
+        """Looks up entity by id and pops it.
+
+        Looks up an entity form the manager by it's id. The entity is returned
+        and removed from the manager. Analog to Dict.pop(key)
+
+        Parameters
+        ----------
+        eid : int
+            entity id to pop
+
+        Returns
+        -------
+        entity : Entity or None
+            if Entity with eid is found, it is returned. Otherwise None
+            is returned
+
+        Note
+        ----
+        If the return value is not None, then the entity with the id eid is
+        removed form the manager afterwards. The popped eid is also freed and
+        can be reused
+        """
+        entities_dict = self._entity_dat['entities']
+        used_ids = self._entity_dat['id_list']
+        ent = entities_dict.pop(eid, None)
+
+        if not ent is None:
+            used_ids.remove(eid)
+
+        return ent
 
     def addEntity(self, entity):
         """add an externally generated entity
@@ -366,7 +398,6 @@ class EntityManager:
             'entities': {},
             'id_list': SortedList([]),
         }
-        self._used_ids = set([])
 
     def isEmpty(self):
         if len(self) > 0:
@@ -376,7 +407,19 @@ class EntityManager:
 
     @property
     def allTags(self):
+        """set of all tags from Entities owned by the EntityManager 
+        """
         allTags = set([])
         for entity in self._entity_dat['entities'].values():
             allTags.update(entity.tags)
         return allTags
+
+    @property
+    def allUserScalars(self):
+        """set of all user scalars from Entities owned by the EntityManager 
+        """
+        allScalars = set([])
+        for entity in self._entity_dat['entities'].values():
+            curScalars = set(key for key, _ in entity.scalars.keys())
+            allScalars.update(curScalars)
+        return allScalars

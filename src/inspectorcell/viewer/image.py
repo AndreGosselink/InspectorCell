@@ -13,6 +13,9 @@ from AnyQt import QtGui as qg, QtCore as qc
 
 class OrientedImage(pg.ImageItem):
 
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+
     def setImage(self, image=None, *args, **kwargs):
         # if not image is None:
         #     image = get_flipped(image)

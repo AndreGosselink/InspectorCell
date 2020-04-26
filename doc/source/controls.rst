@@ -26,13 +26,15 @@ segments, and the opacity of the segments
 * ``Alt`` + ``1`` Switch to ViewContext 1 (It can be any number between 0 and 9)
 * ``Alt`` + ``s`` Save all the current ViewContext layouts into `session.json`
 * ``Alt`` + ``l`` Load ViewContext into a session.json
+* ``p`` Dump the current view as PNG
 
 Entity Manipulation
 ^^^^^^^^^^^^^^^^^^^
 * ``k`` Entities under the mouse scalar value, with the image name is increased
 * ``l`` Entities under mouse scalar value, with the image name is decreased
-* ``1`` Entity under mouse gets assigned the tag with the number one in the
+* ``0`` - ``9`` Entity under mouse gets assigned the tag with the number 0 - 9 in the
   taglist
+* ``y`` Set the 'done' tag for the current active entity
 
 * ``m`` All selected Entities get merged into a single one. Tags and scalars
   are merged, too

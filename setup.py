@@ -15,11 +15,10 @@ def get_datafiles():
 
 
 def get_scripts():
-    # entity_scripts = ['./src/scripts/entitytool.sh',
-    #                   './src/scripts/entitytool.bat',
-    #         ]
-    # return entity_scripts
-    entity_scripts = ['./src/scripts/entitytool.py']
+    entity_scripts = ['./src/scripts/entitytool.sh',
+                      './src/scripts/entitytool.bat',
+                      './src/scripts/entitytool.py'
+            ]
     return entity_scripts
 
 def get_pkgfiles():
@@ -41,7 +40,7 @@ def get_requires():
         'Orange3',
         'opencv-python',
         'AnyQt',
-        'Orange3-ImageAnalytics',
+        # 'Orange3-ImageAnalytics',
     ]
     return base
 
@@ -82,7 +81,7 @@ def get_entry():
         #     'html-index = orangecontrib.example.widgets:WIDGET_HELP_PATH',)
 
         'console_scripts': [
-            'entitytool=inspectorcell.util.consolescripts.entitytool:main',
+            'entitycli=inspectorcell.util.entitycli:main',
         ],
     }
     return ret
