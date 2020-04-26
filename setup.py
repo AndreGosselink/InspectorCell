@@ -40,7 +40,7 @@ def get_requires():
         'Orange3',
         'opencv-python',
         'AnyQt',
-        'Orange3-ImageAnalytics',
+        # 'Orange3-ImageAnalytics',
     ]
     return base
 

@@ -9,7 +9,13 @@ Orange3 Plug-In
 
 Installation
 ------------
-There are several ways to install InspectorCell. The easiest is to get the distribution and add it to Orange3 via Drag & Drop. It can also be installed via pip and in various ways.
+There are several ways to install InspectorCell. The easiest is to use InspectorCell as an Orange 3 Plug-In.
+You can find a more detailed installation guide at the documentation [page] TBD
+
+- Install [Orange 3](https://orange.biolab.si/) using Conda. Currently version 3.24.x of Orange is supported
+- Then download the [InspectorCell source](https://gitlab.com/InspectorCell/inspectorcell/-/archive/master/inspectorcell-master.zip)
+- Extract the zip file, and change direcory to the extracted folder.
+- Build install within the  :code:`python setup.py install`
 
 Documentation
 -------------
