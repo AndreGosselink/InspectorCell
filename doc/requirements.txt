@@ -1,0 +1,4 @@
+AnyQt
+sortedcontainers
+numpy
+opencv-python 
