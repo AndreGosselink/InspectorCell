@@ -12,10 +12,15 @@ Installation
 There are several ways to install InspectorCell. The easiest is to use InspectorCell as an Orange 3 Plug-In.
 You can find a more detailed installation guide at the documentation [page] TBD
 
-- Install [Orange 3](https://orange.biolab.si/) using Conda. Currently version 3.24.x of Orange is supported
+- Install [Orange 3](https://orange.biolab.si/) using Conda. Currently Orange3 version >=3.16.0 and <=3.24.1 is needed.
+  To install a certain version of Orange use :code:`conda install orange3=3.24.1`
+
+- Install Orange 3 ImageAnalytics in the Orange GUI or using conda `conda install Orange3-ImageAnalytics`
+
+
 - Then download the [InspectorCell source](https://gitlab.com/InspectorCell/inspectorcell/-/archive/master/inspectorcell-master.zip)
 - Extract the zip file, and change direcory to the extracted folder.
-- Build install within the  :code:`python setup.py install`
+- Install within the :code:`python setup.py install`
 
 Documentation
 -------------
