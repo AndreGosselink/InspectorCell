@@ -17,7 +17,8 @@ Install
    :align: center
 
 * If you haven't Orange 3, you can find it on their `Orange 3 page <https://orange.biolab.si/download/>`_
-* Download the latest Wheel: |LatestWheel|
+
+* Download the latest wheel (`*.whl`) from the `releases <https://gitlab.com/InspectorCell/inspectorcell/-/releases>`_
 * Open the Orange 3 `Options->Add-Ons` menu
 * Drag & Drop the wheel into the list
 
