@@ -20,7 +20,7 @@ and install it using pip, whithin your conda environment.
 
 .. code-block:: bash
 
-   $> conda install inspectorcell-0.2.X-py3-none-any.whl
+   $> pip install inspectorcell-0.2.X-py3-none-any.whl
 
 Alternatively, you can also install InspectorCell via drag and drop
 using the Orange3 GUI. Orange3 can be run via `python -m Orange.canvas`
