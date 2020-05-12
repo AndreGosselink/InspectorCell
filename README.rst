@@ -24,11 +24,11 @@ more detailed `install guide <https://inspectorcell.readthedocs.io/en/stable/ins
 
 Documentation
 -------------
-You can find a full documentation at  `readthedocs <https://inspectorcell.readthedocs.io/en/stable/install.html>`
+You can find a full documentation at  `readthedocs <https://inspectorcell.readthedocs.io/en/stable>`_
 
 Dataset
 -------
-A small annotated dataset can be found at `Synapse <https://www.synapse.org/#!Synapse:syn21958516/files/>`
+A small annotated dataset can be found at `Synapse <https://www.synapse.org/#!Synapse:syn21958516/files/>`_
 
 Preview
 -------
@@ -50,14 +50,13 @@ Prequisites
 - pyqtgraph
 
 To use InspectorCell as application directly:
-- Orange3 (Any version below <= 3.24.1 should work)
+- Orange3 (any version below <= 3.24.1 should work)
 - Orange3-ImageAnalytics
-
 
 Credits
 -------
-InspectorCell Version 0.2.0
-^^^^^^^^^^^^^^^^^^^^^^^^^^^
+InspectorCell Version 0.2
+^^^^^^^^^^^^^^^^^^^^^^^^^
 | Copyright 2019-2020 (c) InspectorCell
 | Developed by: Tatsiana Hofer and Andre Gosselink
 | 
