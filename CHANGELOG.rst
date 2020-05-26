@@ -1,5 +1,9 @@
 Changelog
 =========
+Version 0.2.5
+-------------
+* Uniform setter for scalar values, to abstract implementation away
+
 Version 0.2.4
 -------------
 * Better filters for loading dialogs
