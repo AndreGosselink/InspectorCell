@@ -34,9 +34,9 @@ shutil.copyfile(
 from inspectorcell import __version__
 # warnings.warn('Could not import repository')
 
-rst_epilog = """
-.. |LatestWheel| replace:: :download:`0.2.4rc2 </_static/dist/inspectorcell-0.2.4rc2-py3-none-any.whl>`
-"""
+# rst_epilog = """
+# .. |LatestWheel| replace:: :download:`0.2.4rc2 </_static/dist/inspectorcell-0.2.4rc2-py3-none-any.whl>`
+# """
 
 # build the filelist
 # rst_epilog = """
@@ -75,13 +75,16 @@ extensions = [
     'sphinx.ext.autosummary',
 ]
 
+# main is index
+master_doc = 'index'
+
 # setup for autodoc
-autodoc_default_options = {
-    'members': True,
-    'member-order': 'groupwise',
-    'no-undoc-members': True,
-    'undoc-members': False,
-}
+# autodoc_default_options = {
+#     'members': True,
+#     'member-order': 'groupwise',
+#     'no-undoc-members': True,
+#     'undoc-members': False,
+# }
 
 # Add any paths that contain templates here, relative to this directory.
 templates_path = ['_templates']

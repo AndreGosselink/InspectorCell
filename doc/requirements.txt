@@ -1,0 +1,7 @@
+PyQt5
+pyqtgraph
+AnyQt
+sortedcontainers
+numpy
+opencv-python 
+
