@@ -10,6 +10,7 @@ from ..util.image import getImagedata
 from ..entities import EntityManager, EntityFile
 from .entity import dilatedEntity
 
+
 def _print(arr):
     img = ''
     for row in arr:
@@ -138,6 +139,8 @@ def read_into_manager(jsonfile, entity_manager=None, strip=False):
     entity_manager : EntityManager (default=None)
         EntityManager instance in which the entities should be read
         into. If `None` a new instance will be created
+    strip : bool
+        Strip historic entities, see read_entity_data
 
     Returns
     -------
