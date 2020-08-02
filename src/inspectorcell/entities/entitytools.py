@@ -255,7 +255,7 @@ def extract_annotations(eman):
 
     return pd.DataFrame(data)
 
-def extract_features(eman, imagefiles):
+def extract_features(eman, imagefiles, features=None):
     """Reads all Entities in EntityManager and extracts features into
     pandas.DataFrame
 
@@ -266,8 +266,15 @@ def extract_features(eman, imagefiles):
 
     imagefiles : dict
         Dictionary with a string key, that is used as name in the table and
-        the value being a string or pathlib.Path pointing to the image files 
+        the value being a string or pathlib.Path pointing to the image files
         used for feature extraction for entities in `eman`
+
+    features : dict of callables
+        The keys in this dict are used as the feature names, where the values
+        are callables, which take on ndarray and return a single value which
+        whill be then threated as the scalar feature value for the ndarray
+        If `None` a standard set of features will be calculated
+
 
     Returns
     -------
@@ -278,15 +285,17 @@ def extract_features(eman, imagefiles):
     import pandas as pd
 
     # feature definitions
-    def feature(func):
-        def _feature(func, ent, img):
+    def _feature(func):
+        """Wrapp for errorhandling
+        """
+        def _feat(func, ent, img):
             try:
                 return func(slice_with_entity(img, ent))
             except Exception as e:
                 err = str(e)
                 warnings.warn(f'Exception during feature extraction: {err}')
                 return np.nan
-        return partial(_feature, func)
+        return partial(_feat, func)
 
     def get_center_x(entity):
         as_arr = np.array(entity.contours[0], float)
@@ -296,13 +305,18 @@ def extract_features(eman, imagefiles):
         as_arr = np.array(entity.contours[0], float)
         return as_arr[:,1].mean()
 
+    if features is None:
+        features = dict(mean=np.mean,
+                        integrated=np.sum,
+                        median=np.median,
+                        max=np.max,
+                        min=np.min,
+                        area=np.size,
+                        std=lambda a: np.std(a, ddof=1),
+                        cv=lambda a: (np.mean(a) / np.std(a, ddof=1)),
+                        )
 
-    #TODO parameterize
-    featmap = dict(mean=feature(np.mean),
-                   integrated=feature(np.sum),
-                   median=feature(np.median),
-                   area=feature(np.size),
-                   )
+    featmap = {name: _feature(func) for name, func in features.items()}
 
     # read image data
     img_data = {}
