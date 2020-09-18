@@ -278,7 +278,6 @@ def extract_features(eman, imagefiles, features=None):
         whill be then threated as the scalar feature value for the ndarray
         If `None` a standard set of features will be calculated
 
-
     Returns
     -------
     features : pandas.DataFrame

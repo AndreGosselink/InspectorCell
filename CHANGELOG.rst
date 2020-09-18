@@ -1,8 +1,10 @@
 Changelog
 =========
+
 Version 0.2.5
 -------------
 * Uniform setter for scalar values, to abstract implementation away
+* Removed Orange Dropdowns from OrangeWidget. Keept throwing errors in differen Orange3 versions
 
 Version 0.2.4
 -------------
