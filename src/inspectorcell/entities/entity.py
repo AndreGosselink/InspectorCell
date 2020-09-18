@@ -308,6 +308,33 @@ class Entity:
         #     slice(x + col_off, x + w + 1 + col_off)
         # )
 
+    def set_scalar(self, scalarKey, scalarValue, scalarType):
+        """Sets an scalar for the entity
+
+        Parameter
+        ---------
+        scalarKey : str
+            Name/Key of the scalar to be set
+        scalarValue : float
+            Scalar value/magnitude
+        scalartType : int
+            Scalar type.
+        
+        Note
+        ----
+        More or less reserved. For now, only scalarType = 0
+        is shown in the annotation box, all other scalar types are
+        considered internal. Has no other effect
+        """
+        if not isinstance(scalarType, int):
+            warnings.warn('Invalid scalarType, should be int')
+            
+        key = (scalarKey, scalarType)
+        try:
+            self.scalars[key] = float(scalarValue)
+        except TypeError:
+            raise ValueError('scalarValue must be castable to float')
+
     def from_contours(self, contours, offset=(0, 0)):
         """Sets the mask, given the contour points:
         list of numpy.arrays with the shape (n, 2),
