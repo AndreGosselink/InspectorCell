@@ -26,7 +26,7 @@ def testEntityDataGen(qtbot):
     with pytest.raises(ValueError):
         ctrl.generateEntities(entityMask=mask, entityContours=cont)
 
-    ctrl.generateEntities(entityContours=cont)
+    # ctrl.generateEntities(entityContours=cont)
     ctrl.generateEntities(entityMask=mask)
 
 def test_entity_data_integration_mask(qtbot):

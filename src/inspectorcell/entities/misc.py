@@ -1,6 +1,58 @@
 """Helperfunctions needed at several points in entitiy generation
 """
 import numpy as np
+import cv2
+
+
+def mask_to_contour(mask_slice, mask):
+    """Generates a contour for a mask, ofsetted by an slice
+
+    Parameter
+    ---------
+    mask_slice : List[slice]
+        List of slices. As e.g. returned by numpy.s_ wich is interpreted
+        as offset. The
+    """
+
+    # compress verticals and horizontals
+    method = cv2.CHAIN_APPROX_SIMPLE
+
+    # retrive tree hirachy
+    # mode = cv2.RETR_EXTERNAL
+    mode = cv2.RETR_LIST
+
+    # offset is taken from slice
+
+    major = cv2.__version__.split('.')[0]
+
+    if major == '3':
+        _, contours, _ = cv2.findContours(
+            mask.astype(np.uint8), mode, method)
+    else:
+        contours, _ = cv2.findContours(
+            mask.astype(np.uint8), mode, method)
+
+    contours = [cont.squeeze() for cont in contours]
+
+    if mask_slice is None:
+        return contours
+
+    shiftedContours = []
+    for cont in contours:
+        row_of, col_of = mask_slice
+
+        try:
+            cont[:, 0] += col_of.start
+            cont[:, 1] += row_of.start
+        except IndexError:
+            # catch exception if contour is just a point
+            cont = cont.reshape(1, 2)
+            cont[:, 0] += col_of.start
+            cont[:, 1] += row_of.start
+
+        shiftedContours.append(cont)
+    
+    return shiftedContours
 
 
 def get_kernel(k):

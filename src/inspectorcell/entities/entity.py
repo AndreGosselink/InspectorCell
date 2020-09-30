@@ -4,17 +4,149 @@ related to a single, identifyable thingy in an image stack
 ### Build-Ins
 from datetime import datetime
 import warnings
+from dataclasses import dataclass
+from enum import IntEnum, unique
 
 ### Extern
-import numpy as np
+import uuid
 import cv2
+import numpy as np
 
-from AnyQt.QtCore import QPointF
+from miscmics.entities import ImageEntity, EntityType
+from miscmics.entities.util import mask_to_contour
+
+from AnyQt.QtCore import QPointF, QRectF
 from AnyQt.QtGui import QPolygonF, QPainterPath
 
 ### Project
 from ..graphics.gfx import GFX, convertToInt
 from .misc import get_kernel
+
+
+@dataclass
+class Entity(ImageEntity):
+    
+    GFX: GFX = None
+
+    def __init__(self, eid):
+        super().__init__()
+        # keep unique one. If eid is uuid, use it, else use the
+        # class generated one
+        if isinstance(eid, uuid.UUID):
+            self.unique_eid = uuid.UUID(bytes=eid.bytes)
+        else:
+            self.unique_eid = uuid.UUID(bytes=self.eid.bytes)
+        # shadow eid with old one
+        self.eid = eid
+
+    @property
+    def path(self):
+        return contoursToPath(self.contour)
+
+    @property
+    def mask_slice(self):
+        return self.slc
+
+    @property
+    def parentEid(self):
+        return self.generic.get('parentId')
+
+    @property
+    def historical(self):
+        return self.generic.get('historical', False)
+
+    @historical.setter
+    def historical(self, val):
+        self.generic['historical'] = val
+
+    @property
+    def isActive(self):
+        return not self.historical
+
+    @isActive.setter
+    def isActive(self, val):
+        self.historical = not val
+    
+    # match legacy API
+    @property
+    def contours(self):
+        return self.contour
+
+    @property
+    def boundingbox(self):
+        """BBox is two points, Boundingbox is point + dims
+        """
+        top_left, bottom_right = self.bbox
+        width, height = bottom_right - top_left
+        ptx, pty = top_left
+        return QRectF(ptx, pty, width, height)
+
+    def from_contours(self, contours):
+        self.update_contour(contours)
+
+    def makeGFX(self, brush=None, pen=None):
+        """
+        Creates new GFX object
+        """
+        self.GFX = GFX(self, brush, pen)
+
+        return self.GFX
+
+    def removeGFX(self, parentEid=None):
+        """ Removes GFX object
+        """
+        self.historical = True
+        if parentEid is not None:
+            self.generic['parentEid'] = parentEid
+        self.GFX = None
+
+    def from_mask(self, mask_slice, mask, offset=None):
+        # work around old inconsistency, where offset is not only determined
+        # by mask_slice. But fundamentally they are the very same thing
+
+        if offset is not None:
+            mask_slice = [slice(slc.start + off, slc.stop + off, slc.step) \
+                          for slc, off in zip(mask_slice, offset)]
+
+        self.update_contour(mask_to_contour(mask_slice, mask))
+
+    def moveBy(self, cols, rows):
+        """Offsets Entity inplace by pixels
+
+        Parameters
+        ----------
+        cols : int
+            Number of pixels to move along vertical image axis
+        rows : int
+            Number of pixels to move along horizontal image axis
+        """
+
+        moved_contour = [[(pt0 + rows, pt1 + cols) for (pt0, pt1) in cnt] \
+                          for cnt in self.contours]
+
+        self.update_contour(moved_contour)
+
+    def from_polygons(self, polygons):
+        """Sets the mask, given the contour points:
+        list of numpy.arrays with the shape (n, 2),
+        where each index i is on point in the polygon
+        """
+        warnings.warn('The function Entity.from_polygons might drive the'+\
+                      'Entity in a faulty state, will be removed',
+                      DeprecationWarning)
+
+        if len(polygons) == 0:
+            msg = 'Number of polygons is 0'
+            raise ValueError(msg)
+
+        new_path = QPainterPath()
+        for polygon in polygons:
+            new_path.addPolygon(polygon)
+        
+        new_contour = pathToContours(new_path)
+        self.update_contour(new_contour)
+        # import IPython as ip
+        # ip.embed()
 
 
 def dilatedEntity(entity, k):
@@ -58,7 +190,6 @@ def dilatedEntity(entity, k):
     return entity
 
 
-
 def contoursToPolgons(contours):
     if contours is None:
         return None
@@ -77,6 +208,7 @@ def contoursToPolgons(contours):
 
     return polygons
 
+
 def pathToContours(path):
     if path is None:
         return None
@@ -92,6 +224,7 @@ def pathToContours(path):
         contours.append(contour)
 
     return contours
+
 
 def contoursToPath(contours):
     if contours is None:
@@ -111,6 +244,7 @@ def contoursToPath(contours):
 
     return path
 
+
 def polygonsToPath(polys):
     if polys is None:
         return None
@@ -122,7 +256,7 @@ def polygonsToPath(polys):
     return path
 
 
-class Entity:
+class EntityLegacy:
     """Base entity derived from image
     should be generated by factory only
 
@@ -410,3 +544,22 @@ class Entity:
         self.historical = True
         self.parentEid = parentEid
         self.GFX = None
+
+    def from_polygons(self, polygons, offset=(0, 0)):
+        """Sets the mask, given the contour points:
+        list of numpy.arrays with the shape (n, 2),
+        where each index i is on point in the polygon
+        """
+        warnings.warn('The function Entity.from_polygons might drive the'+\
+                      'Entity in a faulty state, will be removed',
+                      DeprecationWarning)
+
+        if len(polygons) == 0:
+            msg = 'Number of polygons is 0'
+            raise ValueError(msg)
+
+        self.path = QPainterPath()
+        for polygon in polygons:
+            self.path.addPolygon(polygon)
+
+        self._set_mask(offset=offset)

@@ -46,18 +46,25 @@ def test_make_entities():
     ent = eman.make_entity(10)
     assert ent.eid == 10
 
-    # must work as next smalles free id is 11
-    ent = eman.make_entity()
-    assert ent.eid == 11
+    # dropping the rule that minimum free number must be used
+    # # must work as next smalles free id is 11
+    # ent = eman.make_entity()
+    # assert ent.eid == 11
+    # # fill up...
+    # # id now are [1 ... 20, 22, 30, 100]
+    # for _ in range(8):
+    #     ent = eman.make_entity()
+    # # next free id must be 21
+    # ent = eman.make_entity()
+    # assert ent.eid == 21
 
-    # fill up...
-    # id now are [1 ... 20, 22, 30, 100]
+
+    ent = eman.make_entity()
+    assert ent.eid == 101
     for _ in range(8):
         ent = eman.make_entity()
-
-    # next free id must be 21
     ent = eman.make_entity()
-    assert ent.eid == 21
+    assert ent.eid == 101 + 8 + 1
 
 def test_add_entities():
     """test if double ids raise error
@@ -102,10 +109,14 @@ def test_add_entities():
     for i in range(11, 20):
         new_ent = Entity(i)
         eman.addEntity(new_ent)
+    
+    # # next free id must be 21
+    # ent = eman.make_entity()
+    # assert ent.eid == 21
 
-    # next free id must be 21
+    # drop unessescary min int objectid
     ent = eman.make_entity()
-    assert ent.eid == 21
+    assert ent.eid == 101
 
 def test_large_eids():
     """Test adding lage numbers
@@ -287,7 +298,7 @@ def testEntityIterator():
     requested = set(int(v) for v in np.random.randint(1, 100, 10))
     for eid in requested:
         eman.make_entity(entity_id=eid)
-
+    
     # test the generators
     assert requested == set([entity.eid for entity in eman])
     assert requested == set([entity.eid for entity in eman.iter_all()])
@@ -323,6 +334,7 @@ def testPopEntity():
 
     # test the generator
     pop_id, = rnd.sample(requested, 1)
+    
     get_ent = eman.getEntity(pop_id)
     pop_ent = eman.popEntity(pop_id)
     assert eman.getEntity(pop_id) is None

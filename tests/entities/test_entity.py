@@ -60,7 +60,7 @@ def test_from_contours_offset_large():
     eid1 = 54030
     
     # smaller cont
-    src_img[10:15,2:5] = eid0
+    src_img[10:15, 2:5] = eid0
     cont0 = [
         np.array(
             [[2, 10],
