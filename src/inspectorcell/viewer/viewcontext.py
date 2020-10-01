@@ -682,8 +682,7 @@ class ViewContext(qw.QWidget):
             scalarNames = []
 
         else:
-            scalarNames = [name for name, mode in entity.scalars.keys() \
-                           if mode == 0]
+            scalarNames = list(entity.scalars.keys())
 
         for curChan in self.channels.values():
             bgName = self.viewSetup['backgrounds'].get(curChan.channelIndex,

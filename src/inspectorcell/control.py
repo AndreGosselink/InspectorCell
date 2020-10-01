@@ -73,12 +73,22 @@ class Controller():
             ent_facotry = LegacyEntityJSON()
             assert self.entityManager._factory.ledger is ent_facotry.ledger
             ent_facotry.load(jsonFile, cls=Entity)
-        else:
+            # correct objectid/eid
+        elif jsonFile.suffix == '.ent': 
             with jsonFile.open('r') as src:
                 entityData = json.load(src)
             decoder = EntityJSONDecoder(factory=self.entityManager._factory)
             for ent in entityData:
                 decoder.from_dict(ent, cls=Entity)
+        
+        # convert eid/objectid
+        for ent in self.entityManager.iter_all():
+            object_id = ent.scalars.get('object_id')
+            if object_id is None:
+                object_id = self.entityManager.getObjectId()
+            ent.unique_eid = ent.eid
+            # from legacy json
+            ent.eid = ent.scalars.pop('object_id')
 
         # update view and tags
         self.dataManager.addTags(self.entityManager.allTags)
@@ -98,8 +108,14 @@ class Controller():
         # with EntityFile.open(jsonFile, 'w') as trgt:
         #     trgt.writeEntities(self.getEntities())
         with jsonFile.open('w') as trgt:
-            entities = list(self.entityManager.getEntities())
+            entities = []
+            for ent in self.entityManager.getEntities():
+                ent.scalars['object_id'] = ent.eid
+                ent.eid = ent.unique_eid
+                entities.append(ent)
             json.dump(entities, trgt, cls=EntityJSONEncoder)
+            for ent in entities:
+                ent.eid = ent.scalars['object_id']
 
     def generateEntities(self, entityMask=None, entityContours=None,
                          jsonFile=None, entityMaskPath=None):
@@ -161,9 +177,9 @@ class Controller():
             raise RuntimeError('How did we get here?')
 
         # add all entities to the scene
-        for entity in self.entityManager:
-            if not entity.historical:
-                self.viewer.addEntity(entity)
+        for entity in self.entityManager.iter_active():
+            entity.makeGFX()
+            self.viewer.addEntity(entity)
 
     def setImages(self, imageSelection):
         """sets image selection viable to display in all kinds of
