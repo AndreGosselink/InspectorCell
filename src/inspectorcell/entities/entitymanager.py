@@ -49,9 +49,9 @@ class EntityManager:
         return _iter()
 
     def __iter__(self):
-        """Defaults to iter_active
+        """Defaults to iter_all
         """
-        return self.iter_active()
+        return self.iter_all()
 
     def _is_valid(self, objectid):
         not_zero = objectid > 0
@@ -107,7 +107,7 @@ class EntityManager:
         self._factory.ledger.remove_entity(popee)
 
         # ...and back
-        popee.eid = popee.unique_eid
+        popee.eid = eid
 
         return popee
 
