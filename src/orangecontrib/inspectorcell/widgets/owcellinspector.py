@@ -12,6 +12,8 @@ from AnyQt.QtCore import pyqtSignal, pyqtSlot
 from scipy import misc
 import numpy as np
 
+from threading import Timer
+
 ### Orange and Qt GUI elemetns
 from Orange.widgets.visualize.owscatterplotgraph import DiscretizedScale
 from Orange.widgets.widget import OWWidget, Input, Output, Msg
@@ -126,6 +128,12 @@ class OWCellInpspector(OWWidget):
 
         self.opacity_var = 100
         self.setup_gui()
+        
+        self._autosaver = Timer(30, self._autosave)
+        self._autosaver.start()
+
+    def _autosave(self):
+        self.controller.storeEntities(jsonFile=Path('autosave.ent'))
 
     def setup_gui(self):
         """Sets mainArea and the controlArea
@@ -329,15 +337,17 @@ class OWCellInpspector(OWWidget):
             acceptMode=QFileDialog.AcceptOpen,
             fileMode=QFileDialog.ExistingFile
         )
+        txtExt = ('.json', '.ent')
+        txtGlob = ' '.join(['*{}'.format(ext) for ext in txtExt])
 
         imgExt = ('.tif', '.tiff', '.png', '.bmp', '.jpg')
         imgGlob = ' '.join(['*{}'.format(ext) for ext in imgExt])
 
-        filters = ['Text (*.json *.ent)', 'Images ({})'.format(imgGlob),
+        filters = ['Text ({})'.format(txtGlob), 'Images ({})'.format(imgGlob),
                    'All (*.*)']
         dlg.setNameFilters(filters)
 
-        dlg.selectNameFilter(filters[1])
+        dlg.selectNameFilter(filters[0])
 
         if dlg.exec_() != QFileDialog.Accepted:
             # not accepted, return
@@ -350,7 +360,7 @@ class OWCellInpspector(OWWidget):
             return
 
         if srcfile.exists() and not srcfile.is_dir():
-            if srcfile.suffix.lower() == '.json':
+            if srcfile.suffix.lower() in txtExt:
                 self.controller.clearEntities()
                 self.controller.generateEntities(jsonFile=srcfile)
             elif srcfile.suffix.lower() in imgExt:
