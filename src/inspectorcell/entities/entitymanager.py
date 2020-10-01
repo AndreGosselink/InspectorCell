@@ -30,6 +30,12 @@ class EntityManager:
         """
         return len(self._factory.ledger.entities)
 
+    @property
+    def allTags(self):
+        tags = set()
+        for ent in self.iter_all():
+            tags = tags.union(ent.tags)
+
     def iter_active(self):
         """Convinience iterator over all entities that are active
         """
@@ -205,8 +211,13 @@ class EntityManager:
 
         self.generateEntities(entities_dat)
 
+    def getEntities(self):
+        """Return iterator over all entities
+        """
+        return iter(self._factory.ledger.entities.values())
+
     def getEntity(self, eid):
-        for ent in self._factory.ledger.entities.values():
+        for ent in self.getEntities():
             if ent.eid == eid:
                 return ent
         return None

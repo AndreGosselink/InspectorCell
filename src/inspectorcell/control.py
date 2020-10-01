@@ -1,14 +1,18 @@
 """Controller, bridges between data and view
 """
-# built-in
+# std
+import json
 import warnings
+from pathlib import Path
 
 # extern
 import numpy as np
+from miscmics.entities.legacyjson.factory import LegacyEntityJSON
+from miscmics.entities.jsonfile import EntityJSONDecoder, EntityJSONEncoder
 
 # project
 from .viewer import ViewContext
-from .entities import EntityManager, EntityFile, read_into_manager
+from .entities import EntityManager, EntityFile, read_into_manager, Entity
 from .entities.entity import dilatedEntity
 from .datamanager import DataManager
 from .util.image import getImagedata
@@ -62,8 +66,19 @@ class Controller():
         jsonFile : Path
             path to a jsonfile where entity data is written to as json
         """
-        # load data from file
-        read_into_manager(jsonFile, self.entityManager)
+        # # load data from file
+        # read_into_manager(jsonFile, self.entityManager)
+        jsonFile = Path(jsonFile)
+        if jsonFile.suffix == '.json': 
+            ent_facotry = LegacyEntityJSON()
+            assert self.entityManager._factory.ledger is ent_facotry.ledger
+            ent_facotry.load(jsonFile, cls=Entity)
+        else:
+            with jsonFile.open('r') as src:
+                entityData = json.load(src)
+            decoder = EntityJSONDecoder(factory=self.entityManager._factory)
+            for ent in entityData:
+                decoder.from_dict(ent, cls=Entity)
 
         # update view and tags
         self.dataManager.addTags(self.entityManager.allTags)
@@ -80,8 +95,11 @@ class Controller():
             path to a jsonfile where entity data is written to as json
         """
 
-        with EntityFile.open(jsonFile, 'w') as trgt:
-            trgt.writeEntities(self.getEntities())
+        # with EntityFile.open(jsonFile, 'w') as trgt:
+        #     trgt.writeEntities(self.getEntities())
+        with jsonFile.open('w') as trgt:
+            entities = list(self.entityManager.getEntities())
+            json.dump(entities, trgt, cls=EntityJSONEncoder)
 
     def generateEntities(self, entityMask=None, entityContours=None,
                          jsonFile=None, entityMaskPath=None):

@@ -333,7 +333,8 @@ class OWCellInpspector(OWWidget):
         imgExt = ('.tif', '.tiff', '.png', '.bmp', '.jpg')
         imgGlob = ' '.join(['*{}'.format(ext) for ext in imgExt])
 
-        filters = ['Text (*.json)', 'Images ({})'.format(imgGlob), 'All (*.*)']
+        filters = ['Text (*.json *.ent)', 'Images ({})'.format(imgGlob),
+                   'All (*.*)']
         dlg.setNameFilters(filters)
 
         dlg.selectNameFilter(filters[1])
@@ -363,7 +364,7 @@ class OWCellInpspector(OWWidget):
             parent=None,
             caption='Save objects to...',
             # directory=self.last_dir,
-            filter='JSON (*.json)',
+            filter='JSON (*.ent)',
         )
         if Path(jsonfile).parent.exists() and jsonfile != '':
             self.controller.storeEntities(jsonFile=jsonfile)
