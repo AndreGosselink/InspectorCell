@@ -48,6 +48,11 @@ class Entity(ImageEntity):
     def path(self):
         return contoursToPath(self.contour)
 
+    @path.setter
+    def path(self, new_path):
+        new_cont = pathToContours(new_path)
+        self.update_contour(new_cont)
+
     @property
     def mask_slice(self):
         return self.slc
@@ -58,11 +63,14 @@ class Entity(ImageEntity):
 
     @property
     def historical(self):
-        return self.generic.get('historical', False)
+        return self.etype == EntityType.Historic
 
     @historical.setter
     def historical(self, val):
-        self.generic['historical'] = val
+        if val:
+            self.etype = EntityType.Historic
+        else:
+            self.etype = EntityType.Cell
 
     @property
     def isActive(self):
@@ -93,6 +101,7 @@ class Entity(ImageEntity):
         """
         Creates new GFX object
         """
+        self.update_contour(self.contours)
         self.GFX = GFX(self, brush, pen)
 
         return self.GFX

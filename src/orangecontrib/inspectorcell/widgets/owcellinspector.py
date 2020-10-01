@@ -377,6 +377,9 @@ class OWCellInpspector(OWWidget):
             filter='JSON (*.ent)',
         )
         if Path(jsonfile).parent.exists() and jsonfile != '':
+            jsonfile = Path(jsonfile)
+            if jsonfile.suffix != '.ent':
+                jsonfile = jsonfile.with_suffix('.ent')
             self.controller.storeEntities(jsonFile=jsonfile)
 
     def _select_brush_size(self, value):

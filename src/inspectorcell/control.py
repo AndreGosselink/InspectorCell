@@ -70,9 +70,11 @@ class Controller():
         # read_into_manager(jsonFile, self.entityManager)
         jsonFile = Path(jsonFile)
         if jsonFile.suffix == '.json': 
-            ent_facotry = LegacyEntityJSON()
-            assert self.entityManager._factory.ledger is ent_facotry.ledger
-            ent_facotry.load(jsonFile, cls=Entity)
+            ent_factory = LegacyEntityJSON()
+            assert self.entityManager._factory.ledger is ent_factory.ledger
+            ent_factory.load(jsonFile, cls=Entity)
+            # import IPython as ip
+            # ip.embed()
             # correct objectid/eid
         elif jsonFile.suffix == '.ent': 
             with jsonFile.open('r') as src:
@@ -86,9 +88,10 @@ class Controller():
             object_id = ent.scalars.get('object_id')
             if object_id is None:
                 object_id = self.entityManager.getObjectId()
+                ent.scalars['object_id'] = object_id
             ent.unique_eid = ent.eid
             # from legacy json
-            ent.eid = ent.scalars.pop('object_id')
+            ent.eid = int(ent.scalars.pop('object_id'))
 
         # update view and tags
         self.dataManager.addTags(self.entityManager.allTags)
@@ -107,7 +110,7 @@ class Controller():
 
         # with EntityFile.open(jsonFile, 'w') as trgt:
         #     trgt.writeEntities(self.getEntities())
-        with jsonFile.open('w') as trgt:
+        with Path(jsonFile).open('w') as trgt:
             entities = []
             for ent in self.entityManager.getEntities():
                 ent.scalars['object_id'] = ent.eid
@@ -178,8 +181,12 @@ class Controller():
 
         # add all entities to the scene
         for entity in self.entityManager.iter_active():
-            entity.makeGFX()
-            self.viewer.addEntity(entity)
+            try:
+                entity.makeGFX()
+                self.viewer.addEntity(entity)
+            except:
+                import IPython as ip
+                ip.embed()
 
     def setImages(self, imageSelection):
         """sets image selection viable to display in all kinds of

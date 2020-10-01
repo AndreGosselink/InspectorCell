@@ -654,7 +654,7 @@ class ViewContext(qw.QWidget):
                 return
             index = self._activeChannel.channelIndex
             chanName = self.viewSetup['backgrounds'].get(index, 'None')
-            scalarKey = (chanName, 0) #0 is manual
+            scalarKey = chanName
             val = self._lastActiveEntity.scalars.get(scalarKey, 0)
             val += event.change
             self._lastActiveEntity.scalars[scalarKey] = val

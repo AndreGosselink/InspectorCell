@@ -74,7 +74,7 @@ class EntityManager:
             raise ValueError(f'Invalid eid {entity_id}')
 
         new_ent = Entity(entity_id)
-
+        
         self.addEntity(new_ent)
 
         return new_ent
