@@ -1,10 +1,26 @@
 # -*- coding: utf-8 -*-
 
-from setuptools import setup, find_packages
+try:
+    from setuptools import setup, find_packages
+except ImportError:
+    from distutils.core import setup
+
 import versioneer
 
-def get_pack():
-    return find_packages('src')
+def get_packages():
+    try:
+        return find_packages('src')
+    except NameError:
+        import itertools as it
+        packages = ['miscmics', 'inspectorcell', 'orangecontrib']
+        pathes = [Path('src') / pkg for pkg in packages]
+        inits = [list(pth.glob('*/__init__.py')) for pth in pathes]
+        for init in it.chain.from_iterable(inits):
+            init = init.parent
+            subpack = '.'.join(init.parts)
+            if subpack not in packages:
+                packages.append(subpack)
+        return packages
 
 def get_datafiles():
     # _config_path = None
@@ -40,6 +56,7 @@ def get_requires():
         'Orange3',
         'opencv-python',
         'AnyQt',
+        'dataclasses',
         # 'Orange3-ImageAnalytics',
     ]
     return base
