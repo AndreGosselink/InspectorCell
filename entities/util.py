@@ -9,8 +9,36 @@ import numpy as np
 import cv2
 
 
+def simplify_contour(contour: List[np.ndarray]) -> List[np.ndarray]:
+    """Simplify a contour, if possible
+
+    Just removing doublicates
+
+    Parameter
+    -------
+    contour : List[np.ndarray]
+        Contour to be simplified. Will remove doublicates
+
+    Returns
+    -------
+    contour : List[np.ndarray]
+        Now hopfully simplified contour
+    """
+
+    simplified = []
+    for shape in contour:
+        simple_shape = []
+        last_pt = None, None
+        for cur_pt in shape:
+            if cur_pt[0] != last_pt[0] or cur_pt[1] != last_pt[1]:
+                simple_shape.append(cur_pt)
+            last_pt = cur_pt
+        simplified.append(simple_shape)
+    return simplified
+
+
 def mask_to_contour(mask_slice: List[slice],
-                    mask: np.ndarray) -> List[List[List[slice]]]:
+                    mask: np.ndarray) -> List[np.ndarray]:
     """Generates a contour for a mask, ofsetted by an slice
 
     Parameter
@@ -26,7 +54,7 @@ def mask_to_contour(mask_slice: List[slice],
 
     Returns
     -------
-    contour : List[List[List[slice]]]
+    contour : List[np.ndarray]
         Contour of the mask
     """
 
@@ -128,4 +156,3 @@ def get_sliced_mask(arr, value, seek=1000):
                         col_offset:col_offset + mask_cols]
 
     return value_slice, mask
-

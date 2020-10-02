@@ -5,7 +5,7 @@ all entity instances. It's current main function is to allow for flexibility
 down the road.
 """
 
-from typing import Generic
+from typing import Generic, Type, Any, T, List
 from threading import Lock
 from uuid import uuid4
 
@@ -13,12 +13,14 @@ from .entity import GenericEntityType as GenericEntity
 from ..util import SingletonMixin
 
 
-class EntityLedger(SingletonMixin):
+class EntityLedger():
     """Global Registry of Entities
 
     Lookup of all generated entities, checking if Entity is valid
     in current ledger
     """
+    # non-reentrant as any call to locked functions should be 'atomic'
+    # and not call another locked function
     _ledger_lock = Lock()
 
     def __init__(self):
@@ -31,6 +33,12 @@ class EntityLedger(SingletonMixin):
         """Clears all entities
         """
         self.entities = {}
+
+    @classmethod
+    def instance(cls: Type[T], *args: Any, **kwargs: Any) -> T:
+        """Get *an* instance of the class, constructed when  using (kw)args.
+        """
+        return cls(*args, **kwargs)
 
     #TODO if creation of uuid4 is enforced
     # no locks are needed in add
