@@ -175,18 +175,19 @@ class OWCellInpspector(OWWidget):
         iconPath = pluginPath / 'icons'
 
         box_entity = gui.vBox(self.controlArea, True)
+        
+        # FIXME fails in in Orange > 
+        # # entity contours
+        # self.contour_var = DomainModel(placeholder='None', separators=False)
+        # cb_attr_contour = gui.comboBox(
+        #     box_entity, self, 'attr_contour', label='Contour:',
+        #     model=self.contour_var, callback=self._entities_changed)
 
-        # entity contours
-        self.contour_var = DomainModel(placeholder='None', separators=False)
-        cb_attr_contour = gui.comboBox(
-            box_entity, self, 'attr_contour', label='Contour:',
-            model=self.contour_var, callback=self._entities_changed)
-
-        # entity eids
-        self.eid_var = DomainModel(placeholder='None', separators=False)
-        cb_attr_eid = gui.comboBox(
-            box_entity, self, 'attr_eid', label='IDs:', model=self.eid_var,
-            callback=self._entities_changed)
+        # # entity eids
+        # self.eid_var = DomainModel(placeholder='None', separators=False)
+        # cb_attr_eid = gui.comboBox(
+        #     box_entity, self, 'attr_eid', label='IDs:', model=self.eid_var,
+        #     callback=self._entities_changed)
 
         # entity tags
         btn_tag_edit = gui.button(
