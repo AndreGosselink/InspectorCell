@@ -17,10 +17,19 @@ class EntityFactory:
 
     valid_fields = frozenset(Entity.get_field_names())
 
-    def __init__(self):
+    def __init__(self, ledger: EntityLedger = None):
         """Entity derived class to create
+
+        Parameter
+        ---------
+        ledger : EntityLedger (default=None)
+            EntityLedger to use. If 'None' an new one will be
+            created
         """
-        self.ledger = EntityLedger.instance()
+        if ledger is None:
+            ledger = EntityLedger.instance()
+
+        self.ledger = ledger
 
         if self.ledger.entities != {}:
             warnings.warn(
