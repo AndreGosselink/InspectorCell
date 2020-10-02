@@ -109,10 +109,9 @@ def main():
         # packages=find_packages('src'),
         packages=find_packages('src'),
         package_dir={
-            # '': 'src',
             'orangecontrib': 'src/orangecontrib',
-            # might be a nameclash
             'inspectorcell': 'src/inspectorcell',
+            'miscmics': 'src/miscmics',
         },
         description='Analyse Cells in Orange',
 
