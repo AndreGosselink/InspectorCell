@@ -73,10 +73,8 @@ class Controller():
             ent_factory = LegacyEntityJSON(
                 ledger=self.entityManager._factory.ledger)
             assert self.entityManager._factory.ledger is ent_factory.ledger
+            print('writing to')
             ent_factory.load(jsonFile, cls=Entity)
-            # import IPython as ip
-            # ip.embed()
-            # correct objectid/eid
         elif jsonFile.suffix == '.ent': 
             with jsonFile.open('r') as src:
                 entityData = json.load(src)
