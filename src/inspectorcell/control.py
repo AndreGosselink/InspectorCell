@@ -70,7 +70,8 @@ class Controller():
         # read_into_manager(jsonFile, self.entityManager)
         jsonFile = Path(jsonFile)
         if jsonFile.suffix == '.json': 
-            ent_factory = LegacyEntityJSON()
+            ent_factory = LegacyEntityJSON(
+                ledger=self.entityManager._factory.ledger)
             assert self.entityManager._factory.ledger is ent_factory.ledger
             ent_factory.load(jsonFile, cls=Entity)
             # import IPython as ip
@@ -184,9 +185,12 @@ class Controller():
             try:
                 entity.makeGFX()
                 self.viewer.addEntity(entity)
-            except:
-                import IPython as ip
-                ip.embed()
+            except ValueError:
+                if entity.int_contour == []:
+                    entity.historical = True
+                    msg = f'Entity {entity.eid} has no contour.' + \
+                           'It will be set historical!'
+                    warnings.warn(msg)
 
     def setImages(self, imageSelection):
         """sets image selection viable to display in all kinds of
