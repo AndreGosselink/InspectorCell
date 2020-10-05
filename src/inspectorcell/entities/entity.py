@@ -28,22 +28,13 @@ class Entity(ImageEntity):
     
     GFX: GFX = None
 
-    def __init__(self, eid):
-        super().__init__()
-        # keep unique one. If eid is uuid, use it, else use the
-        # class generated one
-        if isinstance(eid, uuid.UUID):
-            self.unique_eid = uuid.UUID(bytes=eid.bytes)
-        else:
-            # convert to int
-            if float(eid) - int(eid) != 0:
-                msg = 'Cannot cast entity_id {} into int unambigously!'
-                raise ValueError(msg.format(eid))
-            # shadow eid with old one
-            self.unique_eid = uuid.UUID(bytes=self.eid.bytes)
-            # and use the provided
-            self.eid = int(eid)
-            self.scalars['object_id'] = int(eid)
+    @property
+    def objectId(self):
+        return self.scalars['object_id']
+
+    @objectId.setter
+    def objectId(self, new_objectid):
+        self.scalars['object_id'] = new_objectid
 
     @property
     def path(self):

@@ -23,7 +23,7 @@ class EntityManager:
     def __init__(self):
         self._factory = EntityFactory()
         self.clear()
-        self._used_eids = set([0])
+        self._usedObjIds = set([0])
 
     def __len__(self):
         """Number of entities in manager
@@ -62,7 +62,7 @@ class EntityManager:
 
     def _is_valid(self, objectid):
         not_zero = objectid > 0
-        not_used = objectid not in self._used_eids
+        not_used = objectid not in self._usedObjIds
         is_int = isinstance(objectid, int)
         return not_zero and not_used and is_int
 
@@ -104,7 +104,7 @@ class EntityManager:
         """
 
         popee = self.getEntity(eid)
-        self._used_eids.remove(eid)
+        self._usedObjIds.remove(eid)
 
         # translate the eid to uniqueid...
         popee.eid = popee.unique_eid
@@ -158,7 +158,7 @@ class EntityManager:
         """reset the whole entity manager, mainly for testabiliy
         """
         self._factory.ledger.clear()
-        self._used_eids = set([0])
+        self._usedObjIds = set([0])
 
     def generateFromContours(self, contourData):
         """Encapsulate the usage of the entity generator
@@ -215,35 +215,28 @@ class EntityManager:
         return iter(self._factory.ledger.entities.values())
 
     def getEntity(self, eid):
-        for ent in self.getEntities():
-            if ent.eid == eid:
-                return ent
-        return None
+       return self._factory.ledger.entities.get(eid)
 
     def getObjectId(self, objectId=None):
         if objectId is None:
-            return max(self._used_eids) + 1
+            return max(self._usedObjIds) + 1
 
         if self._is_valid(objectId):
             return objectId
         else:
-            return max(self._used_eids) + 1
+            return max(self._usedObjIds) + 1
     
     def addEntity(self, entity):
-        object_id = entity.eid
-        
+
         # already added?
-        other = self.getEntity(object_id)
+        other = self.getEntity(entity.eid)
         if other is entity:
             return
 
-        if self._is_valid(object_id):
+        if self._is_valid(entity.objectId):
             # use unique id in ledger
-            entity.eid = entity.unique_eid
             self._factory.ledger.add_entity(entity)
-            
             # set eid to object id
-            self._used_eids.add(object_id)
-            entity.eid = object_id
+            self._usedObjIds.add(entity.objectId)
         else:
             raise ValueError(f'Invalid entity to add: {entity}')

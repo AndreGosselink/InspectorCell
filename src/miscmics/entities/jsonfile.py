@@ -1,12 +1,15 @@
 import json
 import copy
 from uuid import UUID
-from typing import Callable
+from typing import Callable, Union
+from collections import OrderedDict
 
+from pathlib import Path
 import numpy as np
 
 from .entity import Entity, GenericEntityType, EntityType
 from .factory import EntityFactory
+from .ledger import EntityLedger
 
 
 def to_dict(entity):
@@ -26,9 +29,19 @@ def to_dict(entity):
         TypError is raised, if any conversion fails
     """
 
-    ser_dict = {}
-    ser_dict['etype'] = int(entity.etype)
+    ser_dict = OrderedDict()
     ser_dict['eid'] = entity.eid.hex
+    ser_dict['etype'] = int(entity.etype)
+
+    ser_dict['tags'] = [str(tag) for tag in entity.tags]
+
+    scalar = ser_dict['scalars'] = []
+    for key, val in entity.scalars.items():
+        scalar.append([str(key), float(val)])
+
+    gen = ser_dict['generic'] = []
+    for key, val in entity.generic.items():
+        gen.append([str(key), np.asarray(val).tolist()])
 
     if entity.ref is None:
         ser_dict['ref'] = ''
@@ -43,16 +56,6 @@ def to_dict(entity):
         for (pt0, pt1) in cont:
             new_cont.append([float(pt0), float(pt1)])
         contour.append(new_cont)
-
-    ser_dict['tags'] = [str(tag) for tag in entity.tags]
-
-    scalar = ser_dict['scalars'] = []
-    for key, val in entity.scalars.items():
-        scalar.append([str(key), float(val)])
-
-    gen = ser_dict['generic'] = []
-    for key, val in entity.generic.items():
-        gen.append([str(key), np.asarray(val).tolist()])
 
     return ser_dict
 
@@ -78,7 +81,7 @@ class EntityJSONEncoder(json.JSONEncoder):
 
         as_dict = to_dict(entity)
         return as_dict
-
+    
 
 class EntityJSONDecoder(json.JSONDecoder):
 
@@ -131,20 +134,21 @@ class EntityJSONDecoder(json.JSONDecoder):
         for key, val in enity_dict['generic']:
             generic[key] = np.asarray(val)
         enity_dict['generic'] = generic
-        
+
         enity_dict['contour'] = [np.asarray(shape) for shape in \
                                  enity_dict['contour']]
-        
+
         try:
             return self.fac.create_entity(**enity_dict, cls=cls)
-        except ValueError:
+        except ValueError as err:
             raise ValueError(
-                f"Could not create entity with eid '{enity_dict['eid']}'")
+                f"Could not create entity with eid '{enity_dict['eid']}'" +\
+                f"\n->'{err}'")
 
 
     def decode(self, s):
         """Decodes JSON to Entity
-        
+
         Decodes JSON serialized Entity to dict accepted by
         `EntityFactory.create_from_dict()` and then calls it
 
@@ -160,3 +164,35 @@ class EntityJSONDecoder(json.JSONDecoder):
             all serialized data is used during decoding
         """
         return self.from_dict(super().decode(s))
+
+
+def save(filename: Union[str, Path], ledger: EntityLedger, mode: str):
+    """Stores the ledger as JSON
+
+    Each entity is stored in a separate line. the entities
+    get sorted by their eid
+
+    Parameter
+    ---------
+    filename : Union[str|Path]
+        Path to file, where Entities in Ledger will be stored
+    ledger : EntitLedger
+        Ledger with Entity instances to be stored
+    mode : str
+        Filemode used to open and write file. Should be 'a' or 'w'
+    """
+    # sort entities by eid
+    entities = list(ledger.entities.values())
+    entities.sort(key=lambda ent: ent.eid.bytes)
+
+    # make iterencoder
+    ent_enc = EntityJSONEncoder()
+    with Path(filename).open(mode) as fp:
+        fp.write('[\n')
+        for ent in entities[:-1]:
+            chunk = ent_enc.encode(ent)
+            fp.write(chunk + ',\n')
+
+        last = ent_enc.encode(entities[-1])
+        fp.write(chunk + '\n]')
+

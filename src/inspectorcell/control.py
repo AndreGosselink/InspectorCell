@@ -8,7 +8,7 @@ from pathlib import Path
 # extern
 import numpy as np
 from miscmics.entities.legacyjson.factory import LegacyEntityJSON
-from miscmics.entities.jsonfile import EntityJSONDecoder, EntityJSONEncoder
+from miscmics.entities.jsonfile import EntityJSONDecoder, save as saveEnt
 from miscmics.entities import EntityFactory
 
 # project
@@ -69,10 +69,6 @@ class Controller():
             path to a jsonfile where entity data is written to as json
         """
 
-        for ent in self.entityManager.iter_all():
-            ent.scalars['object_id'] = ent.eid
-            ent.eid = ent.unique_eid
-
         # # load data from file
         # read_into_manager(jsonFile, self.entityManager)
         jsonFile = Path(jsonFile)
@@ -84,27 +80,15 @@ class Controller():
                 entityData = json.load(src)
             loader_fac = EntityFactory()
             decoder = EntityJSONDecoder(factory=loader_fac)
-            for ent in entityData:
-                decoder.from_dict(ent, cls=Entity)
-
         assert not (loader_fac.ledger is self.entityManager._factory.ledger)
 
-        for unique_eid, ent in loader_fac.ledger.entities.items():
-            ent.unique_eid = unique_eid
-            # get stored objectid
-            objId = int(ent.scalars.pop('object_id'))
-            # get a valid one and use it as eid
-            validId = self.entityManager.getObjectId(objId)
-            ent.scalars['object_id'] = validId
-            ent.eid = validId
-            if validId != objId:
-                print(f'Changed {objId} to {validId}')
+        for ent in loader_fac.ledger.entities.values():
+            validId = self.entityManager.getObjectId(ent.objectId)
+            if ent.objectId != validId:
+                print(f'Changed {ent.objectId} to {validId}')
+                ent.objectId = validId
             # add to manager
             self.entityManager.addEntity(ent)
-        
-        # revert shadowing of eid
-        for ent in self.entityManager.iter_all():
-            ent.eid = ent.scalars.pop('object_id')
         
         # update view and tags
         self.dataManager.addTags(self.entityManager.allTags)
@@ -126,9 +110,10 @@ class Controller():
             ent.scalars['object_id'] = ent.eid
             ent.eid = ent.unique_eid
 
-        with Path(jsonFile).open('w') as trgt:
-            json.dump(list(self.entityManager.iter_all()),
-                      trgt, cls=EntityJSONEncoder)
+        # with Path(jsonFile).open('w') as trgt:
+        #     json.dump(list(self.entityManager.iter_all()),
+        #               trgt, cls=EntityJSONEncoder)
+        saveEnt(jsonFile, self.entityManager._factory.ledger, mode='w')
 
         # restore object id as eid
         for ent in self.entityManager.iter_all():
