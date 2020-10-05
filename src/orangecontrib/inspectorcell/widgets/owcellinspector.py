@@ -130,7 +130,7 @@ class OWCellInpspector(OWWidget):
 
         self._autosaver = QtCore.QTimer(parent=self)
         self._autosaver.timeout.connect(self._autosave)
-        self._autosaver.start(60000)
+        self._autosaver.start(5 * 60 * 1000)
     
     @pyqtSlot()
     def _autosave(self):
