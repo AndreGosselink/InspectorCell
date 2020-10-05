@@ -192,3 +192,34 @@ def save(filename: Union[str, Path], ledger: EntityLedger, mode: str):
         fp.write(',\n'.join(ent_enc.encode(ent) for ent in entities))
         fp.write('\n]')
 
+
+def load(filename: Union[str, Path],
+         factory: EntityFactory = None) -> EntityFactory:
+    """loades entities from JSON to ledger
+
+    Parameter
+    ---------
+    filename : Union[str|Path]
+        Path to file, where Entities in Ledger are loaded from
+    factory : EntityFactory (default=None)
+        EntityFactory to use for adding entities. If `None` a new one is created
+
+    Returns
+    ------
+    factory : EntityFactory
+        If a factory is passed as parameter, it is returned. If `factory` was `None`
+        the new `EntityFactory` instance with the loaded entities is returned
+    """
+    if factory is None:
+        factory = EntityFactory()
+
+    # setup decoder
+    ent_dec = EntityJSONDecoder(factory=factory)
+
+    # load from file into leadger
+    with Path(filename).open('r') as fp:
+        for ent_dict in json.load(fp):
+            ent_dec.from_dict(ent_dict)
+
+    return factory
+
