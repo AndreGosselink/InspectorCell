@@ -44,27 +44,27 @@ def test_make_entities():
 
     # id now are [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 20, 22, 30, 100]
     ent = eman.make_entity(10)
-    assert ent.eid == 10
+    assert ent.objectId == 10
 
     # dropping the rule that minimum free number must be used
     # # must work as next smalles free id is 11
     # ent = eman.make_entity()
-    # assert ent.eid == 11
+    # assert ent.objectId == 11
     # # fill up...
     # # id now are [1 ... 20, 22, 30, 100]
     # for _ in range(8):
     #     ent = eman.make_entity()
     # # next free id must be 21
     # ent = eman.make_entity()
-    # assert ent.eid == 21
+    # assert ent.objectId == 21
 
 
     ent = eman.make_entity()
-    assert ent.eid == 101
+    assert ent.objectId == 101
     for _ in range(8):
         ent = eman.make_entity()
     ent = eman.make_entity()
-    assert ent.eid == 101 + 8 + 1
+    assert ent.objectId == 101 + 8 + 1
 
 def test_add_entities():
     """test if double ids raise error
@@ -102,7 +102,7 @@ def test_add_entities():
     # id now are [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 20, 22, 30, 100]
     new_ent = Entity(10)
     eman.addEntity(new_ent)
-    assert new_ent.eid == 10
+    assert new_ent.objectId == 10
 
     # fill up...
     # id now are [1 ... 20, 22, 30, 100]
@@ -112,19 +112,19 @@ def test_add_entities():
     
     # # next free id must be 21
     # ent = eman.make_entity()
-    # assert ent.eid == 21
+    # assert ent.objectId == 21
 
     # drop unessescary min int objectid
     ent = eman.make_entity()
-    assert ent.eid == 101
+    assert ent.objectId == 101
 
-def test_large_eids():
+def test_large_objectIds():
     """Test adding lage numbers
     """
     eman = EntityManager()
     eman.clear()
 
-    eman.make_entity(32768)
+    eman.make_entity(objectId=32768)
 
     new_ent = Entity(int(0xffff))
     eman.addEntity(new_ent)
@@ -166,12 +166,12 @@ def testCreationFromJson():
 
     eman = EntityManager()
     read_into_manager(test_json, eman)
-    
+
     for uid in uniqueNums:
         if uid: # > 0
-            assert not eman.getEntity(uid) is None
+            assert not eman.lookupEntity(objectId=uid) is None
         else:
-            assert eman.getEntity(uid) is None
+            assert eman.lookupEntity(objectId=uid) is None
 
 def testCreationFromMapShapes():
     """ test if creation of entities from map works
@@ -191,8 +191,8 @@ def testCreationFromMapShapes():
 
     allSame = True
     for entity in eman:
-        same = np.all(pixmap[entity.mask_slice] == entity.mask * entity.eid)
-        if entity.eid != 48277:
+        same = np.all(pixmap[entity.mask_slice] == entity.mask * entity.objectId)
+        if entity.objectId != 48277:
             allSame = allSame and same
         warnings.warn('The cornercase of detatched contours is not handled!')
     assert allSame
@@ -223,10 +223,10 @@ def testCreationFromMapContours():
     allSame = True
     for entity in eman:
         cont = entity.contours
-        ret = cv2.drawContours(canvas, cont, -1, entity.eid, -1)
+        ret = cv2.drawContours(canvas, cont, -1, entity.objectId, -1)
         # canvas = ret.get()
-        same = np.all(ret[ret == entity.eid] == pixmap[pixmap == entity.eid])
-        # print(entity.eid, same, len(cont), [len(cnt) for cnt in cont])
+        same = np.all(ret[ret == entity.objectId] == pixmap[pixmap == entity.objectId])
+        # print(entity.objectId, same, len(cont), [len(cnt) for cnt in cont])
         allSame = same and allSame
 
     # import matplotlib.pyplot as plt
@@ -247,31 +247,31 @@ def testNotSingleton():
 
     assert not emanAB is emanBA
 
-    eidA = 10
-    eidB = 7
+    objectIdA = 10
+    objectIdB = 7
 
     # add entities
-    entABa = emanAB.make_entity(eidA)
-    entBAb = emanBA.make_entity(eidB)
+    entABa = emanAB.make_entity(objectIdA)
+    entBAb = emanBA.make_entity(objectIdB)
 
     # check that they ar invalid in the creating 
     # manager but still valid in the other
     with pytest.raises(ValueError):
-        _ = emanAB.make_entity(eidA)
-    entABb = emanAB.make_entity(eidB)
+        _ = emanAB.make_entity(objectIdA)
+    entABb = emanAB.make_entity(objectIdB)
 
     with pytest.raises(ValueError):
-        _ = emanBA.make_entity(eidB)
-    entBAa = emanBA.make_entity(eidA)
+        _ = emanBA.make_entity(objectIdB)
+    entBAa = emanBA.make_entity(objectIdA)
 
-    for eid in (eidA, eidB):
+    for objectId in (objectIdA, objectIdB):
         with pytest.raises(ValueError):
-            _ = emanAB.make_entity(eid)
+            _ = emanAB.make_entity(objectId)
         with pytest.raises(ValueError):
-            _ = emanBA.make_entity(eid)
+            _ = emanBA.make_entity(objectId)
 
-    assert entABa.eid == entBAa.eid
-    assert entABb.eid == entBAb.eid
+    assert entABa.objectId == entBAa.objectId
+    assert entABb.objectId == entBAb.objectId
 
 def testGenerateFromContours():
     eman = EntityManager()
@@ -296,12 +296,12 @@ def testEntityIterator():
     eman.clear()
 
     requested = set(int(v) for v in np.random.randint(1, 100, 10))
-    for eid in requested:
-        eman.make_entity(entity_id=eid)
+    for objectId in requested:
+        eman.make_entity(objectId=objectId)
     
     # test the generators
-    assert requested == set([entity.eid for entity in eman])
-    assert requested == set([entity.eid for entity in eman.iter_all()])
+    assert requested == set([entity.objectId for entity in eman])
+    assert requested == set([entity.objectId for entity in eman.iter_all()])
 
 def testEntityIteratorFilter():
 
@@ -310,16 +310,16 @@ def testEntityIteratorFilter():
 
     requested = set(int(v) for v in np.random.randint(1, 100, 10))
     filtered = set([])
-    for eid in requested:
-        ent = eman.make_entity(entity_id=eid)
-        if not eid % 2:
+    for objectId in requested:
+        ent = eman.make_entity(objectId=objectId)
+        if not objectId % 2:
             ent.isActive = False
-            filtered.add(ent.eid)
+            filtered.add(ent.objectId)
 
     # test the generator
     active = set([])
     for ent in eman.iter_active():
-        active.add(ent.eid)
+        active.add(ent.objectId)
     
     assert active == requested.difference(filtered)
 
@@ -329,18 +329,18 @@ def testPopEntity():
     eman.clear()
 
     requested = set(int(v) for v in np.random.randint(1, 100, 10))
-    for eid in requested:
-        eman.make_entity(entity_id=eid)
+    for objectId in requested:
+        eman.make_entity(objectId=objectId)
 
     # test the generator
     pop_id, = rnd.sample(requested, 1)
     
-    get_ent = eman.getEntity(pop_id)
+    get_ent = eman.lookupEntity(objectId=pop_id)
     pop_ent = eman.popEntity(pop_id)
-    assert eman.getEntity(pop_id) is None
-    assert pop_ent.eid == pop_id
+    assert eman.lookupEntity(objectId=pop_id) is None
+    assert pop_ent.objectId == pop_id
     assert pop_ent is get_ent
 
     # test if id is free again
-    new_ent = eman.make_entity(entity_id=pop_id)
+    new_ent = eman.make_entity(objectId=pop_id)
     assert not pop_ent is new_ent

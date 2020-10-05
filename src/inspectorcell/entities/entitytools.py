@@ -240,12 +240,11 @@ def extract_annotations(eman):
     data = []
     for ent in eman:
         entry = {
-            'id': ent.eid,
+            'id': ent.objectId,
                 }
 
-        for scalar in all_scalars:
-            sc_name, sc_type = scalar
-            sc_val = ent.scalars.get(scalar, 0)
+        for sc_name in all_scalars:
+            sc_val = ent.scalars.get(sc_name, 0)
             entry[sc_name] = sc_val
 
         for tag in all_tags:
@@ -328,7 +327,7 @@ def extract_features(eman, imagefiles, features=None):
     # define columns
     feat_columns = []
     feat_columns.append(
-        dict(title='id', func=lambda e, i: e.eid, img=None))
+        dict(title='id', func=lambda e, i: e.objectId, img=None))
     feat_columns.append(
         dict(title='x', func=lambda e, i: get_center_x(e), img=None))
     feat_columns.append(

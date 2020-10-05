@@ -599,7 +599,7 @@ class ViewContext(qw.QWidget):
         chanIdx = self._activeChannel.channelIndex
         chanName = self.viewSetup['backgrounds'].get(chanIdx, 'None')
         self._infoBox.setValues(
-            eid=entity.eid,
+            eid=entity.objectId,
             tags=entity.tags,
             scalars=entity.scalars,
             chanName=chanName)

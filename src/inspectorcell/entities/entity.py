@@ -8,7 +8,7 @@ from dataclasses import dataclass
 from enum import IntEnum, unique
 
 ### Extern
-import uuid
+from uuid import UUID
 import cv2
 import numpy as np
 
@@ -27,6 +27,17 @@ from .misc import get_kernel
 class Entity(ImageEntity):
     
     GFX: GFX = None
+
+    def __init__(self, objectId=None, *args, **kwargs):
+        if isinstance(objectId, UUID):
+            super().__init__(objectId, *args, **kwargs)
+        elif isinstance(objectId, int) or isinstance(objectId, float):
+            super().__init__(*args, **kwargs)
+            if float(objectId) - int(objectId) != 0:
+                raise ValueError('Can not convert unambigiously')
+            self.scalars['object_id'] = int(objectId)
+        else:
+            super().__init__(*args, **kwargs)
 
     @property
     def objectId(self):

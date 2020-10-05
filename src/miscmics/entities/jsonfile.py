@@ -189,10 +189,6 @@ def save(filename: Union[str, Path], ledger: EntityLedger, mode: str):
     ent_enc = EntityJSONEncoder()
     with Path(filename).open(mode) as fp:
         fp.write('[\n')
-        for ent in entities[:-1]:
-            chunk = ent_enc.encode(ent)
-            fp.write(chunk + ',\n')
-
-        last = ent_enc.encode(entities[-1])
-        fp.write(chunk + '\n]')
+        fp.write(',\n'.join(ent_enc.encode(ent) for ent in entities))
+        fp.write('\n]')
 

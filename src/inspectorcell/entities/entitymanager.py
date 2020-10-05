@@ -3,6 +3,7 @@ Uses EntityLoader and EntitySaver to ensure persistense during session
 """
 # built-in
 import warnings
+from uuid import UUID
 
 # extern
 from sortedcontainers import SortedList
@@ -22,8 +23,8 @@ class EntityManager:
 
     def __init__(self):
         self._factory = EntityFactory()
+        self._usedObjIds = set([])
         self.clear()
-        self._usedObjIds = set([0])
 
     def __len__(self):
         """Number of entities in manager
@@ -60,22 +61,21 @@ class EntityManager:
         """
         return self.iter_all()
 
-    def _is_valid(self, objectid):
-        not_zero = objectid > 0
-        not_used = objectid not in self._usedObjIds
-        is_int = isinstance(objectid, int)
-        return not_zero and not_used and is_int
+    def _is_valid(self, objectId):
+        not_zero = objectId > 0
+        not_used = objectId not in self._usedObjIds
+        is_num = (float(objectId) - int(objectId)) == 0
+        return not_zero and not_used and is_num
 
-    def make_entity(self, entity_id: int = None):
-
-        if entity_id is None:
-            entity_id = self.getObjectId()
-        elif not self._is_valid(entity_id):
-            raise ValueError(f'Invalid eid {entity_id}')
-
-        new_ent = Entity(entity_id)
+    def make_entity(self, objectId: int = None):
         
+        # raises error if invalid objectid is requested
+        objectId = self.getObjectId(objectId)
+
+        new_ent = Entity(objectId=objectId)
         self.addEntity(new_ent)
+
+        assert new_ent.objectId == objectId
 
         return new_ent
 
@@ -87,7 +87,7 @@ class EntityManager:
 
         Parameters
         ----------
-        eid : int
+        eid : uuid
             entity id to pop
 
         Returns
@@ -103,15 +103,11 @@ class EntityManager:
         can be reused
         """
 
-        popee = self.getEntity(eid)
-        self._usedObjIds.remove(eid)
+        popee = self.lookupEntity(objectId=eid)
+        self._usedObjIds.remove(popee.objectId)
 
         # translate the eid to uniqueid...
-        popee.eid = popee.unique_eid
         self._factory.ledger.remove_entity(popee)
-
-        # ...and back
-        popee.eid = eid
 
         return popee
 
@@ -132,14 +128,15 @@ class EntityManager:
         deleted and thus hisorical
         """
         for entry in entityData:
-            eid = entry.get('id', None)
+            objectId = entry.get('id', None)
             contour = entry['contour']
 
-            entity = self.make_entity(eid)
+            entity = self.make_entity(objectId=objectId)
+            assert entity.objectId == objectId
 
-            entity.tags = set(entry['tags'])
-            entity.scalars = dict(entry['scalars'])
-            entity.generic['historical'] = bool(entry['historical'])
+            entity.tags.update(set(entry['tags']))
+            entity.scalars.update(dict(entry['scalars']))
+            entity.historical = bool(entry['historical'])
 
             if not entity.historical:
                 try:
@@ -150,7 +147,7 @@ class EntityManager:
                         raise e
                     msg = 'Entity {} has no segment/contour. Will be' +\
                           ' marked historic'
-                    warnings.warn(msg.format(eid))
+                    warnings.warn(msg.format(objectId))
                     entity.historical = True
                     entity.contours = []
 
@@ -214,8 +211,28 @@ class EntityManager:
         """
         return iter(self._factory.ledger.entities.values())
 
-    def getEntity(self, eid):
-       return self._factory.ledger.entities.get(eid)
+    def lookupEntity(self, eid=None, objectId=None):
+        # return self._factory.ledger.entities.get(eid)
+        hasEid, hasObjId = eid is not None, objectId is not None
+
+        if not ((hasEid or hasObjId) and (not (hasEid and hasObjId))):
+            msg = 'Exactly one parameter must be given: eid or hasObjId'
+            raise ValueError(msg)
+        elif hasEid:
+            if not isinstance(eid, UUID):
+                raise ValueError(f'eid must be an UUID instance!')
+            return self._factory.ledger.entities.get(eid)
+        elif hasObjId:
+            ents = self._factory.ledger.entities.values()
+            ents = [ent for ent in ents if ent.objectId == objectId]
+            if not ents:
+                return None
+            elif len(ents) == 1:
+                return ents[0]
+            else:
+                msg = f'Multiple entities with objectId {objectId} found!'
+                warnings.warn(msg)
+                return ents[0]
 
     def getObjectId(self, objectId=None):
         if objectId is None:
@@ -224,14 +241,24 @@ class EntityManager:
         if self._is_valid(objectId):
             return objectId
         else:
-            return max(self._usedObjIds) + 1
+            raise ValueError(f'Invalid objectId: {objectId}')
     
     def addEntity(self, entity):
 
         # already added?
-        other = self.getEntity(entity.eid)
-        if other is entity:
-            return
+        inLedger = entity.eid in self._factory.ledger.entities
+        inUse = entity.objectId in self._usedObjIds
+        if inLedger or inUse:
+            err = ValueError(f'Can not add entity {entity.eid}, entity.objectId')
+            byEid = self.lookupEntity(eid=entity.eid)
+            byObjId = self.lookupEntity(objectId=entity.objectId)
+            if byEid is entity:
+                if byObjId is None and self._is_valid(entity.objectId):
+                    self._usedObjIds.add(entity.objectId)
+                elif not (byObjId is entity):
+                    raise err
+            elif byEid is not None:
+                raise err
 
         if self._is_valid(entity.objectId):
             # use unique id in ledger

@@ -4,6 +4,7 @@
 import json
 import warnings
 from pathlib import Path
+import copy
 
 # extern
 import numpy as np
@@ -80,6 +81,10 @@ class Controller():
                 entityData = json.load(src)
             loader_fac = EntityFactory()
             decoder = EntityJSONDecoder(factory=loader_fac)
+            for entDat in entityData:
+                newEnt = decoder.from_dict(
+                    copy.deepcopy(entDat), cls=Entity)
+
         assert not (loader_fac.ledger is self.entityManager._factory.ledger)
 
         for ent in loader_fac.ledger.entities.values():
@@ -105,19 +110,10 @@ class Controller():
             path to a jsonfile where entity data is written to as json
         """
         
-        # set new format eid and store old eid
-        for ent in self.entityManager.iter_all():
-            ent.scalars['object_id'] = ent.eid
-            ent.eid = ent.unique_eid
-
         # with Path(jsonFile).open('w') as trgt:
         #     json.dump(list(self.entityManager.iter_all()),
         #               trgt, cls=EntityJSONEncoder)
         saveEnt(jsonFile, self.entityManager._factory.ledger, mode='w')
-
-        # restore object id as eid
-        for ent in self.entityManager.iter_all():
-            ent.eid = int(ent.scalars.pop('object_id'))
 
     def generateEntities(self, entityMask=None, entityContours=None,
                          jsonFile=None, entityMaskPath=None):

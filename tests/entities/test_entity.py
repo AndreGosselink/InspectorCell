@@ -45,7 +45,7 @@ def test_from_contours_offset_small():
     ent.from_contours(src_contour)
 
     # repaint
-    dst_img[ent.mask_slice][ent.mask] = ent.eid
+    dst_img[ent.mask_slice][ent.mask] = ent.objectId
     
     assert np.all(src_img == dst_img)
 
@@ -56,11 +56,11 @@ def test_from_contours_offset_large():
     src_img = np.zeros(200 * 200, np.uint16).reshape(200, 200)
     dst_img = np.zeros(200 * 200, np.uint16).reshape(200, 200)
 
-    eid0 = 10
-    eid1 = 54030
+    objectId0 = 10
+    objectId1 = 54030
     
     # smaller cont
-    src_img[10:15, 2:5] = eid0
+    src_img[10:15, 2:5] = objectId0
     cont0 = [
         np.array(
             [[2, 10],
@@ -70,9 +70,9 @@ def test_from_contours_offset_large():
     ]
 
     # larger cont
-    src_img[50:71,20:49] = eid1
-    src_img[70:81,25:50] = eid1
-    src_img[72:81,24:26] = eid1
+    src_img[50:71,20:49] = objectId1
+    src_img[70:81,25:50] = objectId1
+    src_img[72:81,24:26] = objectId1
     cont1 = [
         np.array(
             [[20, 50],
@@ -87,14 +87,14 @@ def test_from_contours_offset_large():
              [48, 50]], int)
     ]
 
-    ent0 = Entity(eid0)
+    ent0 = Entity(objectId0)
     ent0.from_contours(cont0)
 
-    ent1 = Entity(eid1)
+    ent1 = Entity(objectId1)
     ent1.from_contours(cont1)
 
-    dst_img[ent0.mask_slice][ent0.mask] = ent0.eid
-    dst_img[ent1.mask_slice][ent1.mask] = ent1.eid
+    dst_img[ent0.mask_slice][ent0.mask] = ent0.objectId
+    dst_img[ent1.mask_slice][ent1.mask] = ent1.objectId
     
     assert np.all(src_img == dst_img)
 
