@@ -6,13 +6,12 @@ import sys
 from copy import copy, deepcopy
 from pathlib import Path
 import random
+import datetime
 
 from Orange.widgets.utils.plot import OWButton, OWAction
 from AnyQt.QtCore import pyqtSignal, pyqtSlot
 from scipy import misc
 import numpy as np
-
-from threading import Timer
 
 ### Orange and Qt GUI elemetns
 from Orange.widgets.visualize.owscatterplotgraph import DiscretizedScale
@@ -128,12 +127,26 @@ class OWCellInpspector(OWWidget):
 
         self.opacity_var = 100
         self.setup_gui()
-        
-        self._autosaver = Timer(30, self._autosave)
-        self._autosaver.start()
 
+        self._autosaver = QtCore.QTimer(parent=self)
+        self._autosaver.timeout.connect(self._autosave)
+        self._autosaver.start(60000)
+    
+    @pyqtSlot()
     def _autosave(self):
-        self.controller.storeEntities(jsonFile=Path('autosave.ent'))
+        # get autosvae files. if more than three, delete oldest
+        autosave_files = list(Path('.').glob('autosave_*.ent'))
+        if len(autosave_files) >= 3:
+            autosave_files.sort(key=lambda p: p.stat().st_mtime)
+            autosave_files[0].unlink()
+
+        # make timestamp
+        dtime = datetime.datetime.now()
+        tstamp = dtime.strftime('%y%m%d_%H%M')
+        save_to = Path(f'autosave_{tstamp}.ent')
+        
+        # save
+        self.controller.storeEntities(jsonFile=save_to)
 
     def setup_gui(self):
         """Sets mainArea and the controlArea
@@ -577,4 +590,4 @@ if __name__ == "__main__":
     from Orange.widgets.utils.widgetpreview import WidgetPreview
 
     data = OTable("iris")
-    WidgetPreview(OWCellInpspector).run(set_entities=data)
+    WidgetPreview(OWCellInpspector).run()
