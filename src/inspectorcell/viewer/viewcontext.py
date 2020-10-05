@@ -307,6 +307,11 @@ class ViewContext(qw.QWidget):
             self._colorManager.setColor(entity)
             self.entity_scn.addGFX(entity.GFX)
 
+    def clearEntities(self):
+        """Clear all Entities
+        """
+        self.entity_scn.remove()
+
     def setTagSelection(self):
         tags = self._dataManager.tags
         self.contextMenu.updateSelection(tags, 'tags')

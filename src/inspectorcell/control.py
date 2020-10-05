@@ -57,6 +57,7 @@ class Controller():
         steps are done to free memory
         """
         self.entityManager.clear()
+        self.viewer.clearEntities()
 
     def _loadFromJson(self, jsonFile):
         """Loading from json file, setting the tags accordingly
@@ -69,7 +70,7 @@ class Controller():
         # # load data from file
         # read_into_manager(jsonFile, self.entityManager)
         jsonFile = Path(jsonFile)
-        if jsonFile.suffix == '.json': 
+        if jsonFile.suffix == '.json':
             ent_factory = LegacyEntityJSON(
                 ledger=self.entityManager._factory.ledger)
             assert self.entityManager._factory.ledger is ent_factory.ledger

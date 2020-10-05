@@ -356,16 +356,16 @@ class OWCellInpspector(OWWidget):
 
         try:
             srcfile = Path(dlg.selectedFiles()[0])
-        except TypeError:
+        except RuntimeError('Could not retrieve filename from QtDialog'):
             # shouldn't happen but who knows what qt does
             return
 
         if srcfile.exists() and not srcfile.is_dir():
             if srcfile.suffix.lower() in txtExt:
-                self.controller.clearEntities()
+                # self.controller.clearEntities()
                 self.controller.generateEntities(jsonFile=srcfile)
             elif srcfile.suffix.lower() in imgExt:
-                self.controller.clearEntities()
+                # self.controller.clearEntities()
                 self.controller.generateEntities(entityMaskPath=srcfile)
 
     def _jsonSave(self):
@@ -424,39 +424,39 @@ class OWCellInpspector(OWWidget):
         # show context menu
         self.popMenu.exec_(self.btnDraw.mapToGlobal(point))
 
-    def _entities_changed(self):
-        """Set contour data after user selected
-        """
-        # no data
-        if self.entity_data is None or self.attr_eid is None:
-            return
+    # def _entities_changed(self):
+    #     """Set contour data after user selected
+    #     """
+    #     # no data
+    #     if self.entity_data is None or self.attr_eid is None:
+    #         return
 
-        # TODO: ask user if he sure to change id, contours
+    #     # TODO: ask user if he sure to change id, contours
 
-        # get data columns from contour data and raise an error
-        # if none can be extracted
-        entity_contours_str = get_column(self.entity_data, self.attr_contour)
-        entity_ids = get_column(self.entity_data, self.attr_eid)
-        # no data
-        if entity_contours_str is None or entity_ids is None:
-            self.Error.clear()
-            return
+    #     # get data columns from contour data and raise an error
+    #     # if none can be extracted
+    #     entity_contours_str = get_column(self.entity_data, self.attr_contour)
+    #     entity_ids = get_column(self.entity_data, self.attr_eid)
+    #     # no data
+    #     if entity_contours_str is None or entity_ids is None:
+    #         self.Error.clear()
+    #         return
 
-        entity_contours = []
-        a_contour = EntityContour()
-        try:
-            for eid, str_contour in zip(entity_ids, entity_contours_str):
-                a_contour.string = str_contour
-                entity_contours.append((int(eid), a_contour.contour))
-        except (TypeError, IndexError, AttributeError) as err:
-            self.Error.no_valid_contours()
-            return
+    #     entity_contours = []
+    #     a_contour = EntityContour()
+    #     try:
+    #         for eid, str_contour in zip(entity_ids, entity_contours_str):
+    #             a_contour.string = str_contour
+    #             entity_contours.append((int(eid), a_contour.contour))
+    #     except (TypeError, IndexError, AttributeError) as err:
+    #         self.Error.no_valid_contours()
+    #         return
 
-        # clear all enteties as we use new dataset now...
-        self.controller.clearEntities()
+    #     # clear all enteties as we use new dataset now...
+    #     self.controller.clearEntities()
 
-        # set entities with parsed contour data
-        self.controller.generateEntities(entityContours=entity_contours)
+    #     # set entities with parsed contour data
+    #     self.controller.generateEntities(entityContours=entity_contours)
 
     def gfxDelete(self, eid):
         if self.entity_data is None or self.attr_eid is None:
