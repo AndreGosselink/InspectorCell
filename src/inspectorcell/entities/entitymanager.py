@@ -220,11 +220,22 @@ class EntityManager:
                 return ent
         return None
 
-    def getObjectId(self):
-        return max(self._used_eids) + 1
+    def getObjectId(self, objectId=None):
+        if objectId is None:
+            return max(self._used_eids) + 1
+
+        if self._is_valid(objectId):
+            return objectId
+        else:
+            return max(self._used_eids) + 1
     
     def addEntity(self, entity):
         object_id = entity.eid
+        
+        # already added?
+        other = self.getEntity(object_id)
+        if other is entity:
+            return
 
         if self._is_valid(object_id):
             # use unique id in ledger

@@ -9,6 +9,7 @@ from pathlib import Path
 import numpy as np
 from miscmics.entities.legacyjson.factory import LegacyEntityJSON
 from miscmics.entities.jsonfile import EntityJSONDecoder, EntityJSONEncoder
+from miscmics.entities import EntityFactory
 
 # project
 from .viewer import ViewContext
@@ -67,37 +68,49 @@ class Controller():
         jsonFile : Path
             path to a jsonfile where entity data is written to as json
         """
+
+        for ent in self.entityManager.iter_all():
+            ent.scalars['object_id'] = ent.eid
+            ent.eid = ent.unique_eid
+
         # # load data from file
         # read_into_manager(jsonFile, self.entityManager)
         jsonFile = Path(jsonFile)
         if jsonFile.suffix == '.json':
-            ent_factory = LegacyEntityJSON(
-                ledger=self.entityManager._factory.ledger)
-            assert self.entityManager._factory.ledger is ent_factory.ledger
-            print('writing to')
-            ent_factory.load(jsonFile, cls=Entity)
-        elif jsonFile.suffix == '.ent': 
+            loader_fac = LegacyEntityJSON()
+            loader_fac.load(jsonFile, cls=Entity)
+        elif jsonFile.suffix == '.ent':
             with jsonFile.open('r') as src:
                 entityData = json.load(src)
-            decoder = EntityJSONDecoder(factory=self.entityManager._factory)
+            loader_fac = EntityFactory()
+            decoder = EntityJSONDecoder(factory=loader_fac)
             for ent in entityData:
                 decoder.from_dict(ent, cls=Entity)
-        
-        # convert eid/objectid
-        for ent in self.entityManager.iter_all():
-            object_id = ent.scalars.get('object_id')
-            if object_id is None:
-                object_id = self.entityManager.getObjectId()
-                ent.scalars['object_id'] = object_id
-            ent.unique_eid = ent.eid
-            # from legacy json
-            ent.eid = int(ent.scalars.pop('object_id'))
 
+        assert not (loader_fac.ledger is self.entityManager._factory.ledger)
+
+        for unique_eid, ent in loader_fac.ledger.entities.items():
+            ent.unique_eid = unique_eid
+            # get stored objectid
+            objId = int(ent.scalars.pop('object_id'))
+            # get a valid one and use it as eid
+            validId = self.entityManager.getObjectId(objId)
+            ent.scalars['object_id'] = validId
+            ent.eid = validId
+            if validId != objId:
+                print(f'Changed {objId} to {validId}')
+            # add to manager
+            self.entityManager.addEntity(ent)
+        
+        # revert shadowing of eid
+        for ent in self.entityManager.iter_all():
+            ent.eid = ent.scalars.pop('object_id')
+        
         # update view and tags
         self.dataManager.addTags(self.entityManager.allTags)
         #TODO should be synced automatically, when dialog is brought up
         self.viewer.setTagSelection()
-
+        
     def storeEntities(self, jsonFile=None):
         """Unified interface for storing the entity space
         to an file format or other source
@@ -107,18 +120,19 @@ class Controller():
         jsonFile : Path
             path to a jsonfile where entity data is written to as json
         """
+        
+        # set new format eid and store old eid
+        for ent in self.entityManager.iter_all():
+            ent.scalars['object_id'] = ent.eid
+            ent.eid = ent.unique_eid
 
-        # with EntityFile.open(jsonFile, 'w') as trgt:
-        #     trgt.writeEntities(self.getEntities())
         with Path(jsonFile).open('w') as trgt:
-            entities = []
-            for ent in self.entityManager.getEntities():
-                ent.scalars['object_id'] = ent.eid
-                ent.eid = ent.unique_eid
-                entities.append(ent)
-            json.dump(entities, trgt, cls=EntityJSONEncoder)
-            for ent in entities:
-                ent.eid = ent.scalars['object_id']
+            json.dump(list(self.entityManager.iter_all()),
+                      trgt, cls=EntityJSONEncoder)
+
+        # restore object id as eid
+        for ent in self.entityManager.iter_all():
+            ent.eid = int(ent.scalars.pop('object_id'))
 
     def generateEntities(self, entityMask=None, entityContours=None,
                          jsonFile=None, entityMaskPath=None):
@@ -147,6 +161,7 @@ class Controller():
         ValueError
             Raises ValueError if an entry is mailformed
         """
+
         # no source available, raise en error as it was called without
         # any attributes but needs one
         opts = sum([1 for _ in (entityMask, entityMaskPath, entityContours, jsonFile)\
@@ -182,14 +197,21 @@ class Controller():
         # add all entities to the scene
         for entity in self.entityManager.iter_active():
             try:
-                entity.makeGFX()
-                self.viewer.addEntity(entity)
+                self._initRenderEntity(entity)
             except ValueError:
                 if entity.int_contour == []:
                     entity.historical = True
                     msg = f'Entity {entity.eid} has no contour.' + \
                            'It will be set historical!'
                     warnings.warn(msg)
+
+    def _initRenderEntity(self, entity):
+        """ Check of entity has GFX, create one if needed and add to
+        viewer
+        """
+        if entity.GFX is None:
+            entity.makeGFX()
+            self.viewer.addEntity(entity)
 
     def setImages(self, imageSelection):
         """sets image selection viable to display in all kinds of

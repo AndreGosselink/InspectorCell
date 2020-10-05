@@ -43,6 +43,7 @@ class Entity(ImageEntity):
             self.unique_eid = uuid.UUID(bytes=self.eid.bytes)
             # and use the provided
             self.eid = int(eid)
+            self.scalars['object_id'] = int(eid)
 
     @property
     def path(self):
