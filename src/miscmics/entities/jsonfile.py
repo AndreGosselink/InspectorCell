@@ -222,7 +222,7 @@ def load(filename: Union[str, Path],
     # load from file into leadger
     with Path(filename).open('r') as fp:
         for ent_dict in json.load(fp):
-            ent_dec.from_dict(ent_dict)
+            ent_dec.from_dict(ent_dict, cls=cls)
 
     return factory
 
