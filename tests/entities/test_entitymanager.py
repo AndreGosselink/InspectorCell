@@ -26,9 +26,10 @@ def test_make_entities():
     with pytest.raises(ValueError):
         _ = eman.make_entity(0)
 
-    # must fail as 1.0 is not int
-    with pytest.raises(ValueError):
-        _ = eman.make_entity(1.0)
+    # Gone, as float is okay now
+    # # must fail as 1.0 is not int
+    # with pytest.raises(ValueError):
+    #     _ = eman.make_entity(1.0)
 
     # id now are [1, 2, 3, 4, 5, 6, 7, 8, 9]
     for i in range(1, 10):

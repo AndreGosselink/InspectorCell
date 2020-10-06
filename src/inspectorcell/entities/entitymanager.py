@@ -62,15 +62,21 @@ class EntityManager:
         return self.iter_all()
 
     def _is_valid(self, objectId):
-        not_zero = objectId > 0
-        not_used = objectId not in self._usedObjIds
-        is_num = (float(objectId) - int(objectId)) == 0
-        return not_zero and not_used and is_num
+        try:
+            is_num = (float(objectId) - int(objectId)) == 0
+            not_zero = objectId > 0
+            not_used = objectId not in self._usedObjIds
+            return not_zero and not_used and is_num
+        except (TypeError, ValueError):
+            return False
 
     def make_entity(self, objectId: int = None):
         
-        # raises error if invalid objectid is requested
-        objectId = self.getObjectId(objectId)
+        # get objjectId if none is provided
+        if objectId is None:
+            objectId = self.getObjectId()
+        elif not self._is_valid(objectId):
+            raise ValueError(f'Invalid objectId: {objectId}')
 
         new_ent = Entity(objectId=objectId)
         self.addEntity(new_ent)
@@ -235,13 +241,10 @@ class EntityManager:
                 return ents[0]
 
     def getObjectId(self, objectId=None):
-        if objectId is None:
-            return max(self._usedObjIds) + 1
-
         if self._is_valid(objectId):
             return objectId
         else:
-            raise ValueError(f'Invalid objectId: {objectId}')
+            return max(self._usedObjIds) + 1
     
     def addEntity(self, entity):
 
