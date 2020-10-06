@@ -194,7 +194,8 @@ def save(filename: Union[str, Path], ledger: EntityLedger, mode: str):
 
 
 def load(filename: Union[str, Path],
-         factory: EntityFactory = None) -> EntityFactory:
+         factory: EntityFactory = None,
+         cls: GenericEntityType = Entity) -> EntityFactory:
     """loades entities from JSON to ledger
 
     Parameter
@@ -203,6 +204,8 @@ def load(filename: Union[str, Path],
         Path to file, where Entities in Ledger are loaded from
     factory : EntityFactory (default=None)
         EntityFactory to use for adding entities. If `None` a new one is created
+    cls : GenericEntityType
+        Entityclass to use
 
     Returns
     ------
