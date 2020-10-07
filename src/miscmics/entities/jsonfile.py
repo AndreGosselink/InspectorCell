@@ -166,7 +166,8 @@ class EntityJSONDecoder(json.JSONDecoder):
         return self.from_dict(super().decode(s))
 
 
-def save(filename: Union[str, Path], ledger: EntityLedger, mode: str):
+def save(filename: Union[str, Path], ledger: EntityLedger = None,
+         mode: str = 'w'):
     """Stores the ledger as JSON
 
     Each entity is stored in a separate line. the entities
@@ -176,10 +177,17 @@ def save(filename: Union[str, Path], ledger: EntityLedger, mode: str):
     ---------
     filename : Union[str|Path]
         Path to file, where Entities in Ledger will be stored
-    ledger : EntitLedger
-        Ledger with Entity instances to be stored
-    mode : str
+    ledger : EntitLedger (default=`None`)
+        Ledger with Entity instances to be stored. If none is provided,
+        a new is instanciated
+    mode : str (default='w')
         Filemode used to open and write file. Should be 'a' or 'w'
+
+    Returns
+    -------
+    ledger : EntityLedger
+        Used EntityLedger instance, containing all the enties loaded
+        from filename
     """
     # sort entities by eid
     entities = list(ledger.entities.values())
@@ -191,6 +199,8 @@ def save(filename: Union[str, Path], ledger: EntityLedger, mode: str):
         fp.write('[\n')
         fp.write(',\n'.join(ent_enc.encode(ent) for ent in entities))
         fp.write('\n]')
+
+    return ledger
 
 
 def load(filename: Union[str, Path],
