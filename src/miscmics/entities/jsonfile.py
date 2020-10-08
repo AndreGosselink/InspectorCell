@@ -3,6 +3,7 @@ import copy
 from uuid import UUID
 from typing import Callable, Union
 from collections import OrderedDict
+import warnings
 
 from pathlib import Path
 import numpy as np
@@ -193,11 +194,29 @@ def save(filename: Union[str, Path], ledger: EntityLedger = None,
     entities = list(ledger.entities.values())
     entities.sort(key=lambda ent: ent.eid.bytes)
 
-    # make iterencoder
+    as_strings = []
+    to_dump = []
+
     ent_enc = EntityJSONEncoder()
+    for ent in entities:
+        try:
+            as_strings.append(ent_enc.encode(ent))
+        except TypeError:
+            to_dump.append(ent)
+            import IPython as ip
+            ip.embed()
+    
+    if len(to_dump):
+        dump_file = Path(filename).with_name('dump.txt')
+        warnings.warn(f'dumped {len(to_dump)} entities to {dump_file}!')
+        with dump_file.open('w') as dmp:
+            for dumpee in to_dump:
+                dmp.write(str(ent) + '\n')
+
+    # make iterencoder
     with Path(filename).open(mode) as fp:
         fp.write('[\n')
-        fp.write(',\n'.join(ent_enc.encode(ent) for ent in entities))
+        fp.write(',\n'.join(as_strings))
         fp.write('\n]')
 
     return ledger

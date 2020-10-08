@@ -26,7 +26,7 @@ from .misc import get_kernel
 @dataclass
 class Entity(ImageEntity):
     
-    GFX: GFX = None
+    _GFX: GFX = None
 
     def __init__(self, objectId=None, *args, **kwargs):
         if isinstance(objectId, UUID):
@@ -38,6 +38,20 @@ class Entity(ImageEntity):
             self.scalars['object_id'] = int(objectId)
         else:
             super().__init__(*args, **kwargs)
+
+    @property
+    def GFX(self):
+        return self._GFX
+
+    @GFX.setter
+    def GFX(self, gfx):
+        if gfx is None:
+            self._gfx = None
+            self.contour = []
+            self.bbox = np.empty((2, 2), int)
+            self.slc = np.s_[:1, :1]
+        else:
+            self._GFX = gfx
 
     @property
     def objectId(self):
