@@ -12,11 +12,12 @@ import cv2
 
 # buddy
 from miscmics.entities import EntityFactory
+from miscmics.entities.util import mask_to_contour as to_contour, get_sliced_mask
 
 # this
 from .entity import Entity
 from .entityfile import EntityFile
-from .misc import get_sliced_mask, mask_to_contour as to_contour
+# from .misc import get_sliced_mask, mask_to_contour as to_contour
 
 
 class EntityManager:
