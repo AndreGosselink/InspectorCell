@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 """Handling image and metadata, make both accessible
 """
-from typing import List, Iterable
+from typing import List, Iterable, Union
 import copy
 import logging
 from pathlib import Path
@@ -87,7 +87,7 @@ class ImageStack():
             except ValueError:
                 msg = f"'{str(mqu)}' returns {len(qures)} images but must be 1."
                 raise ValueError(msg)
-        
+
         if deep:
             new_stack = self.fromarray(channels, meta=self.meta)
             for new_img, src_img in zip(new_stack.data, channels):
@@ -99,13 +99,13 @@ class ImageStack():
         new_stack.meta.update(self.meta)
 
         return new_stack
-    
+
     @classmethod
     def fromarray(cls, data: Iterable, meta: dict = None):
         """Create a new ImageStack from an iterable
 
         Data will be fully copied!
-        
+
         Parameter
         ---------
         data : Iterable
@@ -291,7 +291,8 @@ class ImageStack():
             img.save(img_path)
             LOG.debug('Saving %s', str(img_path))
 
-    def add_image(self, image_data: imageio.core.Array, meta_data: dict):
+    def add_image(self, image_data: Union[imageio.core.Array, np.ndarray],
+                  meta_data: dict = None):
         """Handling tracking of meta data and image data
 
         ImageStack preserves order. The order images are added is reflected
@@ -299,12 +300,24 @@ class ImageStack():
 
         Parameter
         ---------
-        image_data: imageio.core.Array
+        image_data : Union[imageio.core.Array, np.ndarray]
             Image data array to be added.
+        meta_data : dict (default=None)
+            Dictionary with metadata for new image channel. Has precednece over
+            metadata provided in imageio.core.Array if
 
         """
-        image_data.meta.update(meta_data)
-        self.data.append(image_data)
+        img_array = imageio.core.Array(image_data)
+
+        # check if ndarray or ndimage array
+        if hasattr(image_data, 'meta'):
+            img_array.meta.update(image_data.meta)
+
+        if meta_data is not None:
+            # updated meta from parameter
+            img_array.meta.update(meta_data)
+
+        self.data.append(img_array)
 
     def clip(self, slc):
         """Clips all images with a slice in place
