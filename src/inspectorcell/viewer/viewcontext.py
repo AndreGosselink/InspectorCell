@@ -695,7 +695,7 @@ class ViewContext(qw.QWidget):
             if bgName is None:
                 continue
             if bgName in scalarNames:
-                scValue = entity.scalars[(bgName, 0)]
+                scValue = entity.scalars[bgName]
                 curChan.chanLabel.set(0, fgColor='#E62B38')
                 curChan.chanLabel.set(1, text='{}'.format(scValue),
                                       fgColor='#E62B38')
