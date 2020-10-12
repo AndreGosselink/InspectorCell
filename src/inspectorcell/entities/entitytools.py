@@ -106,6 +106,7 @@ def read_entity_data(jsonfile, strip=False):
         else:
             return src.read()
 
+
 def data_into_manager(entity_data, manager):
     """Converts Entities from entity_data into an Entity instance and adds them
     to the manager
@@ -125,7 +126,20 @@ def data_into_manager(entity_data, manager):
         entry['contour'] = contour = []
         for cur_cont in entry.pop('contours'):
             contour.append(np.array(cur_cont).astype(int))
+
+        new_scalars = {}
+        for key, value in entry['scalars'].items():
+            try:
+                # is tuple and should be split
+                key, _ = eval(key)
+            except (NameError, ValueError):
+                # not a tuple...
+                key = key
+            new_scalars[key] = value
+
+        entry['scalars'] = new_scalars
         entities.append(entry)
+
     manager.generateEntities(entities)
 
 def read_into_manager(jsonfile, entity_manager=None, strip=False):
