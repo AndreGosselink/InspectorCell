@@ -93,11 +93,14 @@ class ImageEntity(Entity):
         """
         # probe contour for first point
         try:
-            for cnt in new_contour:
-                assert len(cnt[0]) == 2
+            # might raise index errors
             self.contour = [np.array(cnt) for cnt in new_contour]
-        except (IndexError, ValueError, AssertionError):
+            self._set_int_contour()
+
+            # might raise value errors (zero size arrays)
+            self._set_bbox_and_slice()
+
+        except (IndexError, ValueError):
             raise ValueError(f'Invalid contour can not be set: {new_contour} ')
-        self._set_int_contour()
-        self._set_bbox_and_slice()
+
         self._set_mask()
