@@ -20,8 +20,8 @@ class EntityFactory:
     def __init__(self, ledger: EntityLedger = None):
         """Entity derived class to create
 
-        Parameter
-        ---------
+        Parameters
+        ----------
         ledger : EntityLedger (default=None)
             EntityLedger to use. If 'None' an new one will be
             created
@@ -40,8 +40,8 @@ class EntityFactory:
                       cls: GenericEntity = None, **kwargs) -> GenericEntity:
         """Creates a new Entity and returns it
 
-        Parameter
-        ---------
+        Parameters
+        ----------
         eid : UUID
             Requested unique entity id for entity to create
             If `eid` is `None` (default) a new uuid4 is created
@@ -70,7 +70,7 @@ class EntityFactory:
            is already used within the curretn runtime, `None` is returned.
 
         Raises
-        ------
+        -------
         TypeError
             If any of the provided keyword arguments does is not a valid
             field in the `Entity` dataclass
@@ -107,8 +107,8 @@ class EntityFactory:
     def pop_entity(self, entity: GenericEntity) -> GenericEntity:
         """Removes a new Entity and returns it
 
-        Parameter
-        ---------
+        Parameters
+        ----------
         entity : Entity
             Entity toe be removed
         """

@@ -14,8 +14,8 @@ import numpy as np
 class EntityType(IntEnum):
     """Defines possible Entity types
 
-    Note
-    ----
+    Notes
+    -----
     Is sublcass of and can be treaded as int
     """
     Undefined = -1

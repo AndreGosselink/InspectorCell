@@ -18,8 +18,8 @@ class LegacyEntityJSON(EntityFactory):
              cls: GenericEntity = ImageEntity):
         """Loads entities from legacy JSON file
 
-        Parameter
-        ---------
+        Parameters
+        ----------
         jsonfile : [pathlib.Path|str]
             Path to JSON file containing the Entity data
 

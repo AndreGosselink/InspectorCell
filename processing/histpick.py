@@ -11,15 +11,15 @@ from ..multiplex import ImageStack
 def calc_dynamic_range(ref: Number, sig: Number) -> float:
     """Calculate dynamic range in dB
 
-    Parameter
-    ---------
+    Parameters
+    ------------
     ref : Number
         Reference value, lower end of the used dynamic range
     sig : Number
         Signal value, upper end of the used dynamic range
 
     Returns
-    -------
+    --------
     bits : float
         Used dynamic range in bits
     """
@@ -31,16 +31,16 @@ def calc_dynamic_range(ref: Number, sig: Number) -> float:
 def calc_saturation(nonzeros: np.ndarray, limit: Number) -> float:
     """Calculate the percentage of saturated pixels
 
-    Parameter
-    ---------
+    Parameters
+    ------------
     nonezeros : np.ndarray
         Non-zero pixel values as ndarray
     limit : Number
         Saturation limit. All pixel values above/equal to
         limit are considered saturated
 
-    Note
-    ----
+    Notes
+    -----
     Saturated pixels are pixels with an value above the
     limit. The returned fraction is then the ratio between
     the number of saturated pixels and the number of pixels
@@ -85,7 +85,8 @@ def field_vals(img, maxval, splits=4):
     dyns = []
     sats = []
     if img.ndim == 3 and img.shape[-1] != 1:
-        raise ValueError(f'Only one channel per channel, please got: {img.shape}')
+        msg = f'Only one channel per channel, please got: {img.shape}'
+        raise ValueError(msg)
 
     for block in np.array_split(img.squeeze(), splits):
         nonz = block[block > 0]
@@ -106,22 +107,23 @@ def select_by_hist(imstack: ImageStack, groupkey: str, maxval: Number = 0xfff,
     From each group the best image wrt saturation and dynamic range are
     choosen. These images are then returned in a new image stack.
 
-    Parameter
-    ---------
+    Parameters
+    ------------
     imstack : ImageStack
         ImageStack, from which the image data is taken
     groupkey : str
         Key oused to group the channels by.
-    maxval : Number
-        Maximum value that can occure in images
+    maxval : Number (default=4096)
+        Maximum value that can occure in images. Defaults to 12 bit -> 4096
     satlim : Number (default=5e-4)
-        Number of pixels that can be in saturation. Parameter
+        Number of pixels that can be in saturation. Parameters
         for `calc_saturation`
     annotate : bool (default=True)
-        If `True` annotate all images in imstac
+        If `True` annotate all images in imstack. Adds dynamic range 'dyns'
+        and number of saturated pixels 'sats' as keys to the image meta data
 
     Returns
-    -------
+    --------
     selected : ImageStack
         ImageStack with selected channels
     """

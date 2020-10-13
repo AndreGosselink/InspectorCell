@@ -74,8 +74,8 @@ class StrEx(str):
         """Generate the regex pattern after default
         initialization
 
-        Parameter
-        ---------
+        Parameters
+        ----------
         obj : Any
             Object to use in string and to use as pattern
         """
@@ -125,18 +125,18 @@ def find_matches(metaquery: dict, objects: List[T], single=True) -> List[T]:
     """Helper to compare metadata dictionaries for partial
     match
 
-    Parameter
-    ---------
+    Parameters
+    ------------
     metaquery : dict
         Dict to be matched
 
     Returns
-    -------
+    --------
     matches : List[T]
         Subset of objects whitch match metadata
 
     Raises
-    ------
+    -------
     NameError
         If any object in objects has no `meta` attribute
     """

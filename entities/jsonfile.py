@@ -18,13 +18,13 @@ def to_dict(entity):
     Tries to convert alle fields in an entity to a dict
     This dict can be used for serializaiotns
 
-    Parameter
-    ---------
+    Parameters
+    ------------
     entity : Entity
         Entity dataclass which should be convertet into an dict
 
     Raises
-    ------
+    -------
     TypeError
         TypError is raised, if any conversion fails
     """
@@ -70,8 +70,8 @@ class EntityJSONEncoder(json.JSONEncoder):
         Entity to dict for JSON encoding. Is called if other
         encoders failed.
 
-        Parameter
-        ---------
+        Parameters
+        ----------
         entity : [Entity|Ans]
             Entity dataclass instance to be serialized
         """
@@ -92,8 +92,8 @@ class EntityJSONDecoder(json.JSONDecoder):
         decoding of raw JSON objects to Entity instances created
         with factory
 
-        Parameter
-        ---------
+        Parameters
+        ----------
         factory : EntityFactory
             Factory used to create entities from the JSON objects
         """
@@ -152,13 +152,13 @@ class EntityJSONDecoder(json.JSONDecoder):
         Decodes JSON serialized Entity to dict accepted by
         `EntityFactory.create_from_dict()` and then calls it
 
-        Parameter
-        ---------
+        Parameters
+        ----------
         s : str
             JSON serialized entity
 
         Raises
-        ------
+        -------
         TypeError
             If JSON serialized data misses the `eid` field or not
             all serialized data is used during decoding
@@ -173,8 +173,8 @@ def save(filename: Union[str, Path], ledger: EntityLedger = None,
     Each entity is stored in a separate line. the entities
     get sorted by their eid
 
-    Parameter
-    ---------
+    Parameters
+    ------------
     filename : Union[str|Path]
         Path to file, where Entities in Ledger will be stored
     ledger : EntitLedger (default=`None`)
@@ -184,7 +184,7 @@ def save(filename: Union[str, Path], ledger: EntityLedger = None,
         Filemode used to open and write file. Should be 'a' or 'w'
 
     Returns
-    -------
+    --------
     ledger : EntityLedger
         Used EntityLedger instance, containing all the enties loaded
         from filename
@@ -208,8 +208,8 @@ def load(filename: Union[str, Path],
          cls: GenericEntityType = Entity) -> EntityFactory:
     """loades entities from JSON to ledger
 
-    Parameter
-    ---------
+    Parameters
+    ------------
     filename : Union[str|Path]
         Path to file, where Entities in Ledger are loaded from
     factory : EntityFactory (default=None)
@@ -218,7 +218,7 @@ def load(filename: Union[str, Path],
         Entityclass to use
 
     Returns
-    ------
+    -------
     factory : EntityFactory
         If a factory is passed as parameter, it is returned. If `factory` was `None`
         the new `EntityFactory` instance with the loaded entities is returned
