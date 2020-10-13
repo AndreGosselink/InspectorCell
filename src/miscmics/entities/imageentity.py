@@ -86,8 +86,8 @@ class ImageEntity(Entity):
     def update_contour(self, new_contour: List[List[List[float]]]):
         """Updates the entity contour and all derived attributes
 
-        Note
-        ----
+        Notes
+        -----
         Will set the `slc`, `mask` and `int_contour`. Setting `contour`
         attribute directly will not change these.
         """

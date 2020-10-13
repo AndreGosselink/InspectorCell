@@ -8,14 +8,14 @@ from ..multiplex import ImageStack
 def make_metadata_tabel(ims: ImageStack) -> pd.DataFrame:
     """Packs all channel metadatad of an ImageStack into a table
 
-    Parameter
-    ---------
+    Parameters
+    ------------
     ims : ImageStack
         Imagestack from wich all channel information will be stored
         in the resulting pandas DataFrame
 
     Returns
-    -------
+    --------
     tab : pandas.DataFrame
         Dataframe with all channel metadata
     """

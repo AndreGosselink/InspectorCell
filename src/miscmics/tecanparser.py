@@ -24,13 +24,13 @@ class ProcessedReader(ImageReader):
 
     def __init__(self, pattern=None):
         """
-        Parameter
-        ---------
+        Parameters
+        ----------
         pattern : str
             regex pattern
 
-        Notes
-        -----
+        Notess
+        ------
         Named groups define fully, which metadata is used/stored extracted
         """
         # to filename matcher

@@ -14,13 +14,13 @@ def simplify_contour(contour: List[np.ndarray]) -> List[np.ndarray]:
 
     Just removing doublicates
 
-    Parameter
-    -------
+    Parameters
+    --------
     contour : List[np.ndarray]
         Contour to be simplified. Will remove doublicates
 
     Returns
-    -------
+    --------
     contour : List[np.ndarray]
         Now hopfully simplified contour
     """
@@ -41,8 +41,8 @@ def mask_to_contour(mask_slice: List[slice],
                     mask: np.ndarray) -> List[np.ndarray]:
     """Generates a contour for a mask, ofsetted by an slice
 
-    Parameter
-    ---------
+    Parameters
+    ------------
     mask_slice : List[slice]
         List of slices. As e.g. returned by numpy.s_ wich is interpreted
         as offset. The array returned after indexind with mask_slice must
@@ -53,7 +53,7 @@ def mask_to_contour(mask_slice: List[slice],
         the contour
 
     Returns
-    -------
+    --------
     contour : List[np.ndarray]
         Contour of the mask
     """
@@ -112,15 +112,15 @@ def get_sliced_mask(arr, value, seek=1000):
     in around seek indices around first occurence of value in array
 
     Returns
-    -------
+    --------
     value_slice : tuple of slices
         slicecing objects, locating bool mask in the array arr
 
     mask : boolean ndarray mask
         boolian mask, masking all values in arr
 
-    Notes
-    -----
+    Notess
+    ------
     slice is inclusive, thus arr[slice].shape == mask.shape
 
     seek defines a view on arry to look for a slice. Given ath the index (n, m)

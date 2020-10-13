@@ -54,8 +54,8 @@ class ImageStack():
                   deep: bool = False) -> 'ImageStack':
         """Returns all data where matching metadata as ImageStack
 
-        Parameter
-        ---------
+        Parameters
+        ----------
         metaqueries : List[dict]
             List of metaquery dicts as used in `ImageStack.find`. Each
             metaquery must unambigious return exactly on image.
@@ -106,8 +106,8 @@ class ImageStack():
 
         Data will be fully copied!
 
-        Parameter
-        ---------
+        Parameters
+        ----------
         data : Iterable
             Iterable to use for creation of new ImageStack
             Each item in the iterabel must be convertabel
@@ -176,8 +176,8 @@ class ImageStack():
         queries. Synthactic sugar for
         `[ImageStack.find(mq, single=False) for mq in metaqueries]`
 
-        Parameter
-        ---------
+        Parameters
+        ----------
         metaqueries : List[dict]
             List of metaquery dicts as used in `ImageStack.find`
 
@@ -197,8 +197,8 @@ class ImageStack():
     def find(self, metaquery, single=True) -> List[imageio.core.Array]:
         """Returns all data where matching metadata
 
-        Parameter
-        ---------
+        Parameters
+        ----------
         metaquery : Dictionary
             Abritary key and values. Each provided key is match
             againts data.meta. If the meta value matches the provided
@@ -225,8 +225,8 @@ class ImageStack():
             the value is the list of all unique values for the respective
             field
 
-        Note
-        ----
+        Notes
+        -----
         Does not assume homogenity of the data. Hence some unique meta
         data entries might be only applicable for part of the data stored
         -> uniquness only given on a per atrtibute level
@@ -276,7 +276,18 @@ class ImageStack():
 
     # TODO write to this uri, use the writer
     # shoudl go into a writer class
-    def write_dir(self, dir_path, name_sheme='{name}.tif'):
+    def write_dir(self, dir_path: Union[str, Path],
+                  name_sheme: str='{name}.tif'):
+        """Write image stack to folder
+
+        Parameters
+        ----------
+        dir_path: Union[str, Path]
+            Path to write the channels to
+        name_sheme: str (default='{name}.tif')
+            Naming schemes to generate file names for a channel
+            can use any meta data from channel
+        """
         dir_path = Path(dir_path)
 
         if not dir_path.exists() or not dir_path.is_dir():
@@ -288,6 +299,8 @@ class ImageStack():
             img = Image.fromarray(img_data)
             fname = name_sheme.format(**img_data.meta)
             img_path = dir_path / fname
+            if img_path.exists():
+                LOG.warning('%s used multiple times!', str(img_path))
             img.save(img_path)
             LOG.debug('Saving %s', str(img_path))
 
@@ -298,8 +311,8 @@ class ImageStack():
         ImageStack preserves order. The order images are added is reflected
         kept in ImageStack.data as well
 
-        Parameter
-        ---------
+        Parameters
+        ----------
         image_data : Union[imageio.core.Array, np.ndarray]
             Image data array to be added.
         meta_data : dict (default=None)
@@ -322,8 +335,8 @@ class ImageStack():
     def clip(self, slc):
         """Clips all images with a slice in place
 
-        Parameter
-        ---------
+        Parameters
+        ----------
         slc : slice
             Slice object
         """

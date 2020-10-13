@@ -300,8 +300,8 @@ class EntityFile():
 def read_entity_data(jsonfile, strip=False):
     """Convinience function to read entity data from a json
 
-    Parameters
-    ----------
+    Parameterss
+    -------------
     jsonfile : str, pathlib.Path
         Path to the json file
     strip : bool (default=True)
@@ -309,13 +309,13 @@ def read_entity_data(jsonfile, strip=False):
         dataset
 
     Returns
-    -------
+    --------
     ent_data : dict of dict
         Dictionary with all entities.
         .. warning:: The keys `the ent_data` are not the Entiy ID!
 
-    Notes
-    -----
+    Notess
+    ------
     The `ent_data` is a dict of dicts. The nested, inner dicts have at least
     the keys {'id', 'scalars', 'tags', 'contours'}
     """

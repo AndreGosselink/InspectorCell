@@ -54,14 +54,14 @@ class EntityLedger():
     def add_entity(self, ent: GenericEntity):
         """Adds an entity to the ledger
 
-        Parameter
-        ---------
+        Parameters
+        ----------
         ent : Entity instace
             Instance to add to the Ledger. If the uuid `ent.eid` if the
             entity is already registered, an ValueErro is raised
 
         Raises
-        ------
+        -------
         ValueError
             If an entity with uuid `ent.eid` is already added to the ledger and
             `reassign_eid` is `False`
@@ -77,14 +77,14 @@ class EntityLedger():
     def remove_entity(self, ent: GenericEntity) -> GenericEntity:
         """Removes an entity from the ledger
 
-        Parameter
-        ---------
+        Parameters
+        ----------
         ent : Entity instace
             Instance to remove from the ledger. If there is no entity with
             corresponding `ent.eid` is not in the ledger a ValueErro is raised
 
         Raises
-        ------
+        -------
         ValueError
             If an entity with uuid `ent.eid` is not in the ledger
         """

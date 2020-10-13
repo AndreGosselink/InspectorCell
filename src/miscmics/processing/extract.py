@@ -15,8 +15,8 @@ def extract_features(ledger: EntityLedger, stack: ImageStack,
                      feature_functions: Dict[str, Callable] = None):
     """ Extract features of Entities in EntityLedger on ImageStack
 
-    Parameter
-    ---------
+    Parameters
+    ------------
     ledger : EntityLedger
         Ledger holding entities, for which features are to be
     stack : ImageStack
@@ -35,7 +35,7 @@ def extract_features(ledger: EntityLedger, stack: ImageStack,
         If 'None' default fetures are extracted.
 
     Raises
-    ------
+    -------
     KeyError:
         If the key is in no meta data in ImageStack at all
     ValueError:
@@ -43,8 +43,8 @@ def extract_features(ledger: EntityLedger, stack: ImageStack,
     IndexError:
         If an entity mask is out of bounds and `raise_oob` is 'raise'
 
-    Note
-    ----
+    Notes
+    -----
     Changes entities in ledger in place.
     """
     # raise key error if the key is not present at all in image stack

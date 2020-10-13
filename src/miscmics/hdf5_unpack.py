@@ -10,7 +10,7 @@ from .multiplex import ImageStack
 def read_h5(infile):
     """
     Returns
-    -------
+    --------
     imstacks : Dict[Int, ImageStack]
         Dictionary with in key corresponding to fields and the values
         as the image stacks.

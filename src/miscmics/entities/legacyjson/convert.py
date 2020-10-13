@@ -11,8 +11,8 @@ from .. import ImageEntity
 def convert(jsonfile, strip=True, cls=ImageEntity, outfile=None):
     """ Converts .json to .ent
 
-    Parameter
-    ---------
+    Parameters
+    ------------
     jsonfile : [pathlib.Path|str]
         Path to JSON file containing the legacy Entity data
 
