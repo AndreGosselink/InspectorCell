@@ -12,8 +12,9 @@ def get_packages():
         return find_packages('src')
     except NameError:
         import itertools as it
+        import os
         packages = ['miscmics', 'inspectorcell', 'orangecontrib']
-        pathes = [Path('src') / pkg for pkg in packages]
+        pathes = [os.path.join('src', pkg) for pkg in packages]
         inits = [list(pth.glob('*/__init__.py')) for pth in pathes]
         for init in it.chain.from_iterable(inits):
             init = init.parent
