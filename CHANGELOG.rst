@@ -1,5 +1,11 @@
 Changelog
 =========
+
+Version 0.2.5
+-------------
+* Uniform setter for scalar values, to abstract implementation away
+* Removed Orange Dropdowns from OrangeWidget. Keept throwing errors in differen Orange3 versions
+
 Version 0.2.4
 -------------
 * Better filters for loading dialogs
@@ -10,6 +16,7 @@ Version 0.2.4
 * Shortcut P to print the current channel only as png file
 * Shortcut Y to set the 'done' tag for last active entity (like keys 0-9)
 * entitycli can now draw segments by a colorscheme
+* The features extracted are now a functional mapping
 
 Version 0.2.3
 -------------
