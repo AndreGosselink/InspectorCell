@@ -8,7 +8,6 @@ from pathlib import Path
 import random
 
 from Orange.widgets.utils.plot import OWButton, OWAction
-from AnyQt.QtCore import pyqtSignal, pyqtSlot
 from scipy import misc
 import numpy as np
 
@@ -28,11 +27,12 @@ from Orange.widgets.utils.itemmodels import DomainModel
 from Orange.widgets.utils.sql import check_sql_input
 from Orange.statistics.util import bincount
 
-from AnyQt import QtGui, QtCore, QtWidgets
+from AnyQt.QtCore import pyqtSignal, pyqtSlot, Qt
 from AnyQt.QtGui import QColor, QBrush, QPen, QIcon
 from AnyQt.QtWidgets import (
     QStyle, QMenu, QSlider, QWidgetAction, QSpinBox, QWidget, QLabel,
-    QGridLayout, QFileDialog, QHBoxLayout, QToolButton, QAction)
+    QGridLayout, QFileDialog, QHBoxLayout, QToolButton, QAction, QButtonGroup)
+
 
 ### Project
 
@@ -50,7 +50,7 @@ from inspectorcell.util.image import getImagedata
 
 
 class SelectRadiusWidget(QWidget):
-    valueChanged = QtCore.pyqtSignal(int)
+    valueChanged = pyqtSignal(int)
 
     def __init__(self, parent):
         QWidget.__init__(self, parent=parent)
@@ -217,8 +217,8 @@ class OWCellInpspector(OWWidget):
 
         # drawing elements
         boxObjectsEditing = gui.hBox(self.controlArea, "Object editing")
-
-        self.tbGroup = QtGui.QButtonGroup(self)
+        
+        self.tbGroup = QButtonGroup(self)
         self.tbGroup.setExclusive(True)
 
         self.btnDraw = gui.toolButton(
@@ -228,13 +228,13 @@ class OWCellInpspector(OWWidget):
         self.btnDraw.setToolTip('Draw')
 
         # set button context menu policy
-        self.btnDraw.setContextMenuPolicy(QtCore.Qt.CustomContextMenu)
+        self.btnDraw.setContextMenuPolicy(Qt.CustomContextMenu)
         self.btnDraw.customContextMenuRequested.connect(self.on_context_menu)
         self.btnDraw.setCheckable(True)
         self.tbGroup.addButton(self.btnDraw)
 
         # create context menu
-        self.popMenu = QtGui.QMenu(self)
+        self.popMenu = QMenu(self)
         radiusSpinbox = SelectRadiusWidget(self)
         radiusSpinbox.valueChanged.connect(self._select_brush_size)
 
@@ -334,7 +334,8 @@ class OWCellInpspector(OWWidget):
         imgExt = ('.tif', '.tiff', '.png', '.bmp', '.jpg')
         imgGlob = ' '.join(['*{}'.format(ext) for ext in imgExt])
 
-        filters = ['Text (*.json)', 'Images ({})'.format(imgGlob), 'All (*.*)']
+        filters = ['Text (*.json *.ent)', 'Images ({})'.format(imgGlob),
+                   'All (*.*)']
         dlg.setNameFilters(filters)
 
         dlg.selectNameFilter(filters[1])
@@ -350,7 +351,7 @@ class OWCellInpspector(OWWidget):
             return
 
         if srcfile.exists() and not srcfile.is_dir():
-            if srcfile.suffix.lower() == '.json':
+            if srcfile.suffix.lower() in ('.json', '.ent'):
                 self.controller.clearEntities()
                 self.controller.generateEntities(jsonFile=srcfile)
             elif srcfile.suffix.lower() in imgExt:
@@ -364,7 +365,7 @@ class OWCellInpspector(OWWidget):
             parent=None,
             caption='Save objects to...',
             # directory=self.last_dir,
-            filter='JSON (*.json)',
+            filter='JSON (*.ent)',
         )
         if Path(jsonfile).parent.exists() and jsonfile != '':
             self.controller.storeEntities(jsonFile=jsonfile)
