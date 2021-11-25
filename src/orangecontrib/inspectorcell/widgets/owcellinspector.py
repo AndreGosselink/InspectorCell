@@ -7,6 +7,7 @@ from copy import copy, deepcopy
 from pathlib import Path
 import random
 import datetime
+from typing import Dict
 
 from Orange.widgets.utils.plot import OWButton, OWAction
 from scipy import misc
@@ -29,7 +30,6 @@ from Orange.widgets.utils.sql import check_sql_input
 from Orange.statistics.util import bincount
 
 from AnyQt.QtCore import pyqtSignal, pyqtSlot, QTimer, Qt
-# from AnyQt import QtGui, QtCore, QtWidgets
 from AnyQt.QtGui import QColor, QBrush, QPen, QIcon
 from AnyQt.QtWidgets import (
     QStyle, QMenu, QSlider, QWidgetAction, QSpinBox, QWidget, QLabel,
@@ -51,7 +51,7 @@ from inspectorcell.util.image import getImagedata
 
 
 class SelectRadiusWidget(QWidget):
-    valueChanged = QtCore.pyqtSignal(int)
+    valueChanged = pyqtSignal(int)
 
     def __init__(self, parent):
         QWidget.__init__(self, parent=parent)
@@ -110,7 +110,7 @@ class OWCellInpspector(OWWidget):
         self.controller.initViewContext()
         self.controller.viewer.newDrawMode.connect(self._updateDraw)
         self.maskFile = None
-        self.entity_data = None
+        self.entity_data: Dict = None
 
         #TODO depreciated. controller gives signal, or compute only at 'Send'
         # self.controller.viewer.entity_scn.gfxAdded.connect(self.gfxAdd)
