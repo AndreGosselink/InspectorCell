@@ -9,7 +9,6 @@ import random
 import datetime
 
 from Orange.widgets.utils.plot import OWButton, OWAction
-from AnyQt.QtCore import pyqtSignal, pyqtSlot
 from scipy import misc
 import numpy as np
 
@@ -29,11 +28,12 @@ from Orange.widgets.utils.itemmodels import DomainModel
 from Orange.widgets.utils.sql import check_sql_input
 from Orange.statistics.util import bincount
 
-from AnyQt import QtGui, QtCore, QtWidgets
+from AnyQt.QtCore import pyqtSignal, pyqtSlot, QTimer, Qt
+# from AnyQt import QtGui, QtCore, QtWidgets
 from AnyQt.QtGui import QColor, QBrush, QPen, QIcon
 from AnyQt.QtWidgets import (
     QStyle, QMenu, QSlider, QWidgetAction, QSpinBox, QWidget, QLabel,
-    QGridLayout, QFileDialog, QHBoxLayout, QToolButton, QAction)
+    QGridLayout, QFileDialog, QHBoxLayout, QToolButton, QAction, QButtonGroup)
 
 ### Project
 
@@ -128,7 +128,7 @@ class OWCellInpspector(OWWidget):
         self.opacity_var = 100
         self.setup_gui()
 
-        self._autosaver = QtCore.QTimer(parent=self)
+        self._autosaver = QTimer(parent=self)
         self._autosaver.timeout.connect(self._autosave)
         self._autosaver.start(5 * 60 * 1000)
     
@@ -239,7 +239,7 @@ class OWCellInpspector(OWWidget):
         # drawing elements
         boxObjectsEditing = gui.hBox(self.controlArea, "Object editing")
 
-        self.tbGroup = QtGui.QButtonGroup(self)
+        self.tbGroup = QButtonGroup(self)
         self.tbGroup.setExclusive(True)
 
         self.btnDraw = gui.toolButton(
@@ -249,13 +249,13 @@ class OWCellInpspector(OWWidget):
         self.btnDraw.setToolTip('Draw')
 
         # set button context menu policy
-        self.btnDraw.setContextMenuPolicy(QtCore.Qt.CustomContextMenu)
+        self.btnDraw.setContextMenuPolicy(Qt.CustomContextMenu)
         self.btnDraw.customContextMenuRequested.connect(self.on_context_menu)
         self.btnDraw.setCheckable(True)
         self.tbGroup.addButton(self.btnDraw)
 
         # create context menu
-        self.popMenu = QtGui.QMenu(self)
+        self.popMenu = QMenu(self)
         radiusSpinbox = SelectRadiusWidget(self)
         radiusSpinbox.valueChanged.connect(self._select_brush_size)
 

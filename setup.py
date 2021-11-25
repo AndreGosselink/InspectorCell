@@ -57,8 +57,9 @@ def get_requires():
         'Orange3',
         'opencv-python',
         'AnyQt',
+        'PyQt5',
         'dataclasses',
-        # 'Orange3-ImageAnalytics',
+        'Orange3-ImageAnalytics',
     ]
     return base
 
