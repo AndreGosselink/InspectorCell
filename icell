@@ -169,7 +169,6 @@ function make_venv () {
   
   _wmsg "WARNING: YOU WILL NEED TO CLOSELY LOOK FOR DEPENDENCIES" 
   _wmsg "known issues with: 'libffi7', 'bottleneck'"
-  _imsg "Creating python venv in '%s'" "${todir}"
   ${usebin} -m venv "${todir}"
   activate "${VENVDIR}" || exit $?
   _imsg "Updating $(type pip)"
