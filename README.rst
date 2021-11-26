@@ -12,13 +12,23 @@ Installation
 There are several ways to install InspectorCell. The easiest is to use InspectorCell as an Orange 3 Plug-In. You can also follow the
 more detailed `install guide <https://inspectorcell.readthedocs.io/en/stable/install.html>`_
 
-- Install `Orange3 <https://orange.biolab.si/>`_ using Conda. Currently Orange3 version >=3.16.0 and <=3.24.1 is needed.
-  To install a certain version of Orange use :code:`conda install orange3=3.24.1`
+Using install script
+~~~~~~~~~~~~~~~~~~~~
+- Install Python3.7 on your system (alternatively conda or conda+mamba)
 
-- Get the current stable `inspectorcell-0.2.X-py3-none-any.whl` from the `releases <https://gitlab.com/InspectorCell/inspectorcell/-/releases>`_
+- Run './icell -i venv' (or alternatively ./icell -i conda' or ./icell -i mamba')
+
+- Start Orange3 with inspector cell by running './icell'
+
+Using Orange3 and Conda
+~~~~~~~~~~~~~~~~~~~~~~~
+- Install `Orange3 <https://orange.biolab.si/>`_ using Conda. Currently Orange3 version =3.25 is tested.
+  To install a certain version of Orange use :code:`conda install orange3=3.25`
+
+- Get the current stable `inspectorcell-0.3.X-py3-none-any.whl` from the `releases <https://gitlab.com/InspectorCell/inspectorcell/-/releases>`_
 
 - Start Orange3 (e.g. via :code:`python -m Orange.canvas`). In Orange3, open the `Add-Ons...` menu. Drag & drop the `*.whl` into the menu
-  (alternatively run :code:`pip install inspectorcell-0.2.X-py3-none-any.whl`)
+  (alternatively run :code:`pip install inspectorcell-0.3.X-py3-none-any.whl`)
 
 - Install Orange 3 ImageAnalytics in the Orange3 `Add-Ons...` or using conda `conda install Orange3-ImageAnalytics`
 

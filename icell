@@ -1,10 +1,20 @@
 #!/bin/bash
 
+# Copyright (C) 2021 Andre Gosselink
+# You may use, distribute and modify this code under the
+# terms of the Apache Licence Version 2.0
+# 
+# You should have received a copy of Apache Licence Version 2.0
+# in the file LICENCE. If not, please or visit:
+# https://gitlab.com/InspectorCell/inspectorcell/-/blob/main/LICENSE
+
+
 #######################
-# Install dir
+# Global dir and bins
 #######################
-VENVDIR="$PWD/icell_venv"
 PYCMD="python3.7"
+RUNDIR="$(dirname $(realpath $0))"
+VENVDIR="${RUNDIR}/icell_venv"
 
 #######################
 # Utility functions
@@ -127,6 +137,11 @@ function install () {
   activate "${VENVDIR}" || exit $?
   # install inspector cell package w/o depends
   install_inspectorcell || exit $?
+
+  grep -q "${RUNDIR}" <<< ${PATH}
+  if [ ! $? = "0" ]; then
+    _wmsg "'%s' is not in PATH environment! Add it to start '%s' from everywhere" "${RUNDIR}" "$(basename $0)"
+  fi
 }
 
 # install inspector cell package
@@ -209,6 +224,11 @@ function run_orange () {
   python -m Orange.canvas > log.txt 2>&1 &
   disown
 }
+
+grep -q "${RUNDIR}" <<< ${PATH}
+if [ ! $? = "0" ]; then
+  _wmsg "'%s' is not in PATH environment! Add it to start '%s' from everywhere" "${RUNDIR}" "$(basename $0)"
+fi
 
 # Option parsing
 while getopts ":hvri:c:" opt $@; do
