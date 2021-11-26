@@ -1,0 +1,23 @@
+name: InspectorCell
+channels:
+  - conda-forge
+dependencies:
+  - python=3.7   # pyqtgraph only works with Qt5.12 + Py3.7
+  - pyqt=5.12
+  - orange3=3.25
+  - pytest
+  - pytest-qt
+  - opencv
+  - pillow
+  - scipy
+  - pathlib
+  - pandas
+  - numpy
+  - h5py
+  - sortedcontainers
+  - dataclasses
+  - openpyxl
+  - shapely
+  - orange3-imageanalytics
+  # pip:
+  #   - sortedcontainers

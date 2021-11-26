@@ -55,25 +55,3 @@ def read_h5(infile):
         image_stacks[fld] = ims
 
     return image_stacks
-
-
-if __name__ == '__main__':
-    import matplotlib.pyplot as plt
-    import seaborn as sns
-    from scipy.special import expit
-    # infile = Path('/home/andre/datasets/ovca318/ovca318chunks_f1_center.h5')
-    infile = Path('/home/andre/datasets/ovca318/ovca318chunks_all.h5')
-    ims_stacks = read_h5(infile)
-    
-    
-    f, axarr = plt.subplots(1, len(ims_stacks))
-    
-    for ax, ims in zip(axarr, ims_stacks.values()):
-        r = ims.find(dict(name='CD8'))
-        g = ims.find(dict(name='CD4'))
-        b = ims.find(dict(name='CD3'))
-        
-        rgb = np.stack([r, g, b], 2)
-        ax.imshow(rgb, vmin=0, vmax=1)
-
-    plt.show()
