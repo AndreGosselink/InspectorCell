@@ -388,7 +388,7 @@ class OWCellInpspector(OWWidget):
             parent=None,
             caption='Save objects to...',
             # directory=self.last_dir,
-            filter='JSON (*.ent)',
+            filter='.ent JSON (*.ent)',
         )
         if Path(jsonfile).parent.exists() and jsonfile != '':
             jsonfile = Path(jsonfile)

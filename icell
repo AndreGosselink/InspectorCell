@@ -116,7 +116,7 @@ function install () {
         _exit "noent"
       fi
       # prepare condaenv
-      make_condaenv "$todir" "conda" "${PWD}/condaenv.yml" || exit $?
+      make_condaenv "$todir" "conda" "${RUNDIR}/condaenv.yml" || exit $?
      ;;
     mamba)
       # nag if mamba is not there
@@ -125,7 +125,7 @@ function install () {
         _exit "noent"
       fi
       # prepare condaenv
-      make_condaenv "$todir" "mamba" "${PWD}/condaenv.yml" || exit $?
+      make_condaenv "$todir" "mamba" "${RUNDIR}/condaenv.yml" || exit $?
      ;;
     *)
       _emsg "Variant is '%s', but must be 'venv', 'conda' or 'mamba'" "${variant}"
@@ -149,7 +149,7 @@ function install_inspectorcell () {
   _imsg "Install InpectorCell using $(type pip)"
 
   # python setup.py install --force
-  pip install . --force-reinstall --no-deps
+  pip install "${RUNDIR}" --force-reinstall --no-deps
 }
 
 # Create condaenv with all deps
@@ -173,7 +173,7 @@ function make_venv () {
   activate "${VENVDIR}" || exit $?
   _imsg "Updating $(type pip)"
   "${VENVDIR}/bin/python" -m pip install --upgrade pip
-  "${VENVDIR}/bin/python" -m pip install -r "${PWD}/requirements.txt"
+  "${VENVDIR}/bin/python" -m pip install -r "${RUNDIR}/requirements.txt"
 }
 
 # Activate whatever virtual environment is
