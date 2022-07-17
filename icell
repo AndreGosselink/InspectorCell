@@ -50,7 +50,7 @@ function usage () {
     printf "%5s%-18s%-20s\n" "" "$1" "$2"
   }
   printf "%-13s%s\n" "Basic usage:" "$(basename $0) -i {conda,mamba,venv}"
-  printf "%-13s%s\n" "" "$(basename $0) -c VAL"
+  printf "%-13s%s\n" "" "$(basename $0) -c <cmd>"
   printf "%-13s%s\n" "" "$(basename $0) -[hrv]"
   printf "Options:\n"
   _fmt "h" "This help"

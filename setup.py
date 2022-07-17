@@ -13,7 +13,7 @@ def get_packages():
     except NameError:
         import itertools as it
         import os
-        packages = ['miscmics', 'inspectorcell', 'orangecontrib']
+        packages = ['inspectorcell', 'orangecontrib']
         pathes = [os.path.join('src', pkg) for pkg in packages]
         inits = [list(pth.glob('*/__init__.py')) for pth in pathes]
         for init in it.chain.from_iterable(inits):
@@ -22,14 +22,6 @@ def get_packages():
             if subpack not in packages:
                 packages.append(subpack)
         return packages
-
-def get_datafiles():
-    # _config_path = None
-    # mod = _import_file('_config', _config_path)
-    # dir_name = mod.__marker_db_dir
-    # return [(dir_name, ['./res/data/abids.csv', './res/data/abids.json'])]
-    return []
-
 
 def get_scripts():
     entity_scripts = ['./src/scripts/entitytool.sh',
@@ -75,29 +67,13 @@ def get_extra_requires():
 
 def get_entry():
     ret = {
-        # Entry points that marks this package as an orange add-on. If set, addon will
-        # be shown in the add-ons manager even if not published on PyPi.
         'orange3.addon': (
             'inspectorcell = orangecontrib.inspectorcell',
         ),
-        # # Entry point used to specify packages containing tutorials accessible
-        # # from welcome screen. Tutorials are saved Orange Workflows (.ows files).
-        # 'orange.widgets.tutorials': (
-        #     # Syntax: any_text = path.to.package.containing.tutorials
-        #     'exampletutorials = orangecontrib.example.tutorials',
-        # ),
 
-        # Entry point used to specify packages containing widgets.
         'orange.widgets': (
-            # Syntax: category name = path.to.package.containing.widgets
-            # Widget category specification can be seen in
-            #    orangecontrib/example/widgets/__init__.py
             'InspectorCell = orangecontrib.inspectorcell.widgets',
         ),
-
-        # # Register widget help
-        # "orange.canvas.help": (
-        #     'html-index = orangecontrib.example.widgets:WIDGET_HELP_PATH',)
 
         'console_scripts': [
             'entitycli=inspectorcell.util.entitycli:main',
@@ -125,12 +101,10 @@ def main():
         name='inspectorcell',
         version=versioneer.get_version(),
         cmdclass=versioneer.get_cmdclass(),
-        # packages=find_packages('src'),
         packages=find_packages('src'),
         package_dir={
             'orangecontrib': 'src/orangecontrib',
             'inspectorcell': 'src/inspectorcell',
-            'miscmics': 'src/miscmics',
         },
         description='Analyse Cells in Orange',
 
@@ -145,12 +119,7 @@ def main():
         keywords=get_keywords(),
         namespace_packages=['orangecontrib'],
         entry_points=get_entry(),
-        # scripts=get_scripts(),
-        # packages=setuptools.find_packages(),
-        # package_data={'segtool': ['./res/data/*.csv', './res/data/*.json']},
-        # data_files=get_datafiles(),
-        # license='Creative Commons Attribution-Noncommercial-Share Alike license',
-        # long_description='Analyse Cells in Orange',
+        license='Apache Licence Version 2.0',
     )
 
 if __name__ == '__main__':
