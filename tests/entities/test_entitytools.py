@@ -29,7 +29,7 @@ def test_pixmap_conversion(src, dil, tmp_path):
 
     dst = testdir / (uuid4().hex + '.json')
     pixmap_to_json(src, dst, dilate=dil)
-    
+
     eman = EntityManager()
     eman_out = read_into_manager(dst, eman, strip=False)
     eman_new = read_into_manager(dst, strip=True)
@@ -53,7 +53,7 @@ def test_extract_features():
     features = extract_features(eman, {'dummy': DUMMYPIXMAP})
     assert all(features['id'] == features['dummy_median'])
     assert all(features['id'] == features['dummy_mean'])
-    
+
 def test_extract_annotations():
     """Testing feature extraction for correctness
     """
@@ -67,6 +67,6 @@ def test_extract_annotations():
     for _, row in annotations.iterrows():
         tag = 'eid_{}'.format(int(row['id']))
         assert row[tag] == 1
-    
+
     tags = [name for name in annotations.columns if name.startswith('eid_')]
     assert all(annotations[tags].sum() == 1)

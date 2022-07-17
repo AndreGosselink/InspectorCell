@@ -1,10 +1,18 @@
 Changelog
 =========
 
+Version 0.3.0
+-------------
+* Seperate miscmics package for easier processing of resulting file in external scripts
+* Pinned versions
+* Minor Bugfixes
+* Install script
+
 Version 0.2.5
 -------------
 * Uniform setter for scalar values, to abstract implementation away
 * Removed Orange Dropdowns from OrangeWidget. Keept throwing errors in differen Orange3 versions
+* Accept '\*.json' and '\*.ent' files
 
 Version 0.2.4
 -------------

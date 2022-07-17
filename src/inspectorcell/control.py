@@ -1,14 +1,20 @@
 """Controller, bridges between data and view
 """
-# built-in
+# std
+import json
 import warnings
+from pathlib import Path
+import copy
 
 # extern
 import numpy as np
+from miscmics.entities.legacyjson.factory import LegacyEntityJSON
+from miscmics.entities.jsonfile import EntityJSONDecoder, save as saveEnt
+from miscmics.entities import EntityFactory
 
 # project
 from .viewer import ViewContext
-from .entities import EntityManager, EntityFile, read_into_manager
+from .entities import EntityManager, EntityFile, read_into_manager, Entity
 from .entities.entity import dilatedEntity
 from .datamanager import DataManager
 from .util.image import getImagedata
@@ -53,6 +59,7 @@ class Controller():
         steps are done to free memory
         """
         self.entityManager.clear()
+        self.viewer.clearEntities()
 
     def _loadFromJson(self, jsonFile):
         """Loading from json file, setting the tags accordingly
@@ -62,14 +69,37 @@ class Controller():
         jsonFile : Path
             path to a jsonfile where entity data is written to as json
         """
-        # load data from file
-        read_into_manager(jsonFile, self.entityManager)
 
+        # # load data from file
+        # read_into_manager(jsonFile, self.entityManager)
+        jsonFile = Path(jsonFile)
+        if jsonFile.suffix == '.json':
+            loader_fac = LegacyEntityJSON()
+            loader_fac.load(jsonFile, cls=Entity)
+        elif jsonFile.suffix == '.ent':
+            with jsonFile.open('r') as src:
+                entityData = json.load(src)
+            loader_fac = EntityFactory()
+            decoder = EntityJSONDecoder(factory=loader_fac)
+            for entDat in entityData:
+                newEnt = decoder.from_dict(
+                    copy.deepcopy(entDat), cls=Entity)
+
+        assert not (loader_fac.ledger is self.entityManager._factory.ledger)
+
+        for ent in loader_fac.ledger.entities.values():
+            validId = self.entityManager.getObjectId(ent.objectId)
+            if ent.objectId != validId:
+                print(f'Changed {ent.objectId} to {validId}')
+                ent.objectId = validId
+            # add to manager
+            self.entityManager.addEntity(ent)
+        
         # update view and tags
         self.dataManager.addTags(self.entityManager.allTags)
         #TODO should be synced automatically, when dialog is brought up
         self.viewer.setTagSelection()
-
+        
     def storeEntities(self, jsonFile=None):
         """Unified interface for storing the entity space
         to an file format or other source
@@ -79,9 +109,11 @@ class Controller():
         jsonFile : Path
             path to a jsonfile where entity data is written to as json
         """
-
-        with EntityFile.open(jsonFile, 'w') as trgt:
-            trgt.writeEntities(self.getEntities())
+        
+        # with Path(jsonFile).open('w') as trgt:
+        #     json.dump(list(self.entityManager.iter_all()),
+        #               trgt, cls=EntityJSONEncoder)
+        saveEnt(jsonFile, self.entityManager._factory.ledger, mode='w')
 
     def generateEntities(self, entityMask=None, entityContours=None,
                          jsonFile=None, entityMaskPath=None):
@@ -110,6 +142,7 @@ class Controller():
         ValueError
             Raises ValueError if an entry is mailformed
         """
+
         # no source available, raise en error as it was called without
         # any attributes but needs one
         opts = sum([1 for _ in (entityMask, entityMaskPath, entityContours, jsonFile)\
@@ -143,9 +176,23 @@ class Controller():
             raise RuntimeError('How did we get here?')
 
         # add all entities to the scene
-        for entity in self.entityManager:
-            if not entity.historical:
-                self.viewer.addEntity(entity)
+        for entity in self.entityManager.iter_active():
+            try:
+                self._initRenderEntity(entity)
+            except ValueError:
+                if entity.int_contour == []:
+                    entity.historical = True
+                    msg = f'Entity {entity.eid} has no contour.' + \
+                           'It will be set historical!'
+                    warnings.warn(msg)
+
+    def _initRenderEntity(self, entity):
+        """ Check of entity has GFX, create one if needed and add to
+        viewer
+        """
+        if entity.GFX is None:
+            entity.makeGFX()
+            self.viewer.addEntity(entity)
 
     def setImages(self, imageSelection):
         """sets image selection viable to display in all kinds of

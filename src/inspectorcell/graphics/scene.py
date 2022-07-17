@@ -322,6 +322,7 @@ class ViewContextScene(pg.GraphicsScene):
 
         newEntity = self.entityManager.make_entity()
         newEntity.from_polygons(newPath.toFillPolygons())
+        parents = newEntity.generic['parents'] = []
 
         mergedScalars = {}
         mergedTags = set([])
@@ -344,7 +345,8 @@ class ViewContextScene(pg.GraphicsScene):
             mergedTags.update(item.entity.tags)
 
             # remove the GFX
-            item.entity.removeGFX(parentEid=newEntity.eid)
+            item.entity.removeGFX()
+            parents.append(item.entity.eid.hex)
 
             # send signal to orange
             #self.gfxDeleted.emit(item.entity.eid)

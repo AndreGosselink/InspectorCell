@@ -307,6 +307,11 @@ class ViewContext(qw.QWidget):
             self._colorManager.setColor(entity)
             self.entity_scn.addGFX(entity.GFX)
 
+    def clearEntities(self):
+        """Clear all Entities
+        """
+        self.entity_scn.remove()
+
     def setTagSelection(self):
         tags = self._dataManager.tags
         self.contextMenu.updateSelection(tags, 'tags')
@@ -594,7 +599,7 @@ class ViewContext(qw.QWidget):
         chanIdx = self._activeChannel.channelIndex
         chanName = self.viewSetup['backgrounds'].get(chanIdx, 'None')
         self._infoBox.setValues(
-            eid=entity.eid,
+            eid=entity.objectId,
             tags=entity.tags,
             scalars=entity.scalars,
             chanName=chanName)
@@ -654,7 +659,7 @@ class ViewContext(qw.QWidget):
                 return
             index = self._activeChannel.channelIndex
             chanName = self.viewSetup['backgrounds'].get(index, 'None')
-            scalarKey = (chanName, 0) #0 is manual
+            scalarKey = chanName
             val = self._lastActiveEntity.scalars.get(scalarKey, 0)
             val += event.change
             self._lastActiveEntity.scalars[scalarKey] = val
@@ -682,8 +687,7 @@ class ViewContext(qw.QWidget):
             scalarNames = []
 
         else:
-            scalarNames = [name for name, mode in entity.scalars.keys() \
-                           if mode == 0]
+            scalarNames = list(entity.scalars.keys())
 
         for curChan in self.channels.values():
             bgName = self.viewSetup['backgrounds'].get(curChan.channelIndex,
@@ -691,7 +695,7 @@ class ViewContext(qw.QWidget):
             if bgName is None:
                 continue
             if bgName in scalarNames:
-                scValue = entity.scalars[(bgName, 0)]
+                scValue = entity.scalars[bgName]
                 curChan.chanLabel.set(0, fgColor='#E62B38')
                 curChan.chanLabel.set(1, text='{}'.format(scValue),
                                       fgColor='#E62B38')
