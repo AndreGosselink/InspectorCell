@@ -113,8 +113,8 @@ class _ObjTable():
             # obj['scalars'] = scalars
             obj['scalars'] = {}
             for keyString, val in scalars.items():
-                scalarName, scalarType = eval(keyString)
-                obj['scalars'][(scalarName, scalarType)] = val
+                # scalarName, scalarType = eval(keyString)
+                obj['scalars'][keyString] = val
             
             contours = []
             for cnt in obj['contours']:
@@ -246,7 +246,7 @@ class EntityFile():
         else:
             anc = [entity.parentEid]
         self.write(
-            objId=entity.eid,
+            objId=entity.objectId,
             tags=list(entity.tags),
             scalars=entity.scalars,
             contours=entity.contours,

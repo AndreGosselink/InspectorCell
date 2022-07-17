@@ -83,15 +83,8 @@ class InfoBox(pg.GraphicsObject):
             #     scalarName = 
             scalarFmt = """Scalar:<br />{}"""
             scalarLines = ''
-            for key, value in scalars.items():
-                scalarName, scalarType = key
-                if scalarType == 0:
-                    scalarType = ''
-                else:
-                    scalarType = 'mean'
-                key = '{}_{}'.format(scalarName[:12], scalarType)
-                # always omit mean and 0 vals, maybe so option to change that?
-                if scalarType == '' and value != 0:
-                    scalarLines += '<em>{}</em>: {}<br />'.format(key, value)
+            for scalarName, value in scalars.items():
+                scalarLines += '<em>{}</em>: {}<br />'.format(
+                    scalarName[:12], value)
             scalarString = scalarFmt.format(scalarLines)
             self._content.set(2, text=scalarString)

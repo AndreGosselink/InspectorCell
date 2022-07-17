@@ -6,9 +6,10 @@ import sys
 from copy import copy, deepcopy
 from pathlib import Path
 import random
+import datetime
+from typing import Dict
 
 from Orange.widgets.utils.plot import OWButton, OWAction
-from AnyQt.QtCore import pyqtSignal, pyqtSlot
 from scipy import misc
 import numpy as np
 
@@ -28,11 +29,11 @@ from Orange.widgets.utils.itemmodels import DomainModel
 from Orange.widgets.utils.sql import check_sql_input
 from Orange.statistics.util import bincount
 
-from AnyQt import QtGui, QtCore, QtWidgets
+from AnyQt.QtCore import pyqtSignal, pyqtSlot, QTimer, Qt
 from AnyQt.QtGui import QColor, QBrush, QPen, QIcon
 from AnyQt.QtWidgets import (
     QStyle, QMenu, QSlider, QWidgetAction, QSpinBox, QWidget, QLabel,
-    QGridLayout, QFileDialog, QHBoxLayout, QToolButton, QAction)
+    QGridLayout, QFileDialog, QHBoxLayout, QToolButton, QAction, QButtonGroup)
 
 ### Project
 
@@ -50,7 +51,7 @@ from inspectorcell.util.image import getImagedata
 
 
 class SelectRadiusWidget(QWidget):
-    valueChanged = QtCore.pyqtSignal(int)
+    valueChanged = pyqtSignal(int)
 
     def __init__(self, parent):
         QWidget.__init__(self, parent=parent)
@@ -109,7 +110,7 @@ class OWCellInpspector(OWWidget):
         self.controller.initViewContext()
         self.controller.viewer.newDrawMode.connect(self._updateDraw)
         self.maskFile = None
-        self.entity_data = None
+        self.entity_data: Dict = None
 
         #TODO depreciated. controller gives signal, or compute only at 'Send'
         # self.controller.viewer.entity_scn.gfxAdded.connect(self.gfxAdd)
@@ -126,6 +127,26 @@ class OWCellInpspector(OWWidget):
 
         self.opacity_var = 100
         self.setup_gui()
+
+        self._autosaver = QTimer(parent=self)
+        self._autosaver.timeout.connect(self._autosave)
+        self._autosaver.start(5 * 60 * 1000)
+    
+    @pyqtSlot()
+    def _autosave(self):
+        # get autosvae files. if more than three, delete oldest
+        autosave_files = list(Path('.').glob('autosave_*.ent'))
+        if len(autosave_files) >= 3:
+            autosave_files.sort(key=lambda p: p.stat().st_mtime)
+            autosave_files[0].unlink()
+
+        # make timestamp
+        dtime = datetime.datetime.now()
+        tstamp = dtime.strftime('%y%m%d_%H%M')
+        save_to = Path(f'autosave_{tstamp}.ent')
+        
+        # save
+        self.controller.storeEntities(jsonFile=save_to)
 
     def setup_gui(self):
         """Sets mainArea and the controlArea
@@ -218,7 +239,7 @@ class OWCellInpspector(OWWidget):
         # drawing elements
         boxObjectsEditing = gui.hBox(self.controlArea, "Object editing")
 
-        self.tbGroup = QtGui.QButtonGroup(self)
+        self.tbGroup = QButtonGroup(self)
         self.tbGroup.setExclusive(True)
 
         self.btnDraw = gui.toolButton(
@@ -228,13 +249,13 @@ class OWCellInpspector(OWWidget):
         self.btnDraw.setToolTip('Draw')
 
         # set button context menu policy
-        self.btnDraw.setContextMenuPolicy(QtCore.Qt.CustomContextMenu)
+        self.btnDraw.setContextMenuPolicy(Qt.CustomContextMenu)
         self.btnDraw.customContextMenuRequested.connect(self.on_context_menu)
         self.btnDraw.setCheckable(True)
         self.tbGroup.addButton(self.btnDraw)
 
         # create context menu
-        self.popMenu = QtGui.QMenu(self)
+        self.popMenu = QMenu(self)
         radiusSpinbox = SelectRadiusWidget(self)
         radiusSpinbox.valueChanged.connect(self._select_brush_size)
 
@@ -330,14 +351,17 @@ class OWCellInpspector(OWWidget):
             acceptMode=QFileDialog.AcceptOpen,
             fileMode=QFileDialog.ExistingFile
         )
+        txtExt = ('.json', '.ent')
+        txtGlob = ' '.join(['*{}'.format(ext) for ext in txtExt])
 
         imgExt = ('.tif', '.tiff', '.png', '.bmp', '.jpg')
         imgGlob = ' '.join(['*{}'.format(ext) for ext in imgExt])
 
-        filters = ['Text (*.json)', 'Images ({})'.format(imgGlob), 'All (*.*)']
+        filters = ['Text ({})'.format(txtGlob), 'Images ({})'.format(imgGlob),
+                   'All (*.*)']
         dlg.setNameFilters(filters)
 
-        dlg.selectNameFilter(filters[1])
+        dlg.selectNameFilter(filters[0])
 
         if dlg.exec_() != QFileDialog.Accepted:
             # not accepted, return
@@ -345,16 +369,16 @@ class OWCellInpspector(OWWidget):
 
         try:
             srcfile = Path(dlg.selectedFiles()[0])
-        except TypeError:
+        except RuntimeError('Could not retrieve filename from QtDialog'):
             # shouldn't happen but who knows what qt does
             return
 
         if srcfile.exists() and not srcfile.is_dir():
-            if srcfile.suffix.lower() == '.json':
-                self.controller.clearEntities()
+            if srcfile.suffix.lower() in txtExt:
+                # self.controller.clearEntities()
                 self.controller.generateEntities(jsonFile=srcfile)
             elif srcfile.suffix.lower() in imgExt:
-                self.controller.clearEntities()
+                # self.controller.clearEntities()
                 self.controller.generateEntities(entityMaskPath=srcfile)
 
     def _jsonSave(self):
@@ -364,9 +388,12 @@ class OWCellInpspector(OWWidget):
             parent=None,
             caption='Save objects to...',
             # directory=self.last_dir,
-            filter='JSON (*.json)',
+            filter='.ent JSON (*.ent)',
         )
         if Path(jsonfile).parent.exists() and jsonfile != '':
+            jsonfile = Path(jsonfile)
+            if jsonfile.suffix != '.ent':
+                jsonfile = jsonfile.with_suffix('.ent')
             self.controller.storeEntities(jsonFile=jsonfile)
 
     def _select_brush_size(self, value):
@@ -410,39 +437,39 @@ class OWCellInpspector(OWWidget):
         # show context menu
         self.popMenu.exec_(self.btnDraw.mapToGlobal(point))
 
-    def _entities_changed(self):
-        """Set contour data after user selected
-        """
-        # no data
-        if self.entity_data is None or self.attr_eid is None:
-            return
+    # def _entities_changed(self):
+    #     """Set contour data after user selected
+    #     """
+    #     # no data
+    #     if self.entity_data is None or self.attr_eid is None:
+    #         return
 
-        # TODO: ask user if he sure to change id, contours
+    #     # TODO: ask user if he sure to change id, contours
 
-        # get data columns from contour data and raise an error
-        # if none can be extracted
-        entity_contours_str = get_column(self.entity_data, self.attr_contour)
-        entity_ids = get_column(self.entity_data, self.attr_eid)
-        # no data
-        if entity_contours_str is None or entity_ids is None:
-            self.Error.clear()
-            return
+    #     # get data columns from contour data and raise an error
+    #     # if none can be extracted
+    #     entity_contours_str = get_column(self.entity_data, self.attr_contour)
+    #     entity_ids = get_column(self.entity_data, self.attr_eid)
+    #     # no data
+    #     if entity_contours_str is None or entity_ids is None:
+    #         self.Error.clear()
+    #         return
 
-        entity_contours = []
-        a_contour = EntityContour()
-        try:
-            for eid, str_contour in zip(entity_ids, entity_contours_str):
-                a_contour.string = str_contour
-                entity_contours.append((int(eid), a_contour.contour))
-        except (TypeError, IndexError, AttributeError) as err:
-            self.Error.no_valid_contours()
-            return
+    #     entity_contours = []
+    #     a_contour = EntityContour()
+    #     try:
+    #         for eid, str_contour in zip(entity_ids, entity_contours_str):
+    #             a_contour.string = str_contour
+    #             entity_contours.append((int(eid), a_contour.contour))
+    #     except (TypeError, IndexError, AttributeError) as err:
+    #         self.Error.no_valid_contours()
+    #         return
 
-        # clear all enteties as we use new dataset now...
-        self.controller.clearEntities()
+    #     # clear all enteties as we use new dataset now...
+    #     self.controller.clearEntities()
 
-        # set entities with parsed contour data
-        self.controller.generateEntities(entityContours=entity_contours)
+    #     # set entities with parsed contour data
+    #     self.controller.generateEntities(entityContours=entity_contours)
 
     def gfxDelete(self, eid):
         if self.entity_data is None or self.attr_eid is None:
@@ -563,4 +590,4 @@ if __name__ == "__main__":
     from Orange.widgets.utils.widgetpreview import WidgetPreview
 
     data = OTable("iris")
-    WidgetPreview(OWCellInpspector).run(set_entities=data)
+    WidgetPreview(OWCellInpspector).run()

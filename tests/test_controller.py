@@ -26,7 +26,7 @@ def testEntityDataGen(qtbot):
     with pytest.raises(ValueError):
         ctrl.generateEntities(entityMask=mask, entityContours=cont)
 
-    ctrl.generateEntities(entityContours=cont)
+    # ctrl.generateEntities(entityContours=cont)
     ctrl.generateEntities(entityMask=mask)
 
 def test_entity_data_integration_mask(qtbot):
@@ -46,9 +46,9 @@ def test_entity_data_integration_mask(qtbot):
 
     ctrl.generateEntities(entityMask=mask)
 
-    ctrl.entityManager.getEntity(1)
+    ctrl.entityManager.lookupEntity(objectId=1)
 
-    e = ctrl.entityManager.getEntity(1)
+    e = ctrl.entityManager.lookupEntity(objectId=1)
     assert not e is None # relevant integration test
 
     # Also testing entit manager here
@@ -68,8 +68,8 @@ def test_entity_data_integration_contour(qtbot):
 
     ctrl.generateEntities(entityContours=cont)
 
-    assert not ctrl.entityManager.getEntity(5) is None
-    e = ctrl.entityManager.getEntity(7)
+    assert not ctrl.entityManager.lookupEntity(objectId=5) is None
+    e = ctrl.entityManager.lookupEntity(objectId=7)
 
     # Also testing entit manager here
     assert e.mask.shape == (6, 6)
