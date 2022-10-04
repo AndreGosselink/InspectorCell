@@ -5,39 +5,51 @@ that not only manages Python, but also binary dependencies. It comes as
 slim lightweight distribution `miniconda <https://docs.conda.io/en/latest/miniconda.html>`_
 or as full distribution plattform `anaconda <https://www.anaconda.com/>`_
 
+Automated icell script
+----------------------
+For your convenience, there is an automated installation script, which creates
+a local virtual environment to install InspectorCell with Orange3 and all dependencies
 
-With conda install version 3.24.1 of orange
+.. code-block:: bash
+    $> ./icell -h
+    Basic usage: icell -i {conda,mamba,venv}
+                 icell -c <cmd>
+                 icell -[hrv]
+    Options:
+         h                 This help           
+         i <variant>       Install into '/mnt/storage/phd/src/inspectorcell/icell_venv' using <env> = 'conda', 'mamba' or 'venv'
+         r                 remove installed environment, if exists
+         c <cmd>           Activate environment and run <cmd> 
+         d                 Build and open the HTML documentation
+         v                 Print version strings and exit
+
+By hand
+-------
+With conda after installtion into a local environment
 
 .. code-block:: bash
 
-   $> conda install orange3=3.24.1
+   $> conda env create -p icell_venv -f condaenv.yml
 
-As recent changes in the are not yet reflected in InspectorCell.
-A installation guide to Orange3 can be found `here <https://orange.biolab.si/download>`_
-
-Download a `*.whl` from the InspectorCell `releases <https://gitlab.com/InspectorCell/inspectorcell/-/releases>`_
-and install it using pip, whithin your conda environment.
+Now you can install InspectorCell via drag and drop as described in the :ref:`Quick Guide`
+Alternatively, you can now install InspectorCell and its dependencies via 
 
 .. code-block:: bash
 
-   $> pip install inspectorcell-0.2.X-py3-none-any.whl
+   $> pip install . --force-reinstall --no-deps
 
-Alternatively, you can also install InspectorCell via drag and drop
-using the Orange3 GUI. Orange3 can be run via `python -m Orange.canvas`
-
-
-.. figure:: https://inspectorcell.readthedocs.io/en/latest/_images/addon.png
-   :figwidth: 100%
-   :width: 80%
-   :alt: Install an Orange3 Add-On via drag&drop
-   :align: center
-
-Then install Orange3 ImageAnalytics using conda or by using the Orange3 Add-Ons menus
+To start inspectorcell you can either use the icell script
 
 .. code-block:: bash
 
-   $> conda install Orange3-ImageAnalytics
+   $> ./icell
 
+Or activate the conda environment and start Oragne3 by hand
+
+.. code-block:: bash
+
+   $> conda activate icell_venv
+   $> python -m Orange.canvas
 
 Pitfalls
 --------
