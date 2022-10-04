@@ -55,8 +55,9 @@ function usage () {
   printf "Options:\n"
   _fmt "h" "This help"
   _fmt "i <variant>" "Install into '${VENVDIR}' using <env> = 'conda', 'mamba' or 'venv'"
-  _fmt "r" "remove installed version, if exists"
+  _fmt "r" "remove installed environment, if exists"
   _fmt "c <cmd>" "Activate environment and run <cmd> "
+  _fmt "d" "Build and open the HTML documentation"
   _fmt "v" "Print version strings and exit"
 }
 
@@ -224,19 +225,33 @@ function run_orange () {
   disown
 }
 
+# build html documentation
+function build_docs () {
+  _imsg "Building documentation"
+
+  if [ -d "html_docs" ]; then
+      xdg-open html_docs/html/index.html
+  else
+    activate "${VENVDIR}" || exit $?
+    pip install sphinx
+    sphinx-build -M html doc/source html_docs
+  fi
+}
+
 grep -q "${RUNDIR}" <<< ${PATH}
 if [ ! $? = "0" ]; then
   _wmsg "'%s' is not in PATH environment! Add it to start '%s' from everywhere" "${RUNDIR}" "$(basename $0)"
 fi
 
 # Option parsing
-while getopts ":hvri:c:" opt $@; do
+while getopts ":hvrdi:c:" opt $@; do
   case "$opt" in
     h) usage && _exit "ok" ;;
     v) version && _exit "ok" ;;
     i) install "${VENVDIR}" "${OPTARG}" && _exit "ok" || exit $? ;;
     r) remove "${VENVDIR}" && _exit "ok" || exit $? ;;
     c) run_cmd "${OPTARG}" && _exit "ok" || exit $? ;;
+    d) build_docs && _exit "ok" || exit $? ;;
     :) _emsg "Option '-${OPTARG}' needs parameter"; usage && _exit "inval" ;;
    \?) _emsg "Invalid option '-${OPTARG}'"; usage && _exit "inval" ;;
   esac
