@@ -20,7 +20,8 @@ a local virtual environment to install InspectorCell with Orange3 and all depend
          i <variant>       Install into '/mnt/storage/phd/src/inspectorcell/icell_venv' using <env> = 'conda', 'mamba' or 'venv'
          r                 remove installed environment, if exists
          c <cmd>           Activate environment and run <cmd> 
-         d                 Build and open the HTML documentation
+         d                 Build and open the HTML documentation (will install sphinx)
+         t                 Run unit and integration tests (will install pytest)
          v                 Print version strings and exit
 
 By hand

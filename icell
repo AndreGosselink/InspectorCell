@@ -180,7 +180,6 @@ function make_venv () {
 
 function run_tests () {
   activate "${VENVDIR}" || exit $?
-  pip install pytest pytest-qt pytest-depends
   python -m pytest ./tests
 }
 
