@@ -11,6 +11,7 @@ For your convenience, there is an automated installation script, which creates
 a local virtual environment to install InspectorCell with Orange3 and all dependencies
 
 .. code-block:: bash
+
     $> ./icell -h
     Basic usage: icell -i {conda,mamba,venv}
                  icell -c <cmd>

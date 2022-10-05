@@ -233,16 +233,14 @@ function run_orange () {
 
 # build html documentation
 function build_docs () {
-
-  if [ -d "html_docs" ]; then
-      xdg-open html_docs/html/index.html
-  else
+  if [ ! -d "html_docs" ]; then
     activate "${VENVDIR}" || exit $?
     _imsg "Downloading sphinx (if needed)"
     pip install sphinx > pip.log 2> pip.log
     _imsg "Building documentation"
     sphinx-build -M html doc/source html_docs
   fi
+  xdg-open html_docs/html/index.html
 }
 
 grep -q "${RUNDIR}" <<< ${PATH}

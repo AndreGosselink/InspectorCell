@@ -1,6 +1,11 @@
 Changelog
 =========
 
+Version 0.3.1
+-------------
+* Documentation
+* Removed AnyQt 
+
 Version 0.3.0
 -------------
 * Separate miscmics package for easier processing of resulting file in external scripts
