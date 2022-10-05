@@ -94,16 +94,16 @@ high-quality training and validation datasets needed in biological image analysi
 
 # Results
  We used InspectorCell to generate an exemplary training dataset from multiplexed immunofluorescence
-microscopy images of an ovarian cancer tissue section, obtained with the MACSimaTM imaging platform
+microscopy images of an ovarian cancer tissue section, obtained with the MACSima$^{TM}$ imaging platform
 2
 (Miltenyi Biotec B.V. & Co. KG). The tissue was stained with Hoechst and 98 antibodies against various
 cluster of differentiation (CD) proteins, conjugated with phycoerythrin. For the generation of the
 training dataset CD103, CD3, CD326, CD4, CD45, and CD8 were evaluated. A pixel-based segmentation
-map (see Supplementary Material A) was generated with CellProfiler. The immunofluorescence images
-and segmentations were imported into InspectorCell (fig. 1a, and Supplementary Material B).
+map was generated with CellProfiler. The immunofluorescence images
+and segmentations were imported into InspectorCell (fig. \autoref{fig:featandflow}a).
 A typical problem in the CellProfiler output was oversegmentation, which was corrected with Inspec-
-torCell by merging (fig. 1b). Furthermore, some segments were extended to encompass the complete
-area of distinctly stained cells (fig. 1c). Finally, annotations were directly applied to the cell segments,
+torCell by merging (fig. \autoref{fig:featandflow}b). Furthermore, some segments were extended to encompass the complete
+area of distinctly stained cells (fig. \autoref{fig:featandflow}c). Finally, annotations were directly applied to the cell segments,
 using keyboard shortcuts. The segmentation map that resulted from this workflow was compared to the
 initial CellProfiler segmentation. From the initial 1960 segments, only 1750 remained after correction.
 Thus, at least 10 % of the segments in this example have originally been over-segmented. Since we elimi-
@@ -111,29 +111,18 @@ nated the bias of oversegmentation, we anticipate better performance in machine 
 with our InspectorCell derived ground truth dataset than with the original oversegmented single cell
 data as a training dataset.
 
-
-# Citations
-
-Citations to entries in paper.bib should be in
-[rMarkdown](http://rmarkdown.rstudio.com/authoring_bibliographies_and_citations.html)
-format.
-
-If you want to cite a software repository URL (e.g. something on GitHub without a preferred
-citation) then you can do it with the example BibTeX entry below for @fidgit.
-
-For a quick reference, the following citation commands can be used:
-- `@author:2001`  ->  "Author et al. (2001)"
-- `[@author:2001]` -> "(Author et al., 2001)"
-- `[@author1:2001; @author2:2001]` -> "(Author1 et al., 2001; Author2 et al., 2002)"
-
 # Figures
 
-Figures can be included like this:
-![Caption for example figure.\label{fig:example}](figure.png)
-and referenced from text using \autoref{fig:example}.
-
-Figure sizes can be customized by adding an optional second parameter:
-![Caption for example figure.](figure.png){ width=20% }
+![Exemplary use cases of InspectorCell. Segmentation of image stacks are generated with CellProfiler
+and opened with InspectorCell. (a) Six immunofluorescence images of the image stack are displayed side-
+by-side in a 3×2 grid. Cell segments are displayed as blue polygons (top). A synchronized multi cursor
+(orange) is a visual anchor in all channels. The CD3 channel (lower middle) is enlarged below the main
+window. The cell segment annotation is editable and displayed for the active cell segment in green font. (b)
+Over-segmentation can be merged with a single keystroke after mouse selection. (c) A cell segment (light
+blue) can be edited to embrace the marker signal area attributable to a distinct cell. Multiple segments can
+enclose the same areas to reflect cell overlaps and interactions. The manual edits of cell segmentations and
+annotations are saved in a single JSON file. Additionally, the JSON file can store extracted cell features, for
+example, mean pixel intensities. The JSON file is in plain text and can be readily used in downstream analysis.\label{fig:featandflow}](doc/fig/featandflow.svg)
 
 # Acknowledgements
 
