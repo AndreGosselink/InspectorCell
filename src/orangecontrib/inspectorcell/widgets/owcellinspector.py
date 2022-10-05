@@ -29,9 +29,9 @@ from Orange.widgets.utils.itemmodels import DomainModel
 from Orange.widgets.utils.sql import check_sql_input
 from Orange.statistics.util import bincount
 
-from AnyQt.QtCore import pyqtSignal, pyqtSlot, QTimer, Qt
-from AnyQt.QtGui import QColor, QBrush, QPen, QIcon
-from AnyQt.QtWidgets import (
+from PyQt5.QtCore import pyqtSignal, pyqtSlot, QTimer, Qt
+from PyQt5.QtGui import QColor, QBrush, QPen, QIcon
+from PyQt5.QtWidgets import (
     QStyle, QMenu, QSlider, QWidgetAction, QSpinBox, QWidget, QLabel,
     QGridLayout, QFileDialog, QHBoxLayout, QToolButton, QAction, QButtonGroup)
 
