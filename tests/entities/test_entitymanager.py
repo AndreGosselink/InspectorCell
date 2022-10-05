@@ -195,7 +195,6 @@ def testCreationFromMapShapes():
         same = np.all(pixmap[entity.mask_slice] == entity.mask * entity.objectId)
         if entity.objectId != 48277:
             allSame = allSame and same
-        warnings.warn('The cornercase of detatched contours is not handled!')
     assert allSame
 
 def testCreationFromMapContours():

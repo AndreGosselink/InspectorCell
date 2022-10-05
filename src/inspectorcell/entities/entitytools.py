@@ -320,6 +320,12 @@ def extract_features(eman, imagefiles, features=None):
         as_arr = np.array(entity.contours[0], float)
         return as_arr[:,1].mean()
 
+    def _cv(a):
+        std = np.std(a, ddof=1)
+        if std == 0:
+            return np.inf
+        return np.mean(a) / std
+
     if features is None:
         features = dict(mean=np.mean,
                         integrated=np.sum,
@@ -328,7 +334,7 @@ def extract_features(eman, imagefiles, features=None):
                         min=np.min,
                         area=np.size,
                         std=lambda a: np.std(a, ddof=1),
-                        cv=lambda a: (np.mean(a) / np.std(a, ddof=1)),
+                        cv=_cv
                         )
 
     featmap = {name: _feature(func) for name, func in features.items()}

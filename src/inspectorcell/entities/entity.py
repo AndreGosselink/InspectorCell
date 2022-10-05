@@ -2,10 +2,7 @@
 related to a single, identifyable thingy in an image stack
 """
 ### Build-Ins
-from datetime import datetime
-import warnings
 from dataclasses import dataclass
-from enum import IntEnum, unique
 
 ### Extern
 from uuid import UUID
@@ -13,13 +10,13 @@ import cv2
 import numpy as np
 
 from miscmics.entities import ImageEntity, EntityType
-from miscmics.entities.util import mask_to_contour
+from miscmics.processing.entities.extract import mask_to_contour
 
-from AnyQt.QtCore import QPointF, QRectF
-from AnyQt.QtGui import QPolygonF, QPainterPath
+from PyQt5.QtCore import QPointF, QRectF
+from PyQt5.QtGui import QPolygonF, QPainterPath
 
 ### Project
-from ..graphics.gfx import GFX, convertToInt
+from ..graphics.gfx import GFX
 from .misc import get_kernel
 
 
@@ -162,9 +159,6 @@ class Entity(ImageEntity):
         list of numpy.arrays with the shape (n, 2),
         where each index i is on point in the polygon
         """
-        warnings.warn('The function Entity.from_polygons might drive the'+\
-                      'Entity in a faulty state, will be removed',
-                      DeprecationWarning)
 
         if len(polygons) == 0:
             msg = 'Number of polygons is 0'
@@ -176,8 +170,6 @@ class Entity(ImageEntity):
         
         new_contour = pathToContours(new_path)
         self.update_contour(new_contour)
-        # import IPython as ip
-        # ip.embed()
 
 
 def dilatedEntity(entity, k):

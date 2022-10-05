@@ -1,36 +1,41 @@
 Changelog
 =========
 
+Version 0.3.1
+-------------
+* Documentation
+* Removed AnyQt 
+
 Version 0.3.0
 -------------
-* Seperate miscmics package for easier processing of resulting file in external scripts
+* Separate miscmics package for easier processing of resulting file in external scripts
 * Pinned versions
 * Minor Bugfixes
-* Install script
+* Install bash script icell
 
 Version 0.2.5
 -------------
-* Uniform setter for scalar values, to abstract implementation away
-* Removed Orange Dropdowns from OrangeWidget. Keept throwing errors in differen Orange3 versions
+* Uniform setter for scalar values to abstract implementation away
+* Removed Orange Dropdowns from OrangeWidget. Kept throwing errors in different Orange3 versions
 * Accept '\*.json' and '\*.ent' files
 
 Version 0.2.4
 -------------
 * Better filters for loading dialogs
 * Removed unused Inputs and Outputs from Orange3 Widget
-* The tags 'C1' - 'C10' and 'done' now have a hardcoded effect on coloring of segments
-* The consolescript 'entitycli' is working now and allows for non-gui entity manipulation
+* The tags 'C1' - 'C10' and 'done' now have a hardcoded effect on the coloring of segments
+* The console script 'entitycli' is working now and allows for non-GUI entity manipulation
   and extraction of information into various formats
-* Shortcut P to print the current channel only as png file
-* Shortcut Y to set the 'done' tag for last active entity (like keys 0-9)
-* entitycli can now draw segments by a colorscheme
+* Shortcut P to print the current channel only as a png file
+* Shortcut Y to set the 'done' tag for the last active entity (like keys 0-9)
+* entitycli can now draw segments by a color scheme
 * The features extracted are now a functional mapping
 
 Version 0.2.3
 -------------
 * EntityManager offers two iterations now: Active only or All
-* EntityManager can pop entities, analogous to Dict.pop
-* Entities generated from Pixmap are dilated by one pixel upon loading, to allow for easy merging
+* EntityManager can pop entities, analogous to Dict.pop()
+* Entities generated from Pixmap are dilated by one pixel upon loading to allow for easy merging
 
 Version 0.2.2
 -------------
@@ -47,25 +52,25 @@ Version 0.2.0
 ViewContext
 ~~~~~~~~~~~
 * Parallel display of multiple channels in a single grid layout view
-* Background images can be set for each channel individually, e.g. with multiplexed microscopy images
-* The view and mouse is synchronize to show the same image region in each channel
+* Background images can be set for each channel individually, e.g., with multiplexed microscopy images
+* The view and mouse is synchronized to show the same image region in each channel
 * On-the-fly contrast enhancement of each channel
 
 Sessions
 ~~~~~~~~
 * Multiple ViewContext layouts (channel layout, contrast enhancement) can be stored in a session
-* Sessions can be persitently saved and loaded between usage
+* Sessions can be persistently saved and loaded between usage
 
 Entities
 ~~~~~~~~
-* Polygon based objects that can model e.g. cell segments
+* Polygon-based objects that can model e.g. cell segments
 * Polygons can be edited/drawn
 * Overlap of cells can be modeled
-* Tags or scalar values can be assignted to Entities
-* InfoBox shows annotations of entity under mouse cursor
+* Tags or scalar values can be assigned to Entities
+* InfoBox shows annotations of the entity under the mouse cursor
 * Entities can be hidden or shown
-* Tag-dependen coloring possible (hardcoded ATM)
-* All data can be stroed in plain JSON
+* Tag-dependent coloring possible (hardcoded ATM)
+* All data can be stored in plain JSON
 * Modal editing - switching between Normal - Draw - Erase
 
 Orange3 Add-On
@@ -75,8 +80,8 @@ Orange3 Add-On
 
 Misc
 ~~~~
-* Utility scipt in `entitytool` to easily work with JSON data
+* Utility script in `entitytool` to easily work with JSON data
 
 Known Issues
 ~~~~~~~~~~~~
-* Occasionally the view can not be panned anymore using the middle mouse button in draw mode. Switching to select mode and back into draw mode reenabels panning again
+* Occasionally, the view can not be panned anymore using the middle mouse button in draw mode. Switching to select mode and back into draw mode reenables panning again

@@ -19,5 +19,6 @@ dependencies:
   - openpyxl
   - shapely
   - orange3-imageanalytics
-  # pip:
-  #   - sortedcontainers
+  - pip
+  - pip:
+    - git+https://gitlab.com/InspectorCell/miscmics.git@release

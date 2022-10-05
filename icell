@@ -55,8 +55,10 @@ function usage () {
   printf "Options:\n"
   _fmt "h" "This help"
   _fmt "i <variant>" "Install into '${VENVDIR}' using <env> = 'conda', 'mamba' or 'venv'"
-  _fmt "r" "remove installed version, if exists"
+  _fmt "r" "remove installed environment, if exists"
   _fmt "c <cmd>" "Activate environment and run <cmd> "
+  _fmt "d" "Build and open the HTML documentation (will install sphinx)"
+  _fmt "t" "Run unit and integration tests (will install pytest)"
   _fmt "v" "Print version strings and exit"
 }
 
@@ -176,6 +178,11 @@ function make_venv () {
   "${VENVDIR}/bin/python" -m pip install -r "${RUNDIR}/requirements.txt"
 }
 
+function run_tests () {
+  activate "${VENVDIR}" || exit $?
+  python -m pytest ./tests
+}
+
 # Activate whatever virtual environment is
 # found in VENVDIR
 function activate () {
@@ -224,19 +231,33 @@ function run_orange () {
   disown
 }
 
+# build html documentation
+function build_docs () {
+  if [ ! -d "html_docs" ]; then
+    activate "${VENVDIR}" || exit $?
+    _imsg "Downloading sphinx (if needed)"
+    pip install sphinx > pip.log 2> pip.log
+    _imsg "Building documentation"
+    sphinx-build -M html doc/source html_docs
+  fi
+  xdg-open html_docs/html/index.html
+}
+
 grep -q "${RUNDIR}" <<< ${PATH}
 if [ ! $? = "0" ]; then
   _wmsg "'%s' is not in PATH environment! Add it to start '%s' from everywhere" "${RUNDIR}" "$(basename $0)"
 fi
 
 # Option parsing
-while getopts ":hvri:c:" opt $@; do
+while getopts ":htvrdi:c:" opt $@; do
   case "$opt" in
     h) usage && _exit "ok" ;;
     v) version && _exit "ok" ;;
     i) install "${VENVDIR}" "${OPTARG}" && _exit "ok" || exit $? ;;
     r) remove "${VENVDIR}" && _exit "ok" || exit $? ;;
     c) run_cmd "${OPTARG}" && _exit "ok" || exit $? ;;
+    d) build_docs && _exit "ok" || exit $? ;;
+    t) run_tests && _exit "ok" || exit $? ;;
     :) _emsg "Option '-${OPTARG}' needs parameter"; usage && _exit "inval" ;;
    \?) _emsg "Invalid option '-${OPTARG}'"; usage && _exit "inval" ;;
   esac

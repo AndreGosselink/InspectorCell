@@ -3,9 +3,9 @@
 
 # GUI stuff
 import pyqtgraph as pg
-from AnyQt import QtCore as qc
-from AnyQt.QtCore import Qt, QPointF
-from AnyQt.QtGui import QPainterPath
+from PyQt5 import QtCore as qc
+from PyQt5.QtCore import Qt, QPointF
+from PyQt5.QtGui import QPainterPath
 
 import numpy as np
 
