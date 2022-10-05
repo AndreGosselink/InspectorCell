@@ -5,7 +5,7 @@ import pytest
 import numpy as np
 
 from inspectorcell.entities.misc import get_kernel
-from miscmics.entities.util import get_sliced_mask
+from miscmics.processing.entities.extract import get_sliced_mask
 
 def test_get_masks_grey():
     mapping = np.zeros((300, 500), np.uint16)

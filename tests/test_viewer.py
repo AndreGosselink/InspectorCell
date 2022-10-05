@@ -6,8 +6,8 @@ from inspectorcell.viewer import ViewContext
 from inspectorcell.datamanager import DataManager
 from inspectorcell.entities import EntityManager
 
-from AnyQt.QtGui import QPainterPath
-from AnyQt.QtCore import QRectF, QPoint
+from PyQt5.QtGui import QPainterPath
+from PyQt5.QtCore import QRectF, QPoint
 
 
 def _setup(qtbot):
@@ -30,7 +30,7 @@ def _setup(qtbot):
     viewer = ViewContext(dataManager=dman, entityManager=eman)
     viewer.setGridlayout(1, 1)
     qtbot.addWidget(viewer)
-    qtbot.waitForWindowShown(viewer)
+    qtbot.waitExposed(viewer)
     qtbot.mouseMove(viewer, QPoint(12, 12))
 
     # add entities
@@ -46,10 +46,10 @@ def _setup(qtbot):
     return eman, dman, viewer
 
 
+@pytest.mark.filterwarnings("ignore:No active channel")
 def test_gfx_merge(qtbot):
     """Test integration for ViewContext, ViewContextScene and Entity
     """
-
     eman, _, viewer = _setup(qtbot)
     viewer.entity_scn.merge()
 
@@ -79,7 +79,7 @@ def test_viewcontext_integration(qtbot):
     diag = viewer.dialogs['viewSetup']
 
     viewer.showViewSetupDialog()
-    qtbot.waitForWindowShown(diag)
+    qtbot.waitExposed(diag)
 
     cur_rows = viewer.viewSetup['rows']
     cur_cols = viewer.viewSetup['cols']

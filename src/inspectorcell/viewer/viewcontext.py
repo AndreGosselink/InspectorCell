@@ -388,9 +388,6 @@ class ViewContext(qw.QWidget):
         #TODO directly set ref in frame and infobox..
         self.setActiveChannel()
 
-        # pointPos = event.screenPos().toPoint()
-        # # pointPos = event.pos()
-        # pointPos = self._crossHair.setPos(pointPos)
         for chan in self.channels.values():
             chan.updateForeground()
 
@@ -470,18 +467,6 @@ class ViewContext(qw.QWidget):
             rect = qc.QRect(0, 0, chan.width(), chan.height())
             pixMap = chan.grab(rect)
             pixMap.save(viewName)
-
-            # import IPython as ip
-            # ip.embed()
-            
-            #FIXME
-            # fullRect = chan.scene().itemsBoundingRect()
-            # chan.setRange(fullRect, padding=0)
-            # pixMap = chan.grab(fullRect.toRect())
-            # fullName = chan.chanLabel.elements[0].text[:10] + '_full.png'
-            # pixMap.save(fullName)
-
-            # chan.setRange(rect, padding=0)
 
             chan.chanLabel.setVisible(True)
             chan.setHighlightFrame(self._highlightFrame)

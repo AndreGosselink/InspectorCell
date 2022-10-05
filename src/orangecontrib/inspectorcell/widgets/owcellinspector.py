@@ -3,37 +3,25 @@
 ### Build-Ins
 import os
 import sys
-from copy import copy, deepcopy
 from pathlib import Path
-import random
 import datetime
 from typing import Dict
 
-from Orange.widgets.utils.plot import OWButton, OWAction
-from scipy import misc
-import numpy as np
-
 ### Orange and Qt GUI elemetns
-from Orange.widgets.visualize.owscatterplotgraph import DiscretizedScale
-from Orange.widgets.widget import OWWidget, Input, Output, Msg
+from Orange.widgets.widget import OWWidget, Input, Msg
 from Orange.widgets import gui
 
-from Orange.data import (
-    Table as OTable, DiscreteVariable, StringVariable, ContinuousVariable,
-    Domain, Instance)
+from Orange.data import Table as OTable
 
-from Orange.widgets.settings import (
-    Setting, ContextSetting, DomainContextHandler, SettingProvider)
+from Orange.widgets.settings import ContextSetting
 
-from Orange.widgets.utils.itemmodels import DomainModel
 from Orange.widgets.utils.sql import check_sql_input
-from Orange.statistics.util import bincount
 
 from PyQt5.QtCore import pyqtSignal, pyqtSlot, QTimer, Qt
-from PyQt5.QtGui import QColor, QBrush, QPen, QIcon
+from PyQt5.QtGui import QColor, QIcon
 from PyQt5.QtWidgets import (
-    QStyle, QMenu, QSlider, QWidgetAction, QSpinBox, QWidget, QLabel,
-    QGridLayout, QFileDialog, QHBoxLayout, QToolButton, QAction, QButtonGroup)
+    QMenu, QWidgetAction, QSpinBox, QWidget, QLabel,
+    QFileDialog, QHBoxLayout, QButtonGroup)
 
 ### Project
 
@@ -46,8 +34,6 @@ if __name__ == '__main__':
     sys.path.insert(0, str(modpath))
 
 from inspectorcell import Controller
-from inspectorcell.util import EntityContour
-from inspectorcell.util.image import getImagedata
 
 
 class SelectRadiusWidget(QWidget):
