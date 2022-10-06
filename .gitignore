@@ -26,3 +26,5 @@ doc/source/changelog.rst
 icell_venv
 log.txt
 html_docs/*
+media/*
+**/*.jats

@@ -25,11 +25,9 @@ authors:
     affiliation: 2
 
 affiliations:
-  - name: Institute of Medical Statistics and Computational Biology, University of Cologne,
-Bachemer Str. 86, 50931 Cologne, Germany
+  - name: Institute of Medical Statistics and Computational Biology, University of Cologne, Bachemer Str. 86, 50931 Cologne, Germany
     index: 1
-  - name: R&D Department, Miltenyi Biotec B.V. & Co. KG,
-Friedrich Ebert Straße 68, 51429 Bergisch Gladbach, Germany
+  - name: R&D Department, Miltenyi Biotec B.V. & Co. KG, Friedrich Ebert Straße 68, 51429 Bergisch Gladbach, Germany
     index: 2
   - name: Center for Integrative Bioinformatics Vienna, Max Perutz Labs, University of Vienna, Medical University of Vienna, Dr. Bohr Gasse 9, 1030 Vienna, Austria
     index: 3
@@ -58,7 +56,7 @@ annotations is available at: https://doi.org/10.7303/syn37910913.2
 The cellular composition of tumors is of great scientific interest as the presence
 of tumor-infiltrating lymphocytes correlates with the survival of cancer patients
 [@Idos2020; @Santoiemma2015]. The cellular phenotypes can be investigated
-with multiplexed tissue imaging methods such as CODEX [@Goltsev2018] or MACSima$^{TM}$
+with multiplexed tissue imaging methods such as CODEX [@Goltsev2018] or MACSima™
 [@kinkhabwalaMACSimaImagingCyclic2022]. These techniques generate large stacks
 of images of the same tissue slice, where each image covers the intensity profile of a
 different marker. Segmentation then enables single-cell analysis to identify cell types
@@ -94,7 +92,7 @@ high-quality training and validation datasets needed in biological image analysi
 
 # Results
  We used InspectorCell to generate an exemplary training dataset from multiplexed immunofluorescence
-microscopy images of an ovarian cancer tissue section, obtained with the MACSima$^{TM}$ imaging platform
+microscopy images of an ovarian cancer tissue section, obtained with the MACSima™ imaging platform
 2
 (Miltenyi Biotec B.V. & Co. KG). The tissue was stained with Hoechst and 98 antibodies against various
 cluster of differentiation (CD) proteins, conjugated with phycoerythrin. For the generation of the
