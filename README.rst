@@ -60,9 +60,9 @@ To use InspectorCell as an application directly:
 
 Credits
 =======
-InspectorCell Version 0.2
+InspectorCell Version 0.3
 -------------------------
-| Copyright 2019-2020 (c) InspectorCell
+| Copyright 2019-2022 (c) InspectorCell
 | Developed by: Tatsiana Hofer and Andre Gosselink
 | 
 | Licensed under the Apache License, Version 2.0 (the "License");
