@@ -39,88 +39,24 @@ bibliography: paper.bib
 ---
 
 # Summary
+Multiplexed immunofluorescence microscopy gives deep insights into multiple characteristics of cells in biological samples relevant to fields like cancer research. These characteristics are often image intensities that reflect the expression of a marker on cell surfaces. Typical tasks in analyzing multiplexed microscopy images are the segmentation and quantification markers on cell surfaces in the biological sample. These tasks are only feasible with automation, often using trained machine learning models.
+However, training these models requires high-quality labeled datasets. With recent increases in image stack sizes, the generation of labeled datasets for supervised machine learning has become a significant bottleneck. InspectorCell alleviates this bottleneck by providing an intuitive, graphical interface for synchronized manual segmentation and annotation of cells in highly multiplexed microscopy images. The modular implementation of InspectorCell in Python enables tight integration into existing applications such as Orange3 or CellProfiler. An image dataset with exemplary annotations is available at: https://doi.org/10.7303/syn37910913.2
 
-Multiplexed immunofluorescence microscopy produces large image stacks of immunologic
-tissue sections. Cells in these stacks can be segmented and classified by supervised
-machine learning methods. However, training these models requires high-quality labeled
-datasets. With recent increases in image stack sizes, the generation of labeled datasets
-for supervised machine learning has become a major bottleneck. InspectorCell alleviates
-this bottleneck by providing an intuitive, graphical interface for synchronized manual
-segmentation and annotation of cells in highly multiplexed microscopy images.
-The modular implementation of InspectorCell in Python enables tight integration into
-existing applications such as Orange3 or CellProfiler. A image dataset with exampelary
-annotations is available at: https://doi.org/10.7303/syn37910913.2
 
-# Statement of need
+# Statement of Need
+The cellular composition of tumors is of great scientific interest as the presence of tumor-infiltrating lymphocytes correlates with the survival of cancer patients [@Idos2020; @Santoiemma2015]. Multiplexed tissue imaging methods like CODEX [@Goltsev2018] or MACSima™ [@Kinkhabwala2022] are used to investigate tumor samples' cellular characteristics. These techniques generate large image stacks of the same tumor sample slice, where each image covers the intensity profile of a specific cell surface marker. All cells in a tissue sample slice are categorized – for example, into cancer and immune cells – based on the cell surface marker intensities on each cell. This cell-based analysis for ever-growing large datasets seems to be only feasible with machine learning. However, a significant bottleneck when working with machine learning models is the lack of suitable multiplexed image datasets with segmented and quantified cells for model training.
 
-The cellular composition of tumors is of great scientific interest as the presence
-of tumor-infiltrating lymphocytes correlates with the survival of cancer patients
-[@Idos2020; @Santoiemma2015]. The cellular phenotypes can be investigated
-with multiplexed tissue imaging methods such as CODEX [@Goltsev2018] or MACSima™
-[@kinkhabwalaMACSimaImagingCyclic2022]. These techniques generate large stacks
-of images of the same tissue slice, where each image covers the intensity profile of a
-different marker. Segmentation then enables single-cell analysis to identify cell types
-by spatially co-localized markers. Once the datasets are segmented and annotated for the
-presence of the markers, they can be used in supervised machine learning for feature
-extraction and classification tasks. Nevertheless, this workflow has a bottleneck already
-in generating segmented and annotated training data because current software does not
-provide synchronized viewing, editing, and annotation of multiple images.
+Generating these datasets is time-consuming and cumbersome because current software does not integrate synchronized viewing, editing, and annotation of multiple images simultaneously. While it is possible to edit cell segments in CellProfiler [@Carpenter2006], only a single channel can be evaluated simultaneously. FIJI [@Schindelin2012] displays several immune images in parallel, but the different views on the images are not synchronized. An annotation or change of a cell segment must be performed in each window individually, but finding the exact location of a single cell in all images is cumbersome. Applications like ilastik [@Sommer2011] or CellPose [@Stringer2021]  fuse the analysis of images with the training of a machine learning model. However, a user can evaluate only one image at a time, and the generated data is not viable for subsequent model training.
 
-While it is possible to edit cell segments in CellProfiler [@Carpenter2006], only a single
-channel can be evaluated simultaneously. In FIJI [@Schindelin2012] cells can be
-annotated when several immune staining images are displayed in parallel. However, the
-different views of the sample are not synchronized. An annotation or change
-of a cell segment must be performed in each window individually, but finding the same
-location on all images is very difficult. In ilastik [@Sommer2011]
-the generation of training datasets are fused to the training of a machine learning
-classifier. However, the user can evaluate only one image at a time and therefore misses
-information necessary for annotation. Hence, a synchronized overview of all channels of
-the image stack is crucial for evaluating or editing a cell segmentation. Such an overview
-is also needed for annotating the localized marker expression as high or low intensity
-for each image of the stack. With InspectorCell we provide a solution for efficient manual
-segmentation and annotation of large image stacks. The modular implementation in Python 3
-enables extension to existing software solutions such as CellProfiler.
+We used InspectorCell to manually analyze cells in multiplexed immunofluorescence microscopy images of an ovarian cancer tissue slice obtained with the MACSima™ imaging platform. The tissue was stained with 99 cell markers, and a subset of the dataset is freely available. An initial cell segmentation was generated with CellProfiler and imported into InspectorCell. The cell segmentations were refined, and the cell marker expressions were quantified (fig. \autoref{fig:featandflow}a). In the initial CellProfiler segments were 1960 cells, and after refinement with InspectorCell, only 1750 cells remained. Among the immunological analysis results, we obtained a ground truth training dataset for subsequent model training, e.g., for continuous training of the CellPose model.
 
-The primary benefit of using InspectorCell is the ability to view cells within the
-context of multiple immunomarkers. It accelerates manual segmentation and annotation of cells in multiplexed immunoflu-
-orescence images. Expert immunologists can use it to evaluate immunological and morphological
-information of cells at a glance to rapidly generate high-quality cell segmentations with annotations.
-This can be saved as a JSON file for downstream applications or stored in databases.
-The application addresses the need for software solutions to generate ground truth training datasets
-of highly multiplexed immunofluorescence images. InspectorCell accelerates the ad-hoc creation of
-high-quality training and validation datasets needed in biological image analysis by machine learning.
+A synchronized overview over multiple images with editing capabilities for single-cell segmentation and quantification made this manual analysis possible. With InspectorCell, we provide a solution for efficient manual segmentation and annotation of large image stacks. The primary benefit of InspectorCell is the ability to view cells within the context of multiple cell markers, which accelerates manual analysis of cells in large image stacks. Expert immunologists can use InspectorCell to evaluate various cell characteristics at a glance and simultaneously generate high-quality training data.
 
-# Results
- We used InspectorCell to generate an exemplary training dataset from multiplexed immunofluorescence
-microscopy images of an ovarian cancer tissue section, obtained with the MACSima™ imaging platform
-2
-(Miltenyi Biotec B.V. & Co. KG). The tissue was stained with Hoechst and 98 antibodies against various
-cluster of differentiation (CD) proteins, conjugated with phycoerythrin. For the generation of the
-training dataset CD103, CD3, CD326, CD4, CD45, and CD8 were evaluated. A pixel-based segmentation
-map was generated with CellProfiler. The immunofluorescence images
-and segmentations were imported into InspectorCell (fig. \autoref{fig:featandflow}a).
-A typical problem in the CellProfiler output was oversegmentation, which was corrected with Inspec-
-torCell by merging (fig. \autoref{fig:featandflow}b). Furthermore, some segments were extended to encompass the complete
-area of distinctly stained cells (fig. \autoref{fig:featandflow}c). Finally, annotations were directly applied to the cell segments,
-using keyboard shortcuts. The segmentation map that resulted from this workflow was compared to the
-initial CellProfiler segmentation. From the initial 1960 segments, only 1750 remained after correction.
-Thus, at least 10 % of the segments in this example have originally been over-segmented. Since we elimi-
-nated the bias of oversegmentation, we anticipate better performance in machine learning applications
-with our InspectorCell derived ground truth dataset than with the original oversegmented single cell
-data as a training dataset.
 
 # Figures
 
-![Exemplary use cases of InspectorCell. Segmentation of image stacks are generated with CellProfiler
-and opened with InspectorCell. (a) Six immunofluorescence images of the image stack are displayed side-
-by-side in a 3×2 grid. Cell segments are displayed as blue polygons (top). A synchronized multi cursor
-(orange) is a visual anchor in all channels. The CD3 channel (lower middle) is enlarged below the main
-window. The cell segment annotation is editable and displayed for the active cell segment in green font. (b)
-Over-segmentation can be merged with a single keystroke after mouse selection. (c) A cell segment (light
-blue) can be edited to embrace the marker signal area attributable to a distinct cell. Multiple segments can
-enclose the same areas to reflect cell overlaps and interactions. The manual edits of cell segmentations and
-annotations are saved in a single JSON file. Additionally, the JSON file can store extracted cell features, for
-example, mean pixel intensities. The JSON file is in plain text and can be readily used in downstream analysis.\label{fig:featandflow}](doc/fig/featandflow.svg)
+![Exemplary use cases of InspectorCell. Segmentation of image stacks are generated with CellProfiler and opened with InspectorCell. (a) Six immunofluorescence images of the image stack are displayed side- by-side in a 3×2 grid. Cell segments are displayed as blue polygons (top). A synchronized multi cursor (orange) is a visual anchor in all channels. The CD3 channel (lower middle) is enlarged below the main window. The cell segment annotation is editable and displayed for the active cell segment in green font. (b) Over-segmentation can be merged with a single keystroke after mouse selection. (c) A cell segment (light blue) can be edited to embrace the marker signal area attributable to a distinct cell. Multiple segments can enclose the same areas to reflect cell overlaps and interactions. The manual edits of cell segmentations and annotations are saved in a single JSON file. Additionally, the JSON file can store extracted cell features, for example, mean pixel intensities. The JSON file is in plain text and can be readily used in downstream analysis.
+\label{fig:featandflow}](doc/fig/featandflow.svg){ width=80% }
 
 # Acknowledgements
 
