@@ -2,7 +2,7 @@ InspectorCell
 =============
 InspectorCell provides an efficient workflow and graphical interface to generate high-quality training datasets from
 highly multiplexed microscopy images.
-InspectorCell is developed for manual analysis of large image stacks. It allows straightforward segmentation and annotation of
+InspectorCell is developed for the manual analysis of large image stacks. It allows straightforward segmentation and annotation of
 e.g., cells found in multiplexed microscopy images. 
 It can be used as a library for direct embedding in Python 3 applications. It already comes with such an implementation as
 Orange3 Plug-In. This project implements the GUI application and depends on/uses `MiscMics <https://gitlab.com/InspectorCell/miscmics>`_: A standalone project that allows for headless usage and processing of data generated with InspectorCell.
@@ -34,6 +34,9 @@ Dataset
 -------
 A small annotated dataset can be found at `Synapse <https://www.synapse.org/#!Synapse:syn21958516/files/>`_
 
+Reporting Issues
+---------------
+If you find any bugs or if you have suggestions for features, please feel free to create an issue at `gitlab <https://gitlab.com/InspectorCell/inspectorcell/-/issues>`_ 
 
 Preview
 -------
