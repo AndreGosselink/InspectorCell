@@ -4,9 +4,21 @@ The easises way to install InspectorCell is via conda, a package system
 that not only manages Python, but also binary dependencies. It comes as
 slim lightweight distribution `miniconda <https://docs.conda.io/en/latest/miniconda.html>`_
 or as full distribution plattform `anaconda <https://www.anaconda.com/>`_
+Installation via pip and python virtual environment is possible, but might invole extra steps not covered in this documentation.
 
-Automated icell script
-----------------------
+As a very first step, checkout the InspectorCell repository and change dir into it
+
+.. code-block:: bash
+
+    $> git clone https://gitlab.com/InspectorCell/inspectorcell.git
+
+    $> cd inspectorcell
+
+There, on linux you can use the icell utility script, or install by hand
+
+
+Bash install script `icell` 
+---------------------------
 For your convenience, there is an automated installation script, which creates
 a local virtual environment to install InspectorCell with Orange3 and all dependencies
 
@@ -25,9 +37,27 @@ a local virtual environment to install InspectorCell with Orange3 and all depend
          t                 Run unit and integration tests (will install pytest)
          v                 Print version strings and exit
 
-By hand
--------
-With conda after installtion into a local environment
+Installation of InspectorCell and all its dependencies can be done using conda or Python 3.7 Virtual environmen (If you want a Python venv, have Python 3.7 installed, but you have an error, check that there is a link from `python3.7` to `python`)
+
+Installing and running InspectorCell via conda:
+
+.. code-block:: bash
+    
+    $> ./icell -i conda   # install
+    ...
+    $> ./icell            # run
+
+Installing and running InspectorCell via pythone virtual environment
+
+.. code-block:: bash
+    
+    $> ./icell -i venv   # install
+    ...
+    $> ./icell            # run
+
+By hand using conda
+-------------------
+You will need conda installed and added to your PATH environment.
 
 .. code-block:: bash
 
@@ -53,8 +83,75 @@ Or activate the conda environment and start Oragne3 by hand
    $> conda activate icell_venv
    $> python -m Orange.canvas
 
-Pitfalls
---------
+By hand using venv
+------------------
+You will need Python 3.7 installed and added to your PATH environment. Python version larger
+than 3.7 should also work, but aren't tested. Expect dependency conflicts.
+
+Create a python virtual environment
+
+.. code-block:: bash
+
+   $> python -m venv icell_venv
+
+activate the environment and install the dependencies
+
+.. code-block:: bash
+
+   $> source icel_venv/bin/activate                         # activate venv
+   
+   $> python -m pip install --upgrade pip                   # (optional, upgrade pip)
+   
+   $> python -m pip install -r requirements.txt             # install dependencies
+
+   $> python -m pip install . --force-reinstall --no-deps   # install dependencies
+
+To start inspectorcell you can either use the icell script
+
+.. code-block:: bash
+
+   $> ./icell
+
+Or activate the cirtual environment and start Oragne3 by hand
+
+.. code-block:: bash
+
+   $> source icel_venv/bin/activate
+
+   $> python -m Orange.canvas
+
+Now you can install InspectorCell via drag and drop as described in the :ref:`Quick Guide`
+Alternatively, you can now install InspectorCell and its dependencies via 
+
+.. code-block:: bash
+
+   $> pip install . --force-reinstall --no-deps
+
+To start inspectorcell you can either use the icell script
+
+.. code-block:: bash
+
+   $> ./icell
+
+Or activate the conda environment and start Oragne3 by hand
+
+.. code-block:: bash
+
+   $> conda activate icell_venv
+   $> python -m Orange.canvas
+
+
+Troubleshoots
+-------------
+How to get a commandline?
+^^^^^^^^^^^^^^^^^^^^^^^^^
+Got to the folder/directory where you want to use the commandline. In Windows 7 
+and later, click into the address bar of the explorer. Type ``cmd`` and hit
+enter. Windows cmd commandline will open.
+
+On linux, just rightclick on into the window. Most distributions have an option
+``Open Terminal here...``
+
 Missing Libraries
 ^^^^^^^^^^^^^^^^^
 The GUI elements in InspectorCell depend on the Qt Framework. If you get an
@@ -64,8 +161,7 @@ error like
 
    ImportError: Compiled libraries cannot be found.
 
-the Qt libraries might be missing. We suggest to install `PyQt5`, but any Qt
-library covered by `AnyQt` should work. Using conda you do:
+the Qt libraries might be missing. We suggest to install `PyQt5`. Using conda you do:
 
 .. code-block:: bash
 
@@ -83,13 +179,5 @@ Sometimes the Python is installed with elevated privileges. This might
 prevent installations due to lack of permission. To solve this:
 
 - Use an virtual environment `venv <https://docs.python.org/3/library/venv.html>`_ 
-- Install as user (`--user`) with `pip install  --user  inspectorcell-0.2.X-py3-none-any.whl`
+- Install as user (`--user`) with `pip install  --user xxx`
 
-How to get a commandline?
-^^^^^^^^^^^^^^^^^^^^^^^^^
-Got to the folder/directory where you want to use the commandline. In Windows 7 
-and later, click into the address bar of the explorer. Type ``cmd`` and hit
-enter. Windows cmd commandline will open.
-
-On linux, just rightclick on into the window. Most distributions have an option
-``Open Terminal here...``
