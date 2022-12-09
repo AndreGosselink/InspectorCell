@@ -1,3 +1,11 @@
+.. image:: https://joss.theoj.org/papers/ebee9f66755a029ccb79b6112ad01ae4/status.svg
+    :target: https://joss.theoj.org/papers/ebee9f66755a029ccb79b6112ad01ae4
+    :alt: Journal of Open Source Software
+
+.. image:: https://readthedocs.org/projects/inspectorcell/badge/?version=latest
+    :target: https://inspectorcell.readthedocs.io/en/latest/?badge=latest
+    :alt: Documentation Status
+
 InspectorCell
 =============
 InspectorCell provides an efficient workflow and graphical interface to generate high-quality training datasets from

@@ -21,7 +21,7 @@ from .util.image import getImagedata
 
 
 class Controller():
-    """Cotrols the app, including data and gui. Every feature should be
+    """Controls the app, including data and gui. Every feature should be
     in principle triggerable by this class
 
     controlls view and entities
