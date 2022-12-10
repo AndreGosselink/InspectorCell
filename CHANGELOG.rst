@@ -1,10 +1,14 @@
 Changelog
 =========
 
+Version 0.3.2.rc1
+-------------
+* Small typos in documentation
+* CI pipelines
+
 Version 0.3.1
 -------------
 * Documentation
-* Removed AnyQt 
 
 Version 0.3.0
 -------------

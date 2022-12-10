@@ -54,7 +54,7 @@ function usage () {
   printf "%-13s%s\n" "" "$(basename $0) -[hrv]"
   printf "Options:\n"
   _fmt "h" "This help"
-  _fmt "i <variant>" "Install into '${VENVDIR}' using <env> = 'conda', 'mamba' or 'venv'"
+  _fmt "i <variant>" "Install <variant> ('conda', 'mamba' or 'venv') into '${VENVDIR}'"
   _fmt "r" "remove installed environment, if exists"
   _fmt "c <cmd>" "Activate environment and run <cmd> "
   _fmt "d" "Build and open the HTML documentation (will install sphinx)"
