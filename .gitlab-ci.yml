@@ -1,0 +1,60 @@
+# This file is a template, and might need editing before it works on your project.
+# To contribute improvements to CI/CD templates, please follow the Development guide at:
+# https://docs.gitlab.com/ee/development/cicd/templates.html
+# This specific template is located at:
+# https://gitlab.com/gitlab-org/gitlab/-/blob/master/lib/gitlab/ci/templates/Python.gitlab-ci.yml
+
+# Official language image. Look for the different tagged releases at:
+# https://hub.docker.com/r/library/python/tags/
+image: python:3.7-bullseye
+
+variables:
+  PIP_CACHE_DIR: "$CI_PROJECT_DIR/.cache/pip"
+
+cache:
+  paths:
+    - .cache/pip
+    - ci-venv/
+
+before_script:
+  - apt-get update && apt-get install -y -qq xvfb libgl1-mesa-dev libgl1-mesa-glx mesa-utils
+  - python -m venv ci-venv
+  - source ci-venv/bin/activate
+  - pip install -r requirements.txt
+  - sleep 1
+
+test:
+  variables:
+    QT_QPA_PLATFORM: "offscreen"
+    DISPLAY: ":99.0"
+  script:
+    - >
+      /sbin/start-stop-daemon --start --quiet --pidfile /tmp/custom_xvfb_99.pid --make-pidfile --background --exec /usr/bin/Xvfb -- :99
+      -screen 0 1920x1200x24 -ac +extension GLX +render -noreset
+    - sleep 3
+    - pytest --junitxml=test-report.xml
+  artifacts:
+    when: always
+    paths:
+      - test-report.xml
+    reports:
+      junit: test-report.xml
+
+run:
+  script:
+    - python setup.py bdist_wheel
+    - python setup.py sdist --formats=gztar,zip
+  artifacts:
+    paths:
+      - dist/*.whl
+      - dist/*.zip
+      - dist/*.tar.gz
+
+# htmldoc:
+#   script:
+#     - cd doc
+#     - pip install pillow mock alabaster sphinx sphinx-rtd-theme
+#     - make html
+#   artifacts:
+#     paths:
+#       - doc/build/html/**/*

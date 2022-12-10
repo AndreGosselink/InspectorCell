@@ -9,7 +9,7 @@ import numpy as np
 from inspectorcell.control import Controller
 
 
-def testEntityDataGen(qtbot):
+def test_entity_data_gen(qtbot):
     """test if mailfromed data raises errors correctly
     """
     path = np.array([[0, 0], [0, 5], [5, 5], [5, 0]])
