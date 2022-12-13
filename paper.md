@@ -20,13 +20,13 @@ authors:
     affiliation: 2
 
 affiliations:
-  - name: Institute of Medical Statistics and Computational Biology, University of Cologne, Bachemer Str. 86, 50931 Cologne, Germany
+  - name: Institute of Medical Statistics and Computational Biology, Faculty of Medicine, University of Cologne, Cologne, Germany
     index: 1
-  - name: R&D Department, Miltenyi Biotec B.V. & Co. KG, Friedrich Ebert Straße 68, 51429 Bergisch Gladbach, Germany
+  - name: R&D Department, Miltenyi Biotec B.V. & Co. KG, Bergisch Gladbach, Germany
     index: 2
-  - name: Center for Integrative Bioinformatics Vienna, Max Perutz Labs, University of Vienna, Medical University of Vienna, Dr. Bohr Gasse 9, 1030 Vienna, Austria
+  - name: Center for Integrative Bioinformatics Vienna, Max Perutz Labs, University of Vienna, Medical University of Vienna, Vienna, Austria
     index: 3
-  - name: Faculty of Computer Science, University of Vienna, Währinger Str. 29, 1090 Vienna, Austria
+  - name: Faculty of Computer Science, University of Vienna, Vienna, Austria
     index: 4
 date: 05 October 2022
 bibliography: paper.bib
